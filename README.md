@@ -34,19 +34,24 @@ Notes:
 
 From project root (/home/omar/Project/chess):
 
-- Build release:
+- Build (release):
   ```
   make
   ```
 
-- Build debug (binary named `debugChess`):
+- Build (debug):
   ```
   make debug
   ```
 
-- Run the build target:
+- Run the release build:
   ```
   make run
+  ```
+
+- Run the debug build:
+  ```
+  make run-debug
   ```
 
 Binaries and object files are placed under `build/`.
@@ -57,6 +62,7 @@ Binaries and object files are placed under `build/`.
 - draw.c/.h   — board layout, piece loading and drawing helpers
 - main.h      — core types (Piece, Cell, PieceType, Team)
 - colors.h    — ColorPair palette and named colors
+- load.c/.h    — Add the ability to read FEN chess format
 - assets/     — put piece images here (see naming below)
 - Makefile    — build rules
 

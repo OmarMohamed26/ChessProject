@@ -47,7 +47,6 @@ typedef struct Piece
     Team team;         /* TEAM_WHITE / TEAM_BLACK */
     char hasMoved;     /* boolean: moved before (castling/pawn) */
     char enPassant;    /* boolean: pawn is vulnerable to en-passant */
-    int spriteId;      /* optional sprite atlas index */
     Texture2D texture; /* GPU texture; texture.id == 0 means "no texture" */
 } Piece;
 

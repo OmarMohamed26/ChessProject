@@ -74,8 +74,6 @@ static void displayPieces(void);
  */
 void DrawBoard(int ColorTheme)
 {
-
-    // Screen Measurements for beautiful chess alignment with any given width and height
     ColorPair theme = PALETTE[ColorTheme];
     float squareCount = 8 + SPACETEXT;
     int squareLength = ComputeSquareLength();
@@ -83,13 +81,13 @@ void DrawBoard(int ColorTheme)
 
     InitializeCellsPos(extra, squareLength, SPACETEXT);
 
-    // Draw the chess board
-    for (int i = 0; i < 8; i++)
+    // Draw the chess board (row = y, col = x)
+    for (int row = 0; row < 8; row++)
     {
-        for (int j = 0; j < 8; j++)
+        for (int col = 0; col < 8; col++)
         {
-            Color col = ((i + j) & 1) ? theme.black : theme.white;
-            DrawRectangleV(GameBoard[i][j].pos, (Vector2){squareLength, squareLength}, col);
+            Color colr = ((row + col) & 1) ? theme.black : theme.white;
+            DrawRectangleV(GameBoard[row][col].pos, (Vector2){squareLength, squareLength}, colr);
         }
     }
 
@@ -194,8 +192,10 @@ static void LoadHelper(char *pieceNameBuffer, int bufferSize, const char *pieceN
     if (GameBoard[row][col].piece.texture.id != 0)
         UnloadTexture(GameBoard[row][col].piece.texture);
 
+    // Add the piece to the GameBoard
     GameBoard[row][col].piece.texture = tex;
     GameBoard[row][col].piece.type = type;
+    GameBoard[row][col].piece.team = team;
 }
 
 /**
@@ -208,13 +208,14 @@ static void LoadHelper(char *pieceNameBuffer, int bufferSize, const char *pieceN
  */
 static void displayPieces(void)
 {
-    for (int i = 0; i < 8; i++)
+    // Draw pieces using same row/col ordering
+    for (int row = 0; row < 8; row++)
     {
-        for (int j = 0; j < 8; j++)
+        for (int col = 0; col < 8; col++)
         {
-            if (GameBoard[i][j].piece.type != PIECE_NONE)
+            if (GameBoard[row][col].piece.type != PIECE_NONE)
             {
-                DrawTextureV(GameBoard[i][j].piece.texture, GameBoard[i][j].pos, WHITE);
+                DrawTextureV(GameBoard[row][col].piece.texture, GameBoard[row][col].pos, WHITE);
             }
         }
     }
@@ -235,11 +236,15 @@ static void displayPieces(void)
  */
 static void InitializeCellsPos(int extra, int squareLength, float spaceText)
 {
-    for (int i = 0; i < 8; i++)
+    // row = y, col = x
+    for (int row = 0; row < 8; row++)
     {
-        for (int j = 0; j < 8; j++)
+        for (int col = 0; col < 8; col++)
         {
-            GameBoard[i][j].pos = (Vector2){extra + squareLength * spaceText / 2 + i * squareLength, j * squareLength + squareLength * spaceText / 2};
+            GameBoard[row][col].pos = (Vector2){
+                extra + squareLength * spaceText / 2 + col * squareLength, // x = col
+                row * squareLength + squareLength * spaceText / 2          // y = row
+            };
         }
     }
 }

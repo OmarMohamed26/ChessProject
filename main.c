@@ -18,6 +18,8 @@
 #include "colors.h"
 #include "draw.h"
 #include "main.h"
+#include "load.h"
+#include <string.h>
 
 /* Global board state accessible to draw.c and other modules. */
 Cell GameBoard[8][8];
@@ -31,7 +33,8 @@ int main(void)
 
     SetTargetFPS(60);
 
-    LoadPiece(0, 0, PIECE_KING, TEAM_WHITE, ComputeSquareLength());
+    char standard_game[] = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR";
+    ReadFEN(standard_game, strlen(standard_game));
 
     char firstTime = 1;
 
