@@ -1,3 +1,41 @@
+/**
+ * draw.c
+ *
+ * Responsibilities:
+ * - Compute board layout and cell positions based on current window size.
+ * - Render the chess board and pieces.
+ * - Load piece images from disk, convert to Texture2D and assign them to GameBoard cells.
+ *
+ * Public functions (exported in draw.h):
+ * - void DrawBoard(int ColorTheme);
+ *     Renders the board and all pieces. Should be called each frame inside
+ *     BeginDrawing()/EndDrawing(). Computes layout for the current window size
+ *     and calls display routines.
+ *
+ * - void LoadPiece(int row, int col, PieceType type, Team team, int squareLength);
+ *     Loads a piece image from assets/ and assigns the resulting Texture2D to
+ *     GameBoard[row][col].piece.texture. If a texture already exists in that
+ *     cell it is UnloadTexture()'d before assignment. Caller must ensure row/col
+ *     are in [0,7]. `squareLength` controls image resize dimensions.
+ *
+ * - int ComputeSquareLength(void);
+ *     Returns the computed size (in pixels) of a single board square using the
+ *     current render width/height. Useful to compute positions/resources from
+ *     main after InitWindow() or after a resize event.
+ *
+ * Notes / conventions:
+ * - Filenames are generated as "assets/<piece><W|B>.png" (example: assets/kingW.png).
+ * - TrimTrailingWhitespace removes trailing whitespace (useful if names come from
+ *   user input). On Linux trailing spaces are significant in filenames so avoid them.
+ * - LoadPiece will log warnings on failure (TraceLog). After LoadPiece returns,
+ *   check GameBoard[row][col].piece.texture.id to confirm success (non-zero).
+ * - This module uses static (file-local) helper functions. None of them are
+ *   thread-safe; all operations are expected to be called from the main thread.
+ *
+ * Change minimalism:
+ * - This file only adds documentation/comments; no functional changes are made.
+ */
+
 #include <raylib.h>
 #include <string.h>
 #include <ctype.h>
@@ -17,16 +55,32 @@ static void InitializeCellsPos(int extra, int squareLength, float spaceText);
 static size_t TrimTrailingWhitespace(char *s);
 static void displayPieces(void);
 
+// This constant determines How much space is left for the text in terms of squareLength
 #define SPACETEXT 0.5f
 
+/**
+ * DrawBoard
+ *
+ * Compute layout based on current render size and draw the board and pieces.
+ *
+ * Parameters:
+ *  - ColorTheme: index into PALETTE (colors.h)
+ *
+ * Behavior:
+ *  - Calls ComputeSquareLength() to obtain square size (in pixels).
+ *  - Initializes cell positions (InitializeCellsPos) using the computed values.
+ *  - Draws the 8x8 board using the chosen ColorPair.
+ *  - Calls displayPieces() to render piece textures at computed positions.
+ */
 void DrawBoard(int ColorTheme)
 {
+
+    // Screen Measurements for beautiful chess alignment with any given width and height
     ColorPair theme = PALETTE[ColorTheme];
     float squareCount = 8 + SPACETEXT;
     int squareLength = ComputeSquareLength(&squareCount);
     int extra = (GetRenderWidth() - squareCount * squareLength) / 2;
 
-    // if (IsWindowResized())
     InitializeCellsPos(extra, squareLength, SPACETEXT);
 
     // Draw the chess board
@@ -42,6 +96,22 @@ void DrawBoard(int ColorTheme)
     displayPieces();
 }
 
+/**
+ * LoadPiece
+ *
+ * Public helper to load a piece texture and store it in GameBoard[row][col].
+ * It selects the filename by piece type and team and delegates to LoadHelper.
+ *
+ * Parameters:
+ *  - row, col : board coordinates (0..7)
+ *  - type     : PieceType enum
+ *  - team     : TEAM_WHITE or TEAM_BLACK
+ *  - squareLength : desired texture dimension (square)
+ *
+ * Safety:
+ *  - Performs bounds check on row/col.
+ *  - LoadHelper handles logging and texture assignment.
+ */
 void LoadPiece(int row, int col, PieceType type, Team team, int squareLength)
 {
     if (row < 0 || row >= 8 || col < 0 || col >= 8)
@@ -74,8 +144,26 @@ void LoadPiece(int row, int col, PieceType type, Team team, int squareLength)
     }
 }
 
+/**
+ * LoadHelper (static)
+ *
+ * Build filename, load image, resize, create texture, and assign to GameBoard cell.
+ * This function logs failures and ensures any existing texture in the target cell
+ * is unloaded before assigning the new one.
+ *
+ * Parameters:
+ *  - pieceNameBuffer, bufferSize: output buffer for the generated filename
+ *  - pieceName: base name (e.g. "king", "pawn")
+ *  - team: TEAM_WHITE/TEAM_BLACK
+ *  - squareLength: resize dimension
+ *  - row/col: target cell coordinates
+ *  - type: PieceType to set on the cell
+ */
 static void LoadHelper(char *pieceNameBuffer, int bufferSize, const char *pieceName, Team team, int squareLength, int row, int col, PieceType type)
 {
+    /*This function loads the texture for any given piece correctly and handles errors
+    and puts a new texture if one already exists at this cell*/
+
     int n = snprintf(pieceNameBuffer, (size_t)bufferSize, "assets/%s%c.png", pieceName, (team == TEAM_WHITE) ? 'W' : 'B');
     if (n < 0)
         return;
@@ -110,6 +198,14 @@ static void LoadHelper(char *pieceNameBuffer, int bufferSize, const char *pieceN
     GameBoard[row][col].piece.type = type;
 }
 
+/**
+ * displayPieces (static)
+ *
+ * Draw all loaded piece textures stored in GameBoard. If a cell's piece type
+ * is PIECE_NONE it is skipped. Uses DrawTextureV to place the texture at the
+ * precomputed GameBoard[row][col].pos position.
+ *
+ */
 static void displayPieces(void)
 {
     for (int i = 0; i < 8; i++)
@@ -124,6 +220,19 @@ static void displayPieces(void)
     }
 }
 
+/**
+ * InitializeCellsPos (static)
+ *
+ * Compute and store the top-left position (Vector2) for each board cell in GameBoard.
+ *
+ * Parameters:
+ *  - extra: horizontal offset to center the board
+ *  - squareLength: size of each square in pixels
+ *  - spaceText: fractional extra space used when computing board layout (SPACETEXT)
+ *
+ * Calling pattern:
+ *  - Compute squareLength and extra in DrawBoard (or main), then call this to set positions.
+ */
 static void InitializeCellsPos(int extra, int squareLength, float spaceText)
 {
     for (int i = 0; i < 8; i++)
@@ -135,6 +244,15 @@ static void InitializeCellsPos(int extra, int squareLength, float spaceText)
     }
 }
 
+/**
+ * TrimTrailingWhitespace (static)
+ *
+ * Remove trailing whitespace from a NUL-terminated C string in-place and return the new length.
+ * Whitespace is tested with isspace((unsigned char)c).
+ *
+ * Returns:
+ *  - new length (size_t) after trimming.
+ */
 static size_t TrimTrailingWhitespace(char *s)
 {
     // Check to see if it's an empty sting
@@ -147,11 +265,24 @@ static size_t TrimTrailingWhitespace(char *s)
     return len;
 }
 
+/**
+ * Min2 (static)
+ *
+ * Return the smaller of two ints.
+ */
 static int Min2(int x, int y)
 {
     return x < y ? x : y;
 }
 
+/**
+ * ComputeSquareLength
+ *
+ * Public helper to compute a reasonable square size given the current render
+ * width/height and the SPACETEXT constant. This is useful to compute positions
+ * or to pass to LoadPiece from main after InitWindow() so that resource sizing
+ * and layout logic agree.
+ */
 int ComputeSquareLength()
 {
     float squareCount = 8 + SPACETEXT;

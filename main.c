@@ -1,9 +1,25 @@
+/*
+ * main.c
+ *
+ * Entry point: window setup, main loop, layout update and initial piece loading.
+ *
+ * Notes:
+ * - Create the window (InitWindow) before calling ComputeSquareLength or loading
+ *   resources that depend on render size.
+ * - Recompute layout after resize (IsWindowResized) and update positions/textures
+ *   as needed.
+ * - GameBoard is the global board state (defined below) used by draw.c.
+ */
+
 #include <raylib.h>
+#ifdef DEBUG
 #include <stdio.h>
+#endif
 #include "colors.h"
 #include "draw.h"
 #include "main.h"
 
+/* Global board state accessible to draw.c and other modules. */
 Cell GameBoard[8][8];
 
 int main(void)
@@ -16,7 +32,8 @@ int main(void)
     SetTargetFPS(60);
 
     LoadPiece(0, 0, PIECE_KING, TEAM_WHITE, ComputeSquareLength());
-    // LoadPiece(0, 0, PIECE_KING, TEAM_WHITE, 100);
+
+    char firstTime = 1;
 
 #ifdef DEBUG
     for (int i = 0; i < 8; i++)
@@ -35,8 +52,12 @@ int main(void)
             LoadPiece(0, 0, PIECE_KING, TEAM_WHITE, ComputeSquareLength());
 
         BeginDrawing();
-        ClearBackground(BACKGROUND);
-        DrawBoard(THEME_BROWN);
+        if (IsWindowResized() || firstTime)
+        {
+            ClearBackground(BACKGROUND);
+            DrawBoard(THEME_BROWN);
+            firstTime = 0;
+        }
         EndDrawing();
     }
 

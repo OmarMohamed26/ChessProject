@@ -1,3 +1,14 @@
+/*
+ * colors.h
+ *
+ * Small header that centralizes color definitions and named color constants
+ * used across the project. Keep this header minimal and include <raylib.h>
+ * so consumers have the Color type available.
+ *
+ * Conventions:
+ * - Macros define Color literals; treat them as read-only values.
+ * - Filenames / other modules reference these macros or build ColorPair arrays.
+ */
 #ifndef COLORS_H
 #define COLORS_H
 
