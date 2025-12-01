@@ -1,9 +1,52 @@
+/**
+ * load.c
+ *
+ * Responsibilities:
+ * - Parse a FEN (Forsyth–Edwards Notation) piece placement string and populate
+ *   the global GameBoard with the corresponding pieces using LoadPiece().
+ * - Interpret digits as empty squares, '/' as rank separators, and letters as
+ *   piece identifiers (uppercase = white, lowercase = black).
+ *
+ * Conventions / Notes:
+ * - This parser treats the first FEN rank as rank 0 (top of the board). If the
+ *   project's board origin differs (row 0 at bottom), adjust the rank mapping.
+ * - Only piece placement is parsed; other FEN fields (active color, castling,
+ *   en passant, halfmove/fullmove) are ignored by this function.
+ * - Out-of-range files/ranks are clamped/ignored to avoid writes outside GameBoard.
+ */
+
 #include "main.h"
 #include "draw.h"
 #include <ctype.h>
 
 extern Cell GameBoard[8][8];
 
+/**
+ * ReadFEN
+ *
+ * Parse the piece-placement portion of a FEN string and place pieces on GameBoard.
+ *
+ * Parameters:
+ *  - FENstring : pointer to a NUL-terminated or length-limited FEN substring.
+ *  - size      : maximum number of characters to read from FENstring.
+ *
+ * Behavior:
+ *  - Reads up to 'size' characters or until a NUL terminator is encountered.
+ *  - Interprets digits '1'..'8' as that many consecutive empty squares (files).
+ *  - '/' advances to the next rank (increments internal rank counter).
+ *  - Letters map to piece types: p, r, n, b, q, k (case-insensitive). Uppercase
+ *    letters are treated as TEAM_WHITE, lowercase as TEAM_BLACK.
+ *  - Calls LoadPiece(row, col, PieceType, Team) for each piece placed.
+ *
+ * Safety:
+ *  - If computed file index exceeds 8 it is clamped to 8 and parsing continues.
+ *  - If computed row/col are outside [0,7], the character is skipped and parsing
+ *    continues without writing to GameBoard.
+ *
+ * Notes:
+ *  - This function only writes piece placement; it does not clear or reset other
+ *    board state (call InitializeBoard/UnloadBoard as appropriate before use).
+ */
 void ReadFEN(const char *FENstring, int size)
 {
     int row, col;

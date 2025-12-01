@@ -1,6 +1,6 @@
 # Chess (raylib) — Project README
 
-Small chess demo using raylib. This repository contains rendering, piece loading and simple board layout code.
+Small chess demo using raylib. This repository contains rendering, piece loading, simple board layout, FEN parsing, and basic input handling.
 
 ## Requirements
 
@@ -59,16 +59,49 @@ Binaries and object files are placed under `build/`.
 ## Project layout
 
 - main.c      — program entry, window setup and main loop
-- draw.c/.h   — board layout, piece loading and drawing helpers
+- draw.c/.h   — board layout, piece loading, drawing helpers and simple input selection handling
 - main.h      — core types (Piece, Cell, PieceType, Team)
 - colors.h    — ColorPair palette and named colors
-- load.c/.h    — Add the ability to read FEN chess format
+- load.c/.h   — FEN reader (ReadFEN)
+- move.c/.h   — MovePiece and SetEmptyCell helpers
 - assets/     — put piece images here (see naming below)
 - Makefile    — build rules
 
+## Public API / Important functions
+
+(The declarations appear in the project's headers; use these from main.c)
+
+- void DrawBoard(int ColorTheme);
+  - Compute layout for the current render size and draw the board and pieces. Called each frame inside BeginDrawing()/EndDrawing().
+
+- void LoadPiece(int row, int col, PieceType type, Team team);
+  - Load/assign a piece texture into GameBoard[row][col]. Existing texture is released before assignment.
+
+- int ComputeSquareLength(void);
+  - Returns the computed pixel size of a single board square for the current render resolution.
+
+- void InitializeBoard(void);
+  - Reset all GameBoard cells to empty and set their row/col indices. Call at startup or before loading a new position.
+
+- void UnloadBoard(void);
+  - Unload all textures held by GameBoard and set every cell empty. Call on shutdown or before replacing assets.
+
+- void ReadFEN(const char *FENstring, int size);
+  - Parse a FEN piece-placement string and populate GameBoard using LoadPiece.
+
+- void MovePiece(int initialRow, int initialCol, int finalRow, int finalCol);
+  - Move a piece between cells. Performs bounds checking and validates source presence. Uses LoadPiece for destination and SetEmptyCell for the source.
+
+- void SetEmptyCell(Cell *cell);
+  - Clear a cell and unload any associated texture.
+
+Notes:
+- DrawBoard also includes simple interactive selection handling (two-click select + move). The UI helpers manage highlight borders (selected / last move).
+- MovePiece now performs bounds checking and logs a warning on invalid indices.
+
 ## Assets / Filenames
 
-Place PNG images in `assets/` (or the path your code expects). Recommended naming convention the code uses:
+Place PNG images in `assets/` (or the path your code expects). Recommended naming convention the code uses (case-sensitive):
 
 - pawnW.png, pawnB.png
 - kingW.png, kingB.png
@@ -83,17 +116,13 @@ Filenames are case- and space-sensitive on Linux. The loader expects exact names
 
 Call order (high level):
 1. Set config flags and call `InitWindow(...)` in `main.c`.
-2. After the window exists compute layout size using `ComputeSquareLength()` and/or your layout helper.
-3. Load piece textures with `LoadPiece(row, col, type, team, squareLength)`.
-4. Render each frame with `DrawBoard(theme)` (which uses the board/piece state).
-
-Important exported functions (in `draw.h`):
-- `void DrawBoard(int ColorTheme);`
-- `void LoadPiece(int row, int col, PieceType type, Team team, int squareLength);`
-- `int ComputeSquareLength(void);`
+2. Call `InitializeBoard()` once at startup (sets up cell indices).
+3. After the window exists compute layout size using `ComputeSquareLength()` if needed.
+4. Load piece textures with `LoadPiece(row, col, type, team)`, or populate the board from a FEN string using `ReadFEN(...)`.
+5. Render each frame with `DrawBoard(theme)` (which also handles simple mouse selection and move attempts).
 
 Resource ownership:
-- Textures loaded for pieces are stored in `GameBoard[row][col].piece.texture`. When replacing textures, call `UnloadTexture()` on the old texture to avoid GPU leaks.
+- Textures loaded for pieces are stored in `GameBoard[row][col].piece.texture`. When replacing textures, `LoadPiece` will `UnloadTexture()` the old texture; call `UnloadBoard()` on shutdown to free remaining textures.
 
 Resizing:
 - Recompute layout (square length and cell positions) after window resize. Use `IsWindowResized()` or compare `GetRenderWidth()` / `GetRenderHeight()` to detect changes.
@@ -101,18 +130,19 @@ Resizing:
 Drawing:
 - For best visual quality when scaling textures, use `DrawTexturePro` and set linear filtering with `SetTextureFilter(tex, FILTER_BILINEAR)` or enable MSAA via `SetConfigFlags(FLAG_MSAA_4X_HINT)` before `InitWindow()`.
 
-Debugging tips
+Debugging tips:
 - If a texture fails to show:
   - Verify the working directory and that `assets/<name>.png` exists.
   - Check `GameBoard[row][col].piece.texture.id` after loading — zero means failure.
   - Use `TraceLog(LOG_INFO, ...)` to print load attempts and positions.
-  - Draw a visible fallback rectangle when texture.id == 0 to confirm the drawing code runs.
+  - Draw a visible fallback rectangle when `texture.id == 0` to confirm the drawing code runs.
 
 ## Coding style & documentation
 
-- Headers are self-contained — include types (`raylib.h`) in headers that need them.
+- Headers are self-contained — include `raylib.h` in headers that need it.
 - Prefer `snprintf()` over `strcpy/strcat` and trim filenames before loading.
 - Use explicit-width integer types (`uint8_t`, `int16_t`) when size matters; `char` works for small flags.
+- New/modified functions are documented with Doxygen-style comments in their .c files.
 
 ## Contributing
 
