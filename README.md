@@ -108,6 +108,44 @@ Debugging tips
   - Use `TraceLog(LOG_INFO, ...)` to print load attempts and positions.
   - Draw a visible fallback rectangle when texture.id == 0 to confirm the drawing code runs.
 
+## Saving board state (FEN-like serialization)
+
+The project provides a helper function SaveFEN() that serializes the current in-memory board
+(GameBoard[8][8]) into a FEN-like string. This string encodes the pieces and empty squares
+for each rank, separated by '/'.
+
+Key points:
+- Function: char *SaveFEN(void)
+- Returns: A heap-allocated C string containing the FEN-like board representation.
+- Caller must free() the returned pointer when finished.
+- On error (allocation failure or invalid piece type), the function returns NULL.
+
+Current format produced:
+- Ranks are written from top (row 0) to bottom (row 7).
+- Pieces are represented by letters: k,q,r,b,n,p
+  - lowercase = black, UPPERCASE = white
+- Empty squares in a rank are compressed into digits 1–8.
+- Example rank: "rnbqkbnr" or "8" or "r1bqkb1r"
+- The produced string does not yet include side-to-move, castling rights,
+  en-passant target, halfmove clock or fullmove number.
+
+Example usage:
+
+```c
+// Example: save the current board to a string and print it
+char *fen = SaveFEN();
+if (fen != NULL) {
+    printf("Board FEN: %s\n", fen);
+    free(fen);
+} else {
+    fprintf(stderr, "Failed to produce FEN string\n");
+}
+```
+
+TODO:
+- Append side-to-move ('w' or 'b') to the FEN string.
+- Optionally add castling, en-passant and move counters to match full FEN.
+
 ## Coding style & documentation
 
 - Headers are self-contained — include types (`raylib.h`) in headers that need them.

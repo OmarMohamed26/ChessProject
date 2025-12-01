@@ -22,7 +22,7 @@ endif
 
 # Source and Generated Files
 # Add all your .c files here
-SRC := main.c draw.c load.c
+SRC := main.c draw.c load.c save.c
 OBJ := $(addprefix $(BUILD_DIR)/$(BUILD_MODE)/, $(SRC:.c=.o))
 DEP := $(addprefix $(BUILD_DIR)/$(BUILD_MODE)/, $(SRC:.c=.d))
 EXECUTABLE = $(BUILD_DIR)/$(TARGET)
