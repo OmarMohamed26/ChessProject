@@ -10,6 +10,8 @@ void ReadFEN(const char *FENstring, int size)
     int rank = 0; /* 0 = top rank (FEN first rank). Use 7 and decrement if your row0 is bottom */
     int file = 0; /* 0 = a-file (left) */
 
+    int sq = ComputeSquareLength();
+
     for (int i = 0; i < size && FENstring[i] != '\0'; i++)
     {
         char ch = FENstring[i];
@@ -49,22 +51,22 @@ void ReadFEN(const char *FENstring, int size)
         switch (piece)
         {
         case 'r':
-            LoadPiece(row, col, PIECE_ROOK, color, ComputeSquareLength());
+            LoadPiece(row, col, PIECE_ROOK, color, sq);
             break;
         case 'n':
-            LoadPiece(row, col, PIECE_KNIGHT, color, ComputeSquareLength());
+            LoadPiece(row, col, PIECE_KNIGHT, color, sq);
             break;
         case 'b':
-            LoadPiece(row, col, PIECE_BISHOP, color, ComputeSquareLength());
+            LoadPiece(row, col, PIECE_BISHOP, color, sq);
             break;
         case 'q':
-            LoadPiece(row, col, PIECE_QUEEN, color, ComputeSquareLength());
+            LoadPiece(row, col, PIECE_QUEEN, color, sq);
             break;
         case 'k':
-            LoadPiece(row, col, PIECE_KING, color, ComputeSquareLength());
+            LoadPiece(row, col, PIECE_KING, color, sq);
             break;
         case 'p':
-            LoadPiece(row, col, PIECE_PAWN, color, ComputeSquareLength());
+            LoadPiece(row, col, PIECE_PAWN, color, sq);
             break;
         default:
             break;
