@@ -21,6 +21,7 @@
 #include "load.h"
 #include <string.h>
 #include "save.h"
+#include <stdlib.h>
 
 /* Global board state accessible to draw.c and other modules. */
 Cell GameBoard[8][8];
@@ -52,7 +53,9 @@ int main(void)
     }
 #endif
 
-    SaveFileText("example.fen", SaveFEN());
+    char *savedGame = SaveFEN();
+    SaveFileText("example.fen", savedGame);
+    free(savedGame);
 
     while (!WindowShouldClose())
     {
