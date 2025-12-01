@@ -56,12 +56,12 @@ static void LoadHelper(char *pieceNameBuffer, int bufferSize, const char *pieceN
 static void InitializeCellsPos(int extra, int squareLength, float spaceText);
 static size_t TrimTrailingWhitespace(char *s);
 static void displayPieces(void);
-void DecideDestination(Vector2 topLeft);
-bool CompareCells(Cell *cell1, Cell *cell2);
-void swap(int *x, int *y);
-void SetCellBorder(SmartBorder *border, Cell *selectedPiece);
-void ResetCellBorder(SmartBorder *border);
-void ResizeCellBorder(SmartBorder *border);
+static void DecideDestination(Vector2 topLeft);
+static bool CompareCells(Cell *cell1, Cell *cell2);
+static void swap(int *x, int *y);
+static void SetCellBorder(SmartBorder *border, Cell *selectedPiece);
+static void ResetCellBorder(SmartBorder *border);
+static void ResizeCellBorder(SmartBorder *border);
 
 // This constant determines How much space is left for the text in terms of squareLength
 #define SPACETEXT 0.75f
@@ -386,7 +386,7 @@ void UnloadBoard(void)
     }
 }
 
-void DecideDestination(Vector2 topLeft)
+static void DecideDestination(Vector2 topLeft)
 {
 
     static int CellX = -1, CellY = -1;
@@ -444,7 +444,7 @@ void DecideDestination(Vector2 topLeft)
     }
 }
 
-bool CompareCells(Cell *cell1, Cell *cell2)
+static bool CompareCells(Cell *cell1, Cell *cell2)
 {
     // This is not a full comparison but it's enough for our usage
     if (cell1->row == cell2->row && cell1->col == cell2->col)
@@ -452,14 +452,14 @@ bool CompareCells(Cell *cell1, Cell *cell2)
     return false;
 }
 
-void swap(int *x, int *y)
+static void swap(int *x, int *y)
 {
     int temp = *x;
     *x = *y;
     *y = temp;
 }
 
-void SetCellBorder(SmartBorder *border, Cell *selectedPiece)
+static void SetCellBorder(SmartBorder *border, Cell *selectedPiece)
 {
     border->rect.width = border->rect.height = ComputeSquareLength();
     border->rect.x = selectedPiece->pos.x;
@@ -468,12 +468,12 @@ void SetCellBorder(SmartBorder *border, Cell *selectedPiece)
     border->col = selectedPiece->col;
 }
 
-void ResetCellBorder(SmartBorder *border)
+static void ResetCellBorder(SmartBorder *border)
 {
     border->rect.width = border->rect.height = -1;
 }
 
-void ResizeCellBorder(SmartBorder *border)
+static void ResizeCellBorder(SmartBorder *border)
 {
     border->rect.width = border->rect.height = ComputeSquareLength();
     if (border->rect.x != -1 && border->rect.y != -1)
