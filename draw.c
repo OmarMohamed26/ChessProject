@@ -193,8 +193,6 @@ static void LoadHelper(char *pieceNameBuffer, int bufferSize, const char *pieceN
     GameBoard[row][col].piece.texture = texture;
     GameBoard[row][col].piece.type = type;
     GameBoard[row][col].piece.team = team;
-    GameBoard[row][col].row = row;
-    GameBoard[row][col].col = col;
 }
 
 /**
@@ -291,4 +289,39 @@ static int ComputeSquareLength()
 {
     float squareCount = 8 + SPACETEXT;
     return Min2(GetRenderWidth(), GetRenderHeight()) / squareCount;
+}
+
+void InitializeBoard(void)
+{
+    for (int i = 0; i < 8; i++)
+    {
+        for (int j = 0; j < 8; j++)
+        {
+            GameBoard[i][j].row = i;
+            GameBoard[i][j].col = j;
+            GameBoard[i][j].piece.hasMoved = 0;
+            GameBoard[i][j].piece.enPassant = 0;
+            GameBoard[i][j].piece.team = TEAM_WHITE;
+            GameBoard[i][j].piece.type = PIECE_NONE;
+        }
+    }
+}
+
+void UnloadBoard(void)
+{
+    for (int i = 0; i < 8; i++)
+    {
+        for (int j = 0; j < 8; j++)
+        {
+            if (GameBoard[i][j].piece.type != PIECE_NONE)
+            {
+                UnloadTexture(GameBoard[i][j].piece.texture);
+            }
+
+            GameBoard[i][j].piece.type = PIECE_NONE;
+            GameBoard[i][j].piece.hasMoved = 0;
+            GameBoard[i][j].piece.enPassant = 0;
+            GameBoard[j][j].piece.team = TEAM_WHITE;
+        }
+    }
 }

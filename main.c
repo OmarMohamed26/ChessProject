@@ -33,6 +33,8 @@ int main(void)
 
     SetTargetFPS(60);
 
+    InitializeBoard();
+
     char standard_game[] = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR";
     ReadFEN(standard_game, strlen(standard_game));
 
@@ -55,6 +57,7 @@ int main(void)
         EndDrawing();
     }
 
+    UnloadBoard();
     CloseWindow();
 
     return 0;

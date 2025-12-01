@@ -19,4 +19,10 @@ void DrawBoard(int ColorTheme);
 /* Load a piece texture for cell (row,col). squareLength selects texture size. */
 void LoadPiece(int row, int col, PieceType type, Team team);
 
+/*Initialize the chess board to have appropriate starting values*/
+void InitializeBoard(void);
+
+/*Run after the game finishes or you want a new game to prevent memory leaks and flush the board*/
+void UnloadBoard(void);
+
 #endif
