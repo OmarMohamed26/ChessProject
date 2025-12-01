@@ -16,7 +16,7 @@ ifeq ($(BUILD_MODE), Debug)
 CFLAGS += -g -O0 -DDEBUG
 $(info Building in DEBUG mode (-g -O0, C17)...)
 else
-CFLAGS += -O2 -s
+CFLAGS += -O3 -s
 $(info Building in RELEASE mode (-O2, C17)...)
 endif
 
