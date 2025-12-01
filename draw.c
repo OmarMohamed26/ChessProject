@@ -54,6 +54,7 @@ static void LoadHelper(char *pieceNameBuffer, int bufferSize, const char *pieceN
 static void InitializeCellsPos(int extra, int squareLength, float spaceText);
 static size_t TrimTrailingWhitespace(char *s);
 static void displayPieces(void);
+static int ComputeSquareLength();
 
 // This constant determines How much space is left for the text in terms of squareLength
 #define SPACETEXT 0.5f
@@ -286,7 +287,7 @@ static int Min2(int x, int y)
  * or to pass to LoadPiece from main after InitWindow() so that resource sizing
  * and layout logic agree.
  */
-int ComputeSquareLength()
+static int ComputeSquareLength()
 {
     float squareCount = 8 + SPACETEXT;
     return Min2(GetRenderWidth(), GetRenderHeight()) / squareCount;

@@ -19,7 +19,4 @@ void DrawBoard(int ColorTheme);
 /* Load a piece texture for cell (row,col). squareLength selects texture size. */
 void LoadPiece(int row, int col, PieceType type, Team team);
 
-/* Compute the pixel size of a single board square using current render dimensions. */
-int ComputeSquareLength(void);
-
 #endif
