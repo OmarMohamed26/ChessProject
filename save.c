@@ -1,3 +1,26 @@
+/*
+ * save.c
+ *
+ * Functions to serialize the current board state into a FEN-like string.
+ *
+ * Notes:
+ * - The board is read from the external GameBoard[8][8] variable (declared main.c).
+ * - SaveFEN allocates a heap buffer containing a FEN-like representation of the board.
+ *   The caller is responsible for freeing the returned buffer with free().
+ * - On allocation failure or invalid piece type the function returns NULL.
+ * - Current implementation does not append side-to-move, castling, en-passant,
+ *   halfmove clock or fullmove number fields. See TODOs below.
+ *
+ * FEN format used here (partial):
+ * - Ranks are serialized from top (row 0) to bottom (row 7).
+ * - Pieces: k,q,r,b,n,p with lowercase for black and uppercase for white.
+ * - Empty squares are represented by digits 1-8. Ranks are separated by '/'.
+ *
+ * TODO:
+ * - Add side to move (single 'w' or 'b' char) to the serialized string.
+ * - Optionally support castling rights, en-passant, and move clocks if needed.
+ */
+
 #include "main.h"
 #include <stdlib.h>
 #include <raylib.h>
