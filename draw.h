@@ -28,4 +28,10 @@ void UnloadBoard(void);
 /* Compute the pixel size of a single board square using current render dimensions. */
 int ComputeSquareLength(void);
 
+typedef struct SmartBorder
+{
+    int row, col;
+    Rectangle rect;
+} SmartBorder;
+
 #endif

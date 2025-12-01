@@ -59,11 +59,23 @@ static void displayPieces(void);
 void DecideDestination(Vector2 topLeft);
 bool CompareCells(Cell *cell1, Cell *cell2);
 void swap(int *x, int *y);
+void SetCellBorder(SmartBorder *border, Cell *selectedPiece);
+void ResetCellBorder(SmartBorder *border);
+void ResizeCellBorder(SmartBorder *border);
 
 // This constant determines How much space is left for the text in terms of squareLength
 #define SPACETEXT 0.75f
 
+#define BORDER_THICKNESS 5
+
 Cell imaginaryCell = {.row = -1, .col = -1};
+
+// The program depends on these values to say there shouldn't be any rect to be drawn so be careful
+// Rectangle selectedCellBorder = {.x = -1, .y = -1};
+// Rectangle lastMoveCellBorder = {.x = -1, .y = -1};
+
+SmartBorder selectedCellBorder = {.rect.x = -1, .rect.y = -1};
+SmartBorder lastMoveCellBorder = {.rect.x = -1, .rect.y = -1};
 
 /**
  * DrawBoard
@@ -98,7 +110,8 @@ void DrawBoard(int ColorTheme)
         }
     }
 
-    // compute once (matches InitializeCellsPos math)
+    // Font
+    //  compute once (matches InitializeCellsPos math)
     float boardLeft = extra + squareLength * SPACETEXT / 2.0f;
     float boardTop = squareLength * SPACETEXT / 2.0f;
 
@@ -128,6 +141,22 @@ void DrawBoard(int ColorTheme)
     }
 
     DecideDestination(GameBoard[0][0].pos);
+
+    if (IsWindowResized())
+    {
+        ResizeCellBorder(&selectedCellBorder);
+        ResizeCellBorder(&lastMoveCellBorder);
+    }
+
+    if (selectedCellBorder.rect.x != -1 && selectedCellBorder.rect.y != -1)
+    {
+        DrawRectangleLinesEx(selectedCellBorder.rect, BORDER_THICKNESS, SELECTED_BORDER_COLOR);
+    }
+
+    if (lastMoveCellBorder.rect.x != -1 && lastMoveCellBorder.rect.y != -1)
+    {
+        DrawRectangleLinesEx(lastMoveCellBorder.rect, BORDER_THICKNESS, LAST_MOVE_BORDER_COLOR);
+    }
 
     displayPieces();
 }
@@ -360,18 +389,20 @@ void UnloadBoard(void)
 void DecideDestination(Vector2 topLeft)
 {
 
-    static int CellX = 0, CellY = 0;
+    static int CellX = -1, CellY = -1;
 
     // It's initially equal to imaginaryCell but I can't write it directly
     static Cell selectedPiece = {.row = -1, .col = -1};
 
     bool IsSelectedPieceEmpty = CompareCells(&selectedPiece, &imaginaryCell);
 
+    int SquareLength = ComputeSquareLength();
+
     // Pick a piece while You don't hold one
     if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && IsSelectedPieceEmpty)
     {
-        CellX = (GetMouseX() - (int)topLeft.x) / ComputeSquareLength();
-        CellY = (GetMouseY() - (int)topLeft.y) / ComputeSquareLength();
+        CellX = (GetMouseX() - (int)topLeft.x) / SquareLength;
+        CellY = (GetMouseY() - (int)topLeft.y) / SquareLength;
 
         swap(&CellX, &CellY);
 
@@ -383,6 +414,7 @@ void DecideDestination(Vector2 topLeft)
         if (GameBoard[CellX][CellY].piece.type != PIECE_NONE)
         {
             selectedPiece = GameBoard[CellX][CellY];
+            SetCellBorder(&selectedCellBorder, &selectedPiece);
             TraceLog(LOG_DEBUG, "Selected A new Piece: %d %d", CellX, CellY);
         }
     }
@@ -390,20 +422,22 @@ void DecideDestination(Vector2 topLeft)
     // Move the piece if you hold one
     if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && !IsSelectedPieceEmpty)
     {
-        int NewCellX = (GetMouseX() - (int)topLeft.x) / ComputeSquareLength();
-        int NewCellY = (GetMouseY() - (int)topLeft.y) / ComputeSquareLength();
+        int NewCellX = (GetMouseX() - (int)topLeft.x) / SquareLength;
+        int NewCellY = (GetMouseY() - (int)topLeft.y) / SquareLength;
 
         swap(&NewCellX, &NewCellY);
 
         if (NewCellX < 0 || NewCellX > 7 || NewCellY < 0 || NewCellY > 7)
         {
             selectedPiece = imaginaryCell;
+            ResetCellBorder(&selectedCellBorder);
             TraceLog(LOG_DEBUG, "Unselected the piece because you tried to move it to an invalid pos");
             return;
         }
 
         // The move function should be used here
         MovePiece(CellX, CellY, NewCellX, NewCellY);
+        SetCellBorder(&lastMoveCellBorder, &GameBoard[NewCellX][NewCellY]);
         TraceLog(LOG_DEBUG, "%d %d %d %d", CellX, CellY, NewCellX, NewCellY);
         TraceLog(LOG_DEBUG, "Moved the selected piece to the new pos: %d %d", NewCellX, NewCellY);
         selectedPiece = imaginaryCell;
@@ -423,4 +457,28 @@ void swap(int *x, int *y)
     int temp = *x;
     *x = *y;
     *y = temp;
+}
+
+void SetCellBorder(SmartBorder *border, Cell *selectedPiece)
+{
+    border->rect.width = border->rect.height = ComputeSquareLength();
+    border->rect.x = selectedPiece->pos.x;
+    border->rect.y = selectedPiece->pos.y;
+    border->row = selectedPiece->row;
+    border->col = selectedPiece->col;
+}
+
+void ResetCellBorder(SmartBorder *border)
+{
+    border->rect.width = border->rect.height = -1;
+}
+
+void ResizeCellBorder(SmartBorder *border)
+{
+    border->rect.width = border->rect.height = ComputeSquareLength();
+    if (border->rect.x != -1 && border->rect.y != -1)
+    {
+        border->rect.x = GameBoard[border->row][border->col].pos.x;
+        border->rect.y = GameBoard[border->row][border->col].pos.y;
+    }
 }
