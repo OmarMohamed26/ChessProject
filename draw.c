@@ -41,11 +41,11 @@
 #include <ctype.h>
 #include <stddef.h>
 #include <stdio.h>
-#include <string.h>
 #include <stdbool.h>
 #include "colors.h"
 #include "draw.h"
 #include "main.h"
+#include "move.h"
 
 // access the GameBoard from the main.c file
 extern Cell GameBoard[8][8];
@@ -336,10 +336,7 @@ void InitializeBoard(void)
         {
             GameBoard[i][j].row = i;
             GameBoard[i][j].col = j;
-            GameBoard[i][j].piece.hasMoved = 0;
-            GameBoard[i][j].piece.enPassant = 0;
-            GameBoard[i][j].piece.team = TEAM_WHITE;
-            GameBoard[i][j].piece.type = PIECE_NONE;
+            SetEmptyCell(&GameBoard[i][j]);
         }
     }
 }
@@ -355,10 +352,7 @@ void UnloadBoard(void)
                 UnloadTexture(GameBoard[i][j].piece.texture);
             }
 
-            GameBoard[i][j].piece.type = PIECE_NONE;
-            GameBoard[i][j].piece.hasMoved = 0;
-            GameBoard[i][j].piece.enPassant = 0;
-            GameBoard[j][j].piece.team = TEAM_WHITE;
+            SetEmptyCell(&GameBoard[i][j]);
         }
     }
 }
@@ -366,7 +360,7 @@ void UnloadBoard(void)
 void DecideDestination(Vector2 topLeft)
 {
 
-    int CellX, CellY;
+    static int CellX = 0, CellY = 0;
 
     // It's initially equal to imaginaryCell but I can't write it directly
     static Cell selectedPiece = {.row = -1, .col = -1};
@@ -409,6 +403,8 @@ void DecideDestination(Vector2 topLeft)
         }
 
         // The move function should be used here
+        MovePiece(CellX, CellY, NewCellX, NewCellY);
+        TraceLog(LOG_DEBUG, "%d %d %d %d", CellX, CellY, NewCellX, NewCellY);
         TraceLog(LOG_DEBUG, "Moved the selected piece to the new pos: %d %d", NewCellX, NewCellY);
         selectedPiece = imaginaryCell;
     }
