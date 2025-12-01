@@ -43,11 +43,11 @@ typedef enum
  */
 typedef struct Piece
 {
-    PieceType type;    /* piece kind (PIECE_NONE = empty) */
-    Team team;         /* TEAM_WHITE / TEAM_BLACK */
-    char hasMoved;     /* boolean: moved before (castling/pawn) */
-    char enPassant;    /* boolean: pawn is vulnerable to en-passant */
-    Texture2D texture; /* GPU texture; texture.id == 0 means "no texture" */
+    PieceType type;     /* piece kind (PIECE_NONE = empty) */
+    Team team;          /* TEAM_WHITE / TEAM_BLACK */
+    char hasMoved : 1;  /* boolean: moved before (castling/pawn) */
+    char enPassant : 1; /* boolean: pawn is vulnerable to en-passant */
+    Texture2D texture;  /* GPU texture; texture.id == 0 means "no texture" */
 } Piece;
 
 /* Cell
