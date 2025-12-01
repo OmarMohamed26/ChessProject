@@ -50,7 +50,7 @@ extern Cell GameBoard[8][8];
 
 // Local Prototypes
 static int Min2(int x, int y);
-static void LoadHelper(char *pieceNameBuffer, int bufferSize, const char *pieceName, Team team, int squareLength, int row, int col, PieceType type);
+static void LoadHelper(char *pieceNameBuffer, int bufferSize, const char *pieceName, Team team, int row, int col, PieceType type);
 static void InitializeCellsPos(int extra, int squareLength, float spaceText);
 static size_t TrimTrailingWhitespace(char *s);
 static void displayPieces(void);
@@ -110,7 +110,7 @@ void DrawBoard(int ColorTheme)
  *  - Performs bounds check on row/col.
  *  - LoadHelper handles logging and texture assignment.
  */
-void LoadPiece(int row, int col, PieceType type, Team team, int squareLength)
+void LoadPiece(int row, int col, PieceType type, Team team)
 {
     if (row < 0 || row >= 8 || col < 0 || col >= 8)
         return;
@@ -120,22 +120,22 @@ void LoadPiece(int row, int col, PieceType type, Team team, int squareLength)
     switch (type)
     {
     case PIECE_PAWN:
-        LoadHelper(pieceName, sizeof pieceName, "pawn", team, squareLength, row, col, type);
+        LoadHelper(pieceName, sizeof pieceName, "pawn", team, row, col, type);
         break;
     case PIECE_KNIGHT:
-        LoadHelper(pieceName, sizeof pieceName, "knight", team, squareLength, row, col, type);
+        LoadHelper(pieceName, sizeof pieceName, "knight", team, row, col, type);
         break;
     case PIECE_BISHOP:
-        LoadHelper(pieceName, sizeof pieceName, "bishop", team, squareLength, row, col, type);
+        LoadHelper(pieceName, sizeof pieceName, "bishop", team, row, col, type);
         break;
     case PIECE_ROOK:
-        LoadHelper(pieceName, sizeof pieceName, "rook", team, squareLength, row, col, type);
+        LoadHelper(pieceName, sizeof pieceName, "rook", team, row, col, type);
         break;
     case PIECE_QUEEN:
-        LoadHelper(pieceName, sizeof pieceName, "queen", team, squareLength, row, col, type);
+        LoadHelper(pieceName, sizeof pieceName, "queen", team, row, col, type);
         break;
     case PIECE_KING:
-        LoadHelper(pieceName, sizeof pieceName, "king", team, squareLength, row, col, type);
+        LoadHelper(pieceName, sizeof pieceName, "king", team, row, col, type);
         break;
     default:
         break;
@@ -157,7 +157,7 @@ void LoadPiece(int row, int col, PieceType type, Team team, int squareLength)
  *  - row/col: target cell coordinates
  *  - type: PieceType to set on the cell
  */
-static void LoadHelper(char *pieceNameBuffer, int bufferSize, const char *pieceName, Team team, int squareLength, int row, int col, PieceType type)
+static void LoadHelper(char *pieceNameBuffer, int bufferSize, const char *pieceName, Team team, int row, int col, PieceType type)
 {
     /*This function loads the texture for any given piece correctly and handles errors
     and puts a new texture if one already exists at this cell*/
@@ -170,21 +170,17 @@ static void LoadHelper(char *pieceNameBuffer, int bufferSize, const char *pieceN
 
     TrimTrailingWhitespace(pieceNameBuffer);
 
-    Image image = LoadImage(pieceNameBuffer);
-    if (!image.data || image.width == 0 || image.height == 0)
+    Texture2D texture = LoadTexture(pieceNameBuffer);
+
+    if (texture.id == 0 || texture.width == 0 || texture.height == 0)
     {
-        TraceLog(LOG_WARNING, "Failed to load image: %s", pieceNameBuffer);
+        TraceLog(LOG_WARNING, "Failed to load texture: %s", pieceNameBuffer);
         return;
     }
 
-    ImageResize(&image, squareLength, squareLength);
-    Texture2D tex = LoadTextureFromImage(image);
-    UnloadImage(image);
-
-    // id = 0 means no valid texture
-    if (tex.id == 0)
+    if (texture.width != texture.height)
     {
-        TraceLog(LOG_WARNING, "Failed to create texture from image: %s", pieceNameBuffer);
+        TraceLog(LOG_WARNING, "Invalid texture Error, texture's width must equal it's height");
         return;
     }
 
@@ -193,9 +189,11 @@ static void LoadHelper(char *pieceNameBuffer, int bufferSize, const char *pieceN
         UnloadTexture(GameBoard[row][col].piece.texture);
 
     // Add the piece to the GameBoard
-    GameBoard[row][col].piece.texture = tex;
+    GameBoard[row][col].piece.texture = texture;
     GameBoard[row][col].piece.type = type;
     GameBoard[row][col].piece.team = team;
+    GameBoard[row][col].row = row;
+    GameBoard[row][col].col = col;
 }
 
 /**
@@ -215,7 +213,7 @@ static void displayPieces(void)
         {
             if (GameBoard[row][col].piece.type != PIECE_NONE)
             {
-                DrawTextureV(GameBoard[row][col].piece.texture, GameBoard[row][col].pos, WHITE);
+                DrawTextureEx(GameBoard[row][col].piece.texture, GameBoard[row][col].pos, 0, (float)ComputeSquareLength() / GameBoard[row][col].piece.texture.width, WHITE);
             }
         }
     }
