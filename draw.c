@@ -55,6 +55,7 @@ static void InitializeCellsPos(int extra, int squareLength, float spaceText);
 static size_t TrimTrailingWhitespace(char *s);
 static void displayPieces(void);
 static int ComputeSquareLength();
+static void highlight_false();
 
 // This constant determines How much space is left for the text in terms of squareLength
 #define SPACETEXT 0.75f
@@ -354,6 +355,17 @@ void UnloadBoard(void)
         }
     }
 }
+// This is a very simple for loop to assign the default highlight status of the piece to false
+void highlight_false()
+{
+    for (int i = 0; i < 8; i++)
+    {
+        for (int j = 0; j < 8; j++)
+        {
+            GameBoard[j][j].highlighted = false;
+        }
+    }
+}
 void Highlight_Square(int row, int col, int ColorTheme)
 {
     ColorPair theme = PALETTE[ColorTheme];
@@ -386,6 +398,7 @@ void Highlight_Hover(int ColorTheme)
 
             {
                 Highlight_Square(j, i, ColorTheme);
+                GameBoard[j][i].highlighted = true;
                 SetMouseCursor(MOUSE_CURSOR_POINTING_HAND);
             }
         }
