@@ -55,6 +55,7 @@ static void InitializeCellsPos(int extra, int squareLength, float spaceText);
 static size_t TrimTrailingWhitespace(char *s);
 static void displayPieces(void);
 static int ComputeSquareLength();
+static void highlight_false();
 
 // This constant determines How much space is left for the text in terms of squareLength
 #define SPACETEXT 0.75f
@@ -351,6 +352,55 @@ void UnloadBoard(void)
             GameBoard[i][j].piece.hasMoved = 0;
             GameBoard[i][j].piece.enPassant = 0;
             GameBoard[j][j].piece.team = TEAM_WHITE;
+        }
+    }
+}
+// This is a very simple for loop to assign the default highlight status of the piece to false
+void highlight_false()
+{
+    for (int i = 0; i < 8; i++)
+    {
+        for (int j = 0; j < 8; j++)
+        {
+            GameBoard[j][j].highlighted = false;
+        }
+    }
+}
+void Highlight_Square(int row, int col, int ColorTheme)
+{
+    ColorPair theme = PALETTE[ColorTheme];
+    int squareLength = ComputeSquareLength();
+    Color colr = ((row + col) & 1) ? theme.black : theme.white;
+    colr.r = (colr.r + 30 <= 255) ? colr.r + 30 : 255;
+    colr.g = (colr.g + 30 <= 255) ? colr.g + 30 : 255;
+    colr.b = (colr.b + 30 <= 255) ? colr.b + 30 : 255;
+    DrawRectangleV(GameBoard[row][col].pos, (Vector2){squareLength, squareLength}, colr);
+    DrawTextureEx(GameBoard[row][col].piece.texture, GameBoard[row][col].pos, 0, (float)ComputeSquareLength() / GameBoard[row][col].piece.texture.width, WHITE);
+}
+
+void Highlight_Hover(int ColorTheme)
+{
+    int Sql = ComputeSquareLength();
+    int X_Pos = (GetMouseX());
+    int Y_Pos = (GetMouseY());
+    SetMouseCursor(MOUSE_CURSOR_ARROW);
+    for (int i = 0; i < 8; i++)
+    {
+        int board_posX = GameBoard[0][i].pos.x;
+        for (int j = 0; j < 8; j++)
+        {
+            int board_posY = GameBoard[j][0].pos.y;
+            if ((X_Pos - board_posX) > 0 &&
+                (X_Pos - board_posX) <= Sql &&
+                (Y_Pos - board_posY) > 0 &&
+                (Y_Pos - board_posY) <= Sql &&
+                (GameBoard[j][i].piece.texture.id != 0))
+
+            {
+                Highlight_Square(j, i, ColorTheme);
+                GameBoard[j][i].highlighted = true;
+                SetMouseCursor(MOUSE_CURSOR_POINTING_HAND);
+            }
         }
     }
 }

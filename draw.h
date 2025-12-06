@@ -25,4 +25,11 @@ void InitializeBoard(void);
 /*Run after the game finishes or you want a new game to prevent memory leaks and flush the board*/
 void UnloadBoard(void);
 
+// Highlights a square
+void Highlight_Square(int row, int col, int ColorTheme);
+
+// Highlights a piece when hovering over it
+
+void Highlight_Hover(int ColorTheme);
+
 #endif

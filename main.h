@@ -62,6 +62,7 @@ typedef struct Cell
     int row, col; /* board coordinates (0..7) */
     Vector2 pos;  /* pixel position for rendering (top-left) */
     Piece piece;  /* piece occupying the cell (PIECE_NONE if empty) */
+    bool highlighted;
 } Cell;
 
 #endif /* MAIN_H */
