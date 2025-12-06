@@ -32,4 +32,8 @@ void Highlight_Square(int row, int col, int ColorTheme);
 
 void Highlight_Hover(int ColorTheme);
 
+// select a piece
+
+void select_piece();
+
 #endif

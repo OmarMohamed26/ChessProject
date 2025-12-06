@@ -55,11 +55,15 @@ static void InitializeCellsPos(int extra, int squareLength, float spaceText);
 static size_t TrimTrailingWhitespace(char *s);
 static void displayPieces(void);
 static int ComputeSquareLength();
-static void highlight_false();
 
 // This constant determines How much space is left for the text in terms of squareLength
 #define SPACETEXT 0.75f
 
+// setting flag values
+int pointer = 0;
+
+// indecies of board at click
+int i1, i2;
 /**
  * DrawBoard
  *
@@ -355,17 +359,7 @@ void UnloadBoard(void)
         }
     }
 }
-// This is a very simple for loop to assign the default highlight status of the piece to false
-void highlight_false()
-{
-    for (int i = 0; i < 8; i++)
-    {
-        for (int j = 0; j < 8; j++)
-        {
-            GameBoard[j][j].highlighted = false;
-        }
-    }
-}
+
 void Highlight_Square(int row, int col, int ColorTheme)
 {
     ColorPair theme = PALETTE[ColorTheme];
@@ -383,24 +377,49 @@ void Highlight_Hover(int ColorTheme)
     int Sql = ComputeSquareLength();
     int X_Pos = (GetMouseX());
     int Y_Pos = (GetMouseY());
+    float ratiox, ratioy;
+    float Max_Board_X = (GameBoard[0][7].pos.x + Sql);
+    float Max_Board_Y = (GameBoard[7][0].pos.y + Sql);
     SetMouseCursor(MOUSE_CURSOR_ARROW);
-    for (int i = 0; i < 8; i++)
+    if (X_Pos >= GameBoard[0][0].pos.x && X_Pos <= Max_Board_X &&
+        Y_Pos >= GameBoard[0][0].pos.y && Y_Pos <= Max_Board_Y)
     {
-        int board_posX = GameBoard[0][i].pos.x;
-        for (int j = 0; j < 8; j++)
+        ratiox = ((X_Pos - GameBoard[0][0].pos.x) * 8) / (Max_Board_X - GameBoard[0][0].pos.x);
+        i2 = (int)ratiox;
+        ratioy = ((Y_Pos - GameBoard[0][0].pos.y) * 8) / (Max_Board_Y - GameBoard[0][0].pos.y);
+        i1 = (int)ratioy;
+        if (GameBoard[i1][i2].piece.texture.id != 0)
         {
-            int board_posY = GameBoard[j][0].pos.y;
-            if ((X_Pos - board_posX) > 0 &&
-                (X_Pos - board_posX) <= Sql &&
-                (Y_Pos - board_posY) > 0 &&
-                (Y_Pos - board_posY) <= Sql &&
-                (GameBoard[j][i].piece.texture.id != 0))
-
-            {
-                Highlight_Square(j, i, ColorTheme);
-                GameBoard[j][i].highlighted = true;
-                SetMouseCursor(MOUSE_CURSOR_POINTING_HAND);
-            }
+            Highlight_Square(i1, i2, ColorTheme);
+            SetMouseCursor(MOUSE_CURSOR_POINTING_HAND);
+            GameBoard[i1][i2].selected = IsMouseButtonPressed(MOUSE_BUTTON_LEFT);
+        }
+    }
+}
+void select_piece()
+{
+    if (pointer && GameBoard[i1][i2].selected)
+    {
+        switch (GameBoard[i1][i2].piece.type)
+        {
+        case PIECE_KING:
+            /* code */
+            break;
+        case PIECE_QUEEN:
+            /* code */
+            break;
+        case PIECE_ROOK:
+            /* code */
+            break;
+        case PIECE_BISHOP:
+            /* code */
+            break;
+        case PIECE_KNIGHT:
+            /* code */
+            break;
+        case PIECE_PAWN:
+            /* code */
+            break;
         }
     }
 }

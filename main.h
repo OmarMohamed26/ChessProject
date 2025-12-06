@@ -62,7 +62,11 @@ typedef struct Cell
     int row, col; /* board coordinates (0..7) */
     Vector2 pos;  /* pixel position for rendering (top-left) */
     Piece piece;  /* piece occupying the cell (PIECE_NONE if empty) */
-    bool highlighted;
+    bool selected; //added selected attribute to gameboard
 } Cell;
 
+// Global pointer flag to see if the cursor is a pointer
+extern int pointer;
+// Global variables for the indecies of gameboard where the cursor is a pointer
+extern int i1, i2;
 #endif /* MAIN_H */
