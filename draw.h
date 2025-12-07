@@ -26,9 +26,9 @@ void InitializeBoard(void);
 void UnloadBoard(void);
 
 /*Highlight a single square*/
-void Highlight_Square(int row, int col, int ColorTheme);
+void HighlightSquare(int row, int col, int ColorTheme);
 
 /*Highlights The piece when hovering over it*/
-void Highlight_Hover(int ColorTheme);
+void HighlightHover(int ColorTheme);
 
 #endif

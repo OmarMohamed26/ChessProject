@@ -60,7 +60,7 @@ int main(void)
         BeginDrawing();
         ClearBackground(BACKGROUND);
         DrawBoard(THEME_BROWN);
-        Highlight_Hover(THEME_BROWN);
+        HighlightHover(THEME_BROWN);
         EndDrawing();
     }
 

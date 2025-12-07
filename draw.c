@@ -357,7 +357,7 @@ void UnloadBoard(void)
     }
 }
 
-void Highlight_Square(int row, int col, int ColorTheme)
+void HighlightSquare(int row, int col, int ColorTheme)
 {
     ColorPair theme = PALETTE[ColorTheme];
     int squareLength = ComputeSquareLength();
@@ -369,7 +369,7 @@ void Highlight_Square(int row, int col, int ColorTheme)
     DrawTextureEx(GameBoard[row][col].piece.texture, GameBoard[row][col].pos, 0, (float)ComputeSquareLength() / GameBoard[row][col].piece.texture.width, WHITE);
 }
 
-void Highlight_Hover(int ColorTheme)
+void HighlightHover(int ColorTheme)
 {
     int Sql = ComputeSquareLength();
     int X_Pos = (GetMouseX());
@@ -389,36 +389,6 @@ void Highlight_Hover(int ColorTheme)
         {
             Highlight_Square(i1, i2, ColorTheme);
             SetMouseCursor(MOUSE_CURSOR_POINTING_HAND);
-            GameBoard[i1][i2].selected = IsMouseButtonPressed(MOUSE_BUTTON_LEFT);
         }
-    }
-}
-void select_piece()
-{
-    // Check if the engine is ready to handle a click ('pointer' set) and a selection occurred
-    if (pointer && GameBoard[i1][i2].selected)
-    {
-        switch (GameBoard[i1][i2].piece.type)
-        {
-        case PIECE_KING:
-            /* Logic for King moves/actions */
-            break;
-        case PIECE_QUEEN:
-            /* Logic for Queen moves/actions */
-            break;
-        case PIECE_ROOK:
-            /* Logic for Rook moves/actions */
-            break;
-        case PIECE_BISHOP:
-            /* Logic for Bishop moves/actions */
-            break;
-        case PIECE_KNIGHT:
-            /* Logic for Knight moves/actions */
-            break;
-        case PIECE_PAWN:
-            /* Logic for Pawn moves/actions (including en passant and promotion) */
-            break;
-        }
-        // After processing selection, you would typically reset the 'selected' flag
     }
 }
