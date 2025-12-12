@@ -59,9 +59,11 @@ typedef struct Piece
  */
 typedef struct Cell
 {
-    int row, col; /* board coordinates (0..7) */
-    Vector2 pos;  /* pixel position for rendering (top-left) */
-    Piece piece;  /* piece occupying the cell (PIECE_NONE if empty) */
+    int row, col;  /* board coordinates (0..7) */
+    Vector2 pos;   /* pixel position for rendering (top-left) */
+    Piece piece;   /* piece occupying the cell (PIECE_NONE if empty) */
+    bool isvalid;  // will need this for move validation for pieces
+    bool selected; // will also need this
 } Cell;
 
 extern int pointer;
