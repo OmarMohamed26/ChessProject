@@ -26,7 +26,8 @@
 
 /* Global board state accessible to draw.c and other modules. */
 Cell GameBoard[8][8];
-
+Player Player1, Player2;
+Team Turn = TEAM_WHITE;
 int main(void)
 {
     // Initialize the game window
@@ -72,6 +73,7 @@ int main(void)
         ClearBackground(BACKGROUND);
         DrawBoard(THEME_BROWN);
         HighlightHover(THEME_BROWN);
+
         if (showFps)
         {
             DrawFPS(0, 0);

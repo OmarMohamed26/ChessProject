@@ -359,17 +359,6 @@ static void ResetSelection()
         }
     }
 }
-void Resetvalidation()
-{
-    for (int i = 0; i < 8; i++)
-    {
-        for (int j = 0; j < 8; j++)
-        {
-            GameBoard[i][j].primaryvalid = false; // Added this for future Check and Checkmate validation
-            GameBoard[i][j].isvalid = false;
-        }
-    }
-}
 
 /**
  * ComputeSquareLength
@@ -475,9 +464,23 @@ void HighlightHover(int ColorTheme)
         {
             if (IsSelectedPieceEmpty) // Makes hover highlight effect only when no piece is selected
             {
-                HighlightSquare(i1, i2, ColorTheme);
-            }
-            SetMouseCursor(MOUSE_CURSOR_POINTING_HAND);
+                if (Turn == TEAM_WHITE)
+                {
+                    if (GameBoard[i1][i2].piece.team == Turn)
+                    {
+                        HighlightSquare(i1, i2, ColorTheme);
+                        SetMouseCursor(MOUSE_CURSOR_POINTING_HAND);
+                    }
+                }
+                else
+                {
+                    if (GameBoard[i1][i2].piece.team == Turn)
+                    {
+                        HighlightSquare(i1, i2, ColorTheme);
+                        SetMouseCursor(MOUSE_CURSOR_POINTING_HAND);
+                    }
+                }
+            } // Nice effect added where hover only works when It's the team's turn
         }
         else
             SetMouseCursor(MOUSE_CURSOR_ARROW); // this fixes twitching of cursor
@@ -516,6 +519,8 @@ void HighlightHover(int ColorTheme)
 
 static void DecideDestination(Vector2 topLeft, int ColorTheme)
 {
+    bool TurnValidation = false;
+
     ResetSelection(); // this is to set all the selction values to false
 
     static int CellX = -1, CellY = -1;
@@ -539,8 +544,11 @@ static void DecideDestination(Vector2 topLeft, int ColorTheme)
         {
             return;
         }
-
-        if (GameBoard[CellX][CellY].piece.type != PIECE_NONE)
+        if (Turn == GameBoard[CellX][CellY].piece.team)
+        {
+            TurnValidation = true;
+        }
+        if (GameBoard[CellX][CellY].piece.type != PIECE_NONE && TurnValidation == true)
         {
             selectedPiece = GameBoard[CellX][CellY];
             selectedPiece.selected = true;
@@ -548,7 +556,7 @@ static void DecideDestination(Vector2 topLeft, int ColorTheme)
             TraceLog(LOG_DEBUG, "Selected A new Piece: %d %d", CellX, CellY);
         }
     }
-    ValidateAndDevalidateMoves(selectedPiece.piece.type, CellX, CellY, ColorTheme, selectedPiece.selected); // It is called once after the first select to decide what moves are valid
+    ValidateMoves(selectedPiece.piece.type, CellX, CellY, selectedPiece.selected); // Renamed Validateanddevalidate to just validate
     // Move the piece if you hold one
     if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && !IsSelectedPieceEmpty)
     {
@@ -561,7 +569,7 @@ static void DecideDestination(Vector2 topLeft, int ColorTheme)
         {
             selectedPiece.selected = false;
             ResetCellBorder(&selectedCellBorder);
-            ValidateAndDevalidateMoves(selectedPiece.piece.type, CellX, CellY, ColorTheme, selectedPiece.selected); // It here is used to devalidate the moves that were valid
+            ResetValidation(); // replaced old big function with just reset validation
             selectedPiece = imaginaryCell;
             TraceLog(LOG_DEBUG, "Unselected the piece because you tried to move it to an invalid pos");
             return;
@@ -570,21 +578,21 @@ static void DecideDestination(Vector2 topLeft, int ColorTheme)
         {
             selectedPiece.selected = false;
             ResetCellBorder(&selectedCellBorder);
-            ValidateAndDevalidateMoves(selectedPiece.piece.type, CellX, CellY, ColorTheme, selectedPiece.selected); // It here is used to devalidate the moves that were valid
+            ResetValidation();
             selectedPiece = imaginaryCell;
             return;
         }
 
         else
         {
-            if (GameBoard[NewCellX][NewCellY].isvalid)
+            if (GameBoard[NewCellX][NewCellY].primaryvalid)
             {
                 MovePiece(CellX, CellY, NewCellX, NewCellY);
                 SetCellBorder(&lastMoveCellBorder, &GameBoard[NewCellX][NewCellY]);
                 TraceLog(LOG_DEBUG, "%d %d %d %d", CellX, CellY, NewCellX, NewCellY);
                 TraceLog(LOG_DEBUG, "Moved the selected piece to the new pos: %d %d", NewCellX, NewCellY);
                 selectedPiece.selected = false;
-                ValidateAndDevalidateMoves(selectedPiece.piece.type, CellX, CellY, ColorTheme, selectedPiece.selected);
+                ResetValidation();
                 selectedPiece = imaginaryCell;
             }
         }
@@ -673,5 +681,39 @@ static void ResizeCellBorder(SmartBorder *border)
     {
         border->rect.x = GameBoard[border->row][border->col].pos.x;
         border->rect.y = GameBoard[border->row][border->col].pos.y;
+    }
+}
+void DrawVulnerableDebug()
+{
+    // Define constants for text size and position offsets
+    const int DEBUG_FONT_SIZE = 10;
+    const int TEXT_OFFSET_X = 5;
+    const int TEXT_OFFSET_Y = 5;
+
+    // Calculate the size of each cell based on your game window/board size.
+    // *** ADJUST THESE LINES BASED ON YOUR ACTUAL BOARD DRAWING LOGIC ***
+    // (Example assumes a board filling most of the 800x800 window)
+    float cellWidth = (float)GetScreenWidth() / 8.0f;
+    float cellHeight = (float)GetScreenHeight() / 8.0f;
+    // ***************************************************************
+
+    // Loop through all 64 cells of the GameBoard
+    for (int i = 0; i < 8; i++) // i = Row (0-7)
+    {
+        for (int j = 0; j < 8; j++) // j = Column (0-7)
+        {
+            // 1. Determine the status text (true/false)
+            const char *status = GameBoard[i][j].vulnerable ? "VULN: T" : "VULN: F";
+
+            // 2. Determine the color (Red for true, DarkGray for false)
+            Color textColor = GameBoard[i][j].vulnerable ? RED : DARKGRAY;
+
+            // 3. Calculate the screen position for the text
+            int posX = (int)(j * cellWidth) + TEXT_OFFSET_X;
+            int posY = (int)(i * cellHeight) + TEXT_OFFSET_Y;
+
+            // 4. Draw the status text
+            DrawText(status, posX, posY, DEBUG_FONT_SIZE, textColor);
+        }
     }
 }

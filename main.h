@@ -65,7 +65,15 @@ typedef struct Cell
     bool primaryvalid; // This is a primary validation
     bool isvalid;      // Final validation of moves
     bool selected;     // will also need this
+    bool vulnerable;
 } Cell;
 
+typedef struct Player
+{
+    bool Checked;
+    bool Checkmated;
+} Player;
+
 extern int pointer;
+extern Team Turn;
 #endif /* MAIN_H */

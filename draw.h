@@ -32,8 +32,7 @@ void HighlightSquare(int row, int col, int ColorTheme);
 void HighlightHover(int ColorTheme);
 /* Compute the pixel size of a single board square using current render dimensions. */
 int ComputeSquareLength(void);
-
-void Resetvalidation();
+// put reset validation in moves.h
 /*Used in Make selected and last move borders*/
 typedef struct SmartBorder
 {

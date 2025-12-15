@@ -15,11 +15,11 @@
 #include "main.h"
 #include "draw.h"
 #include "move.h"
+#include "colors.h"
 
 extern Cell GameBoard[8][8];
-
-// Local Variables
-int i, j;
+extern Player Player1;
+bool flag = false;
 /**
  * MovePiece
  *
@@ -63,6 +63,9 @@ void MovePiece(int initialRow, int initialCol, int finalRow, int finalCol)
         LoadPiece(finalRow, finalCol, GameBoard[initialRow][initialCol].piece.type, GameBoard[initialRow][initialCol].piece.team);
         GameBoard[finalRow][finalCol].piece.hasMoved = 1;
         SetEmptyCell(&GameBoard[initialRow][initialCol]);
+        Turn = (Turn == TEAM_WHITE) ? TEAM_BLACK : TEAM_WHITE; // Added turns
+        ResetVulnerable();
+        ScanEnemyMoves(); // Added vulnerability function checker
     }
 }
 
@@ -91,319 +94,105 @@ void SetEmptyCell(Cell *cell)
     cell->piece.texture.id = 0; // Unload texture function was causing very weird behaviour had to replace it with this
 }
 
-void MoveValidation(int CellX, int CellY, int ColorTheme, PieceType type, Team team, bool moved)
+void MoveValidation(int CellX, int CellY, PieceType type, Team team, bool moved)
 {
+    int i;
+
     if (type == PIECE_ROOK)
     {
         for (i = CellX + 1; i < 8; i++)
-        {
-            if (GameBoard[i][CellY].piece.type == PIECE_NONE)
-            {
-                GameBoard[i][CellY].primaryvalid = true;
-                HighlightSquare(i, CellY, ColorTheme);
-            }
-            else if (GameBoard[i][CellY].piece.team != team)
-            {
-                GameBoard[i][CellY].primaryvalid = true;
-                HighlightSquare(i, CellY, ColorTheme);
+            if (HandleLinearSquare(i, CellY, team))
                 break;
-            }
-            else
-                break;
-        }
-        for (i = CellY + 1; i < 8; i++)
-        {
-            if (GameBoard[CellX][i].piece.type == PIECE_NONE)
-            {
-                GameBoard[CellX][i].primaryvalid = true;
-                HighlightSquare(CellX, i, ColorTheme);
-            }
-            else if (GameBoard[CellX][i].piece.team != team)
-            {
-                GameBoard[CellX][i].primaryvalid = true;
-                HighlightSquare(CellX, i, ColorTheme);
-                break;
-            }
-            else
-                break;
-        }
         for (i = CellX - 1; i >= 0; i--)
-        {
-            if (GameBoard[i][CellY].piece.type == PIECE_NONE)
-            {
-                GameBoard[i][CellY].primaryvalid = true;
-                HighlightSquare(i, CellY, ColorTheme);
-            }
-            else if (GameBoard[i][CellY].piece.team != team)
-            {
-                GameBoard[i][CellY].primaryvalid = true;
-                HighlightSquare(i, CellY, ColorTheme);
+            if (HandleLinearSquare(i, CellY, team))
                 break;
-            }
-            else
+        for (i = CellY + 1; i < 8; i++)
+            if (HandleLinearSquare(CellX, i, team))
                 break;
-        }
         for (i = CellY - 1; i >= 0; i--)
-        {
-            if (GameBoard[CellX][i].piece.type == PIECE_NONE)
-            {
-                GameBoard[CellX][i].primaryvalid = true;
-                HighlightSquare(CellX, i, ColorTheme);
-            }
-            else if (GameBoard[CellX][i].piece.team != team)
-            {
-                GameBoard[CellX][i].primaryvalid = true;
-                HighlightSquare(CellX, i, ColorTheme);
+            if (HandleLinearSquare(CellX, i, team))
                 break;
-            }
-            else
-                break;
-        }
     }
+
     if (type == PIECE_BISHOP)
     {
-        for (i = CellX + 1; i < 8; i++)
-        {
-            if (CellY + (i - CellX) < 8)
-            {
-                if (GameBoard[i][CellY + (i - CellX)].piece.type == PIECE_NONE)
-                {
-                    GameBoard[i][CellY + (i - CellX)].primaryvalid = true;
-                    HighlightSquare(i, CellY + (i - CellX), ColorTheme);
-                }
-                else if (GameBoard[i][CellY + (i - CellX)].piece.team != team)
-                {
-                    GameBoard[i][CellY + (i - CellX)].primaryvalid = true;
-                    HighlightSquare(i, CellY + (i - CellX), ColorTheme);
-                    break;
-                }
-                else
-                    break;
-            }
-        }
-        for (i = CellX + 1; i < 8; i++)
-        {
-            if (CellY - (i - CellX) >= 0)
-            {
-                if (GameBoard[i][CellY - (i - CellX)].piece.type == PIECE_NONE)
-                {
-                    GameBoard[i][CellY - (i - CellX)].primaryvalid = true;
-                    HighlightSquare(i, CellY - (i - CellX), ColorTheme);
-                }
-                else if (GameBoard[i][CellY - (i - CellX)].piece.team != team)
-                {
-                    GameBoard[i][CellY - (i - CellX)].primaryvalid = true;
-                    HighlightSquare(i, CellY - (i - CellX), ColorTheme);
-                    break;
-                }
-                else
-                    break;
-            }
-        }
-
-        for (i = CellX - 1; i >= 0; i--)
-        {
-            if (CellY + (CellX - i) < 8)
-            {
-                if (GameBoard[i][CellY + (CellX - i)].piece.type == PIECE_NONE)
-                {
-                    GameBoard[i][CellY + (CellX - i)].primaryvalid = true;
-                    HighlightSquare(i, CellY + (CellX - i), ColorTheme);
-                }
-                else if (GameBoard[i][CellY + (CellX - i)].piece.team != team)
-                {
-                    GameBoard[i][CellY + (CellX - i)].primaryvalid = true;
-                    HighlightSquare(i, CellY + (CellX - i), ColorTheme);
-                    break;
-                }
-                else
-                    break;
-            }
-        }
-        for (i = CellX - 1; i >= 0; i--)
-        {
-            if (CellY - (CellX - i) >= 0)
-            {
-                if (GameBoard[i][CellY - (CellX - i)].piece.type == PIECE_NONE)
-                {
-                    GameBoard[i][CellY - (CellX - i)].primaryvalid = true;
-                    HighlightSquare(i, CellY - (CellX - i), ColorTheme);
-                }
-                else if (GameBoard[i][CellY - (CellX - i)].piece.team != team)
-                {
-                    GameBoard[i][CellY - (CellX - i)].primaryvalid = true;
-                    HighlightSquare(i, CellY - (CellX - i), ColorTheme);
-                    break;
-                }
-                else
-                    break;
-            }
-        }
+        for (i = 1; CellX + i < 8 && CellY + i < 8; i++)
+            if (HandleLinearSquare(CellX + i, CellY + i, team))
+                break;
+        for (i = 1; CellX + i < 8 && CellY - i >= 0; i++)
+            if (HandleLinearSquare(CellX + i, CellY - i, team))
+                break;
+        for (i = 1; CellX - i >= 0 && CellY + i < 8; i++)
+            if (HandleLinearSquare(CellX - i, CellY + i, team))
+                break;
+        for (i = 1; CellX - i >= 0 && CellY - i >= 0; i++)
+            if (HandleLinearSquare(CellX - i, CellY - i, team))
+                break;
     }
+
+    if (type == PIECE_QUEEN)
+    {
+        for (i = CellX + 1; i < 8; i++)
+            if (HandleLinearSquare(i, CellY, team))
+                break;
+        for (i = CellX - 1; i >= 0; i--)
+            if (HandleLinearSquare(i, CellY, team))
+                break;
+        for (i = CellY + 1; i < 8; i++)
+            if (HandleLinearSquare(CellX, i, team))
+                break;
+        for (i = CellY - 1; i >= 0; i--)
+            if (HandleLinearSquare(CellX, i, team))
+                break;
+        for (i = 1; CellX + i < 8 && CellY + i < 8; i++)
+            if (HandleLinearSquare(CellX + i, CellY + i, team))
+                break;
+        for (i = 1; CellX + i < 8 && CellY - i >= 0; i++)
+            if (HandleLinearSquare(CellX + i, CellY - i, team))
+                break;
+        for (i = 1; CellX - i >= 0 && CellY + i < 8; i++)
+            if (HandleLinearSquare(CellX - i, CellY + i, team))
+                break;
+        for (i = 1; CellX - i >= 0 && CellY - i >= 0; i++)
+            if (HandleLinearSquare(CellX - i, CellY - i, team))
+                break;
+    }
+
     if (type == PIECE_PAWN)
-    {
-        if (team == TEAM_BLACK)
-        {
-            if (CellX + 1 < 8)
-            {
-                if (GameBoard[CellX + 1][CellY].piece.type == PIECE_NONE)
-                {
-                    GameBoard[CellX + 1][CellY].primaryvalid = true;
-                    HighlightSquare(CellX + 1, CellY, ColorTheme);
+        HandlePawnMove(CellX, CellY, team, moved);
 
-                    if (!moved)
-                    {
-                        GameBoard[CellX + 2][CellY].primaryvalid = true;
-                        HighlightSquare(CellX + 2, CellY, ColorTheme);
-                    }
-                }
-                if (GameBoard[CellX + 1][CellY - 1].piece.team != team && GameBoard[CellX + 1][CellY - 1].piece.type != PIECE_NONE)
-                {
-                    GameBoard[CellX + 1][CellY - 1].primaryvalid = true;
-                    HighlightSquare(CellX + 1, CellY - 1, ColorTheme);
-                }
-                if (GameBoard[CellX + 1][CellY + 1].piece.team != team && GameBoard[CellX + 1][CellY + 1].piece.type != PIECE_NONE)
-                {
-                    GameBoard[CellX + 1][CellY + 1].primaryvalid = true;
-                    HighlightSquare(CellX + 1, CellY + 1, ColorTheme);
-                }
-            }
-        }
-        if (team == TEAM_WHITE)
-        {
-
-            if (CellX - 1 >= 0)
-            {
-                if (GameBoard[CellX - 1][CellY].piece.type == PIECE_NONE)
-                {
-                    GameBoard[CellX - 1][CellY].primaryvalid = true;
-                    HighlightSquare(CellX - 1, CellY, ColorTheme);
-
-                    if (!moved)
-                    {
-                        GameBoard[CellX - 2][CellY].primaryvalid = true;
-                        HighlightSquare(CellX - 2, CellY, ColorTheme);
-                    }
-                }
-
-                if (GameBoard[CellX - 1][CellY - 1].piece.team != team && GameBoard[CellX - 1][CellY - 1].piece.type != PIECE_NONE)
-                {
-                    GameBoard[CellX - 1][CellY - 1].primaryvalid = true;
-                    HighlightSquare(CellX - 1, CellY - 1, ColorTheme);
-                }
-                if (GameBoard[CellX - 1][CellY + 1].piece.team != team && GameBoard[CellX - 1][CellY + 1].piece.type != PIECE_NONE)
-                {
-                    GameBoard[CellX - 1][CellY + 1].primaryvalid = true;
-                    HighlightSquare(CellX - 1, CellY + 1, ColorTheme);
-                }
-            }
-        }
-    }
-    if (type == PIECE_KING)
-    {
-        for (i = (CellX - 1); i <= CellX + 1; i++)
-        {
-            for (j = CellY - 1; j <= CellY + 1; j++)
-            {
-                if (GameBoard[i][j].piece.team != team || GameBoard[i][j].piece.type == PIECE_NONE)
-                {
-                    if (i >= 0 && i < 8 && j >= 0 && j < 8 && (i != CellX || j != CellY))
-                    {
-                        HighlightSquare(i, j, ColorTheme);
-                        GameBoard[i][j].primaryvalid = true;
-                    }
-                }
-            }
-        }
-    }
     if (type == PIECE_KNIGHT)
+        HandleKnightMove(CellX, CellY, team);
+
+    if (type == PIECE_KING)
+        HandleKingMove(CellX, CellY, team);
+}
+
+void ResetValidation()
+{
+    int i, j;
+    for (i = 0; i < 8; i++)
     {
-        int row1 = CellX + 2,
-            row2 = CellX - 2,
-            col1 = CellY + 2,
-            col2 = CellY - 2;
-        if (row1 < 8)
+        for (j = 0; j < 8; j++)
         {
-            if (col2 + 1 >= 0)
-            {
-                if (GameBoard[row1][col2 + 1].piece.team != team || GameBoard[row1][col2 + 1].piece.type == PIECE_NONE)
-                {
-                    GameBoard[row1][col2 + 1].primaryvalid = true;
-                    HighlightSquare(row1, col2 + 1, ColorTheme);
-                }
-            }
-            if (col1 - 1 < 8)
-            {
-                if (GameBoard[row1][col1 - 1].piece.team != team || GameBoard[row1][col1 - 1].piece.type == PIECE_NONE)
-                {
-                    GameBoard[row1][col1 - 1].primaryvalid = true;
-                    HighlightSquare(row1, col1 - 1, ColorTheme);
-                }
-            }
+            GameBoard[i][j].primaryvalid = false; // Added this for future Check and Checkmate validation
+            GameBoard[i][j].isvalid = false;
         }
-
-        if (row2 >= 0)
+    }
+}
+void ResetVulnerable()
+{
+    int i, j;
+    for (i = 0; i < 8; i++)
+    {
+        for (j = 0; j < 8; j++)
         {
-            if (col2 + 1 >= 0)
-            {
-                if (GameBoard[row2][col2 + 1].piece.team != team || GameBoard[row2][col2 + 1].piece.type == PIECE_NONE)
-                {
-                    GameBoard[row2][col2 + 1].primaryvalid = true;
-                    HighlightSquare(row2, col2 + 1, ColorTheme);
-                }
-            }
-            if (col1 - 1 < 8)
-            {
-                if (GameBoard[row2][col1 - 1].piece.team != team || GameBoard[row2][col1 - 1].piece.type == PIECE_NONE)
-                {
-                    GameBoard[row2][col1 - 1].primaryvalid = true;
-                    HighlightSquare(row2, col1 - 1, ColorTheme);
-                }
-            }
-        }
-        if (col1 < 8)
-        {
-            if (row2 + 1 >= 0)
-            {
-                if (GameBoard[row2 + 1][col1].piece.team != team || GameBoard[row2 + 1][col1].piece.type == PIECE_NONE)
-                {
-                    GameBoard[row2 + 1][col1].primaryvalid = true;
-                    HighlightSquare(row2 + 1, col1, ColorTheme);
-                }
-            }
-            if (row1 - 1 < 8)
-            {
-                if (GameBoard[row1 - 1][col1].piece.team != team || GameBoard[row1 - 1][col1].piece.type == PIECE_NONE)
-                {
-                    GameBoard[row1 - 1][col1].primaryvalid = true;
-                    HighlightSquare(row1 - 1, col1, ColorTheme);
-                }
-            }
-        }
-
-        if (col2 >= 0)
-        {
-            if (row2 + 1 >= 0)
-            {
-                if (GameBoard[row2 + 1][col2].piece.team != team || GameBoard[row2 + 1][col2].piece.type == PIECE_NONE)
-                {
-                    GameBoard[row2 + 1][col2].primaryvalid = true;
-                    HighlightSquare(row2 + 1, col2, ColorTheme);
-                }
-            }
-            if (row1 - 1 < 8)
-            {
-                if (GameBoard[row1 - 1][col2].piece.team != team || GameBoard[row1 - 1][col2].piece.type == PIECE_NONE)
-                {
-                    GameBoard[row1 - 1][col2].primaryvalid = true;
-                    HighlightSquare(row1 - 1, col2, ColorTheme);
-                }
-            }
+            GameBoard[i][j].vulnerable = false;
         }
     }
 }
 
-void ValidateAndDevalidateMoves(PieceType Piece, int CellX, int CellY, int ColorTheme, bool selected)
+void ValidateMoves(PieceType Piece, int CellX, int CellY, bool selected)
 {
     bool moved = GameBoard[CellX][CellY].piece.hasMoved;
     Team team = GameBoard[CellX][CellY].piece.team;
@@ -412,30 +201,167 @@ void ValidateAndDevalidateMoves(PieceType Piece, int CellX, int CellY, int Color
         switch (Piece)
         {
         case PIECE_KING:
-            MoveValidation(CellX, CellY, ColorTheme, PIECE_KING, team, moved);
+            MoveValidation(CellX, CellY, PIECE_KING, team, moved);
             break;
         case PIECE_QUEEN:
-            MoveValidation(CellX, CellY, ColorTheme, PIECE_ROOK, team, moved);
-            MoveValidation(CellX, CellY, ColorTheme, PIECE_BISHOP, team, moved);
+            MoveValidation(CellX, CellY, PIECE_QUEEN, team, moved);
             break;
         case PIECE_ROOK:
-            MoveValidation(CellX, CellY, ColorTheme, PIECE_ROOK, team, moved);
+            MoveValidation(CellX, CellY, PIECE_ROOK, team, moved);
             break;
         case PIECE_BISHOP:
-            MoveValidation(CellX, CellY, ColorTheme, PIECE_BISHOP, team, moved);
+            MoveValidation(CellX, CellY, PIECE_BISHOP, team, moved);
             break;
         case PIECE_KNIGHT:
-            MoveValidation(CellX, CellY, ColorTheme, PIECE_KNIGHT, team, moved);
+            MoveValidation(CellX, CellY, PIECE_KNIGHT, team, moved);
             break;
         case PIECE_PAWN:
-            MoveValidation(CellX, CellY, ColorTheme, PIECE_PAWN, team, moved);
+            MoveValidation(CellX, CellY, PIECE_PAWN, team, moved);
             break;
         case PIECE_NONE:
             break;
         }
     }
-    else // devalidate moves
+}
+
+void ScanEnemyMoves()
+{
+    int i, j;
+
+    for (i = 0; i < 8; i++)
     {
-        Resetvalidation();
+        for (j = 0; j < 8; j++)
+        {
+            if (GameBoard[i][j].piece.team == Turn || GameBoard[i][j].piece.type == PIECE_NONE)
+            {
+                continue;
+            }
+
+            else
+            {
+                MoveValidation(i, j, GameBoard[i][j].piece.type, GameBoard[i][j].piece.team, GameBoard[i][j].piece.hasMoved);
+            }
+        }
+    }
+}
+
+bool HandleLinearSquare(int x, int y, Team team)
+{
+    if (GameBoard[x][y].piece.type == PIECE_NONE)
+    {
+        if (Turn == team)
+            GameBoard[x][y].primaryvalid = true;
+        return false;
+    }
+    else if (GameBoard[x][y].piece.team != team)
+    {
+        if (Turn == team)
+            GameBoard[x][y].primaryvalid = true;
+        else
+            GameBoard[x][y].vulnerable = true;
+
+        return true;
+    }
+    else
+    {
+        return true;
+    }
+}
+// Pawn move helper
+void HandlePawnMove(int CellX, int CellY, Team team, bool moved)
+{
+    if (team == TEAM_BLACK && CellX + 1 < 8)
+    {
+        if (GameBoard[CellX + 1][CellY].piece.type == PIECE_NONE)
+        {
+            if (Turn == team)
+                GameBoard[CellX + 1][CellY].primaryvalid = true;
+
+            if (!moved && CellX + 2 < 8)
+            {
+                if (Turn == team)
+                    GameBoard[CellX + 2][CellY].primaryvalid = true;
+            }
+        }
+        if (GameBoard[CellX + 1][CellY + 1].piece.type != PIECE_NONE && GameBoard[CellX + 1][CellY + 1].piece.team != team)
+        {
+            if (Turn == team)
+                GameBoard[CellX + 1][CellY + 1].primaryvalid = true;
+            else
+                GameBoard[CellX + 1][CellY + 1].vulnerable = true;
+        }
+    }
+    else if (team == TEAM_WHITE && CellX - 1 >= 0)
+    {
+        if (GameBoard[CellX - 1][CellY].piece.type == PIECE_NONE)
+        {
+            if (Turn == team)
+                GameBoard[CellX - 1][CellY].primaryvalid = true;
+
+            if (!moved && CellX - 2 >= 0)
+            {
+                if (Turn == team)
+                    GameBoard[CellX - 2][CellY].primaryvalid = true;
+            }
+        }
+        if (GameBoard[CellX - 1][CellY - 1].piece.type != PIECE_NONE && GameBoard[CellX - 1][CellY - 1].piece.team != team)
+        {
+            if (Turn == team)
+                GameBoard[CellX - 1][CellY - 1].primaryvalid = true;
+            else
+                GameBoard[CellX - 1][CellY - 1].vulnerable = true;
+        }
+    }
+}
+
+void HandleKnightSquare(int x, int y, Team team)
+{
+    if (x >= 0 && x < 8 && y >= 0 && y < 8)
+        if (GameBoard[x][y].piece.team != team || GameBoard[x][y].piece.type == PIECE_NONE)
+        {
+            if (Turn == team)
+                (GameBoard[x][y].primaryvalid = true);
+            else if (GameBoard[x][y].piece.type != PIECE_NONE)
+            {
+                (GameBoard[x][y].vulnerable = true);
+            }
+        }
+}
+
+void HandleKnightMove(int CellX, int CellY, Team team)
+{
+    int row1 = CellX + 2, row2 = CellX - 2;
+    int col1 = CellY + 2, col2 = CellY - 2;
+
+    HandleKnightSquare(row1, col2 + 1, team);
+    HandleKnightSquare(row1, col1 - 1, team);
+    HandleKnightSquare(row2, col2 + 1, team);
+    HandleKnightSquare(row2, col1 - 1, team);
+    HandleKnightSquare(row2 + 1, col1, team);
+    HandleKnightSquare(row1 - 1, col1, team);
+    HandleKnightSquare(row2 + 1, col2, team);
+    HandleKnightSquare(row1 - 1, col2, team);
+}
+
+void HandleKingMove(int CellX, int CellY, Team team)
+{
+    int i, j;
+    for (i = CellX - 1; i <= CellX + 1; i++)
+    {
+        for (j = CellY - 1; j <= CellY + 1; j++)
+        {
+            if (i >= 0 && i < 8 && j >= 0 && j < 8 && (i != CellX || j != CellY))
+            {
+                if (GameBoard[i][j].piece.team != team || GameBoard[i][j].piece.type == PIECE_NONE)
+                {
+                    if (Turn == team)
+                        (GameBoard[i][j].primaryvalid = true);
+                    else if (GameBoard[i][j].piece.type != PIECE_NONE)
+                    {
+                        (GameBoard[i][j].vulnerable = true);
+                    }
+                }
+            }
+        }
     }
 }
