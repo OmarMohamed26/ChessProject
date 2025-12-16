@@ -554,9 +554,11 @@ static void DecideDestination(Vector2 topLeft, int ColorTheme)
             selectedPiece.selected = true;
             SetCellBorder(&selectedCellBorder, &selectedPiece);
             TraceLog(LOG_DEBUG, "Selected A new Piece: %d %d", CellX, CellY);
+            PrimaryValidation(selectedPiece.piece.type, CellX, CellY, selectedPiece.selected); // Renamed Validateanddevalidate to just validate
+            FinalValidation(CellX, CellY, selectedPiece.selected);
         }
     }
-    ValidateMoves(selectedPiece.piece.type, CellX, CellY, selectedPiece.selected); // Renamed Validateanddevalidate to just validate
+    HighlightValidMoves(ColorTheme, selectedPiece.selected);
     // Move the piece if you hold one
     if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && !IsSelectedPieceEmpty)
     {
@@ -585,7 +587,7 @@ static void DecideDestination(Vector2 topLeft, int ColorTheme)
 
         else
         {
-            if (GameBoard[NewCellX][NewCellY].primaryvalid)
+            if (GameBoard[NewCellX][NewCellY].isvalid)
             {
                 MovePiece(CellX, CellY, NewCellX, NewCellY);
                 SetCellBorder(&lastMoveCellBorder, &GameBoard[NewCellX][NewCellY]);
@@ -714,6 +716,24 @@ void DrawVulnerableDebug()
 
             // 4. Draw the status text
             DrawText(status, posX, posY, DEBUG_FONT_SIZE, textColor);
+        }
+    }
+}
+
+void HighlightValidMoves(int ColorTheme, bool selected)
+{
+    int i, j;
+    if (selected)
+    {
+        for (i = 0; i < 8; i++)
+        {
+            for (j = 0; j < 8; j++)
+            {
+                if (GameBoard[i][j].isvalid)
+                {
+                    HighlightSquare(i, j, ColorTheme);
+                }
+            }
         }
     }
 }

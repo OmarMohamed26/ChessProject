@@ -72,6 +72,7 @@ typedef struct Player
 {
     bool Checked;
     bool Checkmated;
+    Team team;
 } Player;
 
 extern int pointer;

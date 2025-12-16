@@ -30,6 +30,8 @@ Player Player1, Player2;
 Team Turn = TEAM_WHITE;
 int main(void)
 {
+    Player1.team = TEAM_WHITE;
+    Player2.team = TEAM_BLACK;
     // Initialize the game window
     SetConfigFlags(FLAG_WINDOW_RESIZABLE);
 #ifdef DEBUG
@@ -73,6 +75,14 @@ int main(void)
         ClearBackground(BACKGROUND);
         DrawBoard(THEME_BROWN);
         HighlightHover(THEME_BROWN);
+        if (Player1.Checked)
+        {
+            DrawText("PLAYER1 IS CHECKED!", 20, 20, 30, BLACK);
+        }
+        if (Player2.Checked)
+        {
+            DrawText("PLAYER2 IS CHECKED!", GetRenderWidth() - 80, 20, 30, BLACK);
+        }
 
         if (showFps)
         {
