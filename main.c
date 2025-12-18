@@ -83,7 +83,7 @@ int main(void)
         }
         if (Player2.Checked)
         {
-            DrawText("PLAYER2 IS CHECKED!", GetRenderWidth() - 80, 20, 30, BLACK);
+            DrawText("PLAYER2 IS CHECKED!", GetRenderWidth() - 340, 20, 30, BLACK);
         }
         if (Checkmate)
         {

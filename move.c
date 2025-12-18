@@ -297,6 +297,10 @@ bool HandleLinearSquare(int x, int y, Team team)
         {
             GameBoard[x][y].primaryvalid = true;
         }
+        else
+        {
+            GameBoard[x][y].vulnerable = true;
+        }
         return false;
     }
     else if (GameBoard[x][y].piece.team != team)
@@ -310,6 +314,9 @@ bool HandleLinearSquare(int x, int y, Team team)
     }
     else
     {
+        if (Turn != team)
+            GameBoard[x][y].vulnerable = true;
+
         return true;
     }
 }
@@ -333,18 +340,18 @@ void HandlePawnMove(int CellX, int CellY, Team team, bool moved)
             }
         }
 
-        if (GameBoard[CellX + 1][CellY + 1].piece.type != PIECE_NONE && GameBoard[CellX + 1][CellY + 1].piece.team != team)
+        if (GameBoard[CellX + 1][CellY + 1].piece.team != team)
         {
-            if (Turn == team)
+            if (Turn == team && GameBoard[CellX + 1][CellY + 1].piece.type != PIECE_NONE)
                 GameBoard[CellX + 1][CellY + 1].primaryvalid = true;
-            else
+            else if (Turn != team)
                 GameBoard[CellX + 1][CellY + 1].vulnerable = true;
         }
-        if (GameBoard[CellX + 1][CellY - 1].piece.type != PIECE_NONE && GameBoard[CellX + 1][CellY - 1].piece.team != team)
+        if (GameBoard[CellX + 1][CellY - 1].piece.team != team)
         {
-            if (Turn == team)
+            if (Turn == team && GameBoard[CellX + 1][CellY - 1].piece.type != PIECE_NONE)
                 GameBoard[CellX + 1][CellY - 1].primaryvalid = true;
-            else
+            else if (Turn != team)
                 GameBoard[CellX + 1][CellY - 1].vulnerable = true;
         }
     }
@@ -364,23 +371,22 @@ void HandlePawnMove(int CellX, int CellY, Team team, bool moved)
             }
         }
 
-        if (GameBoard[CellX - 1][CellY - 1].piece.type != PIECE_NONE && GameBoard[CellX - 1][CellY - 1].piece.team != team)
+        if (GameBoard[CellX - 1][CellY - 1].piece.team != team)
         {
-            if (Turn == team)
+            if (Turn == team && GameBoard[CellX - 1][CellY - 1].piece.type != PIECE_NONE)
                 GameBoard[CellX - 1][CellY - 1].primaryvalid = true;
-            else
+            else if (Turn != team)
                 GameBoard[CellX - 1][CellY - 1].vulnerable = true;
         }
-        if (GameBoard[CellX - 1][CellY + 1].piece.type != PIECE_NONE && GameBoard[CellX - 1][CellY + 1].piece.team != team)
+        if (GameBoard[CellX - 1][CellY + 1].piece.team != team)
         {
-            if (Turn == team)
+            if (Turn == team && GameBoard[CellX - 1][CellY + 1].piece.type != PIECE_NONE)
                 GameBoard[CellX - 1][CellY + 1].primaryvalid = true;
-            else
+            else if (Turn != team)
                 GameBoard[CellX - 1][CellY + 1].vulnerable = true;
         }
     }
 }
-
 void HandleKnightSquare(int x, int y, Team team)
 {
     if (x >= 0 && x < 8 && y >= 0 && y < 8)
@@ -388,7 +394,7 @@ void HandleKnightSquare(int x, int y, Team team)
         {
             if (Turn == team)
                 (GameBoard[x][y].primaryvalid = true);
-            else if (GameBoard[x][y].piece.type != PIECE_NONE)
+            else // --- FIX: Removed type check here ---
             {
                 (GameBoard[x][y].vulnerable = true);
             }
@@ -419,13 +425,16 @@ void HandleKingMove(int CellX, int CellY, Team team)
         {
             if (i >= 0 && i < 8 && j >= 0 && j < 8 && (i != CellX || j != CellY))
             {
-                if (GameBoard[i][j].piece.team != team || GameBoard[i][j].piece.type == PIECE_NONE)
+                if (!GameBoard[i][j].vulnerable)
                 {
-                    if (Turn == team)
-                        (GameBoard[i][j].primaryvalid = true);
-                    else if (GameBoard[i][j].piece.type != PIECE_NONE)
+                    if (GameBoard[i][j].piece.team != team || GameBoard[i][j].piece.type == PIECE_NONE)
                     {
-                        (GameBoard[i][j].vulnerable = true);
+                        if (Turn == team)
+                            (GameBoard[i][j].primaryvalid = true);
+                        else // --- FIX: Removed type check here ---
+                        {
+                            (GameBoard[i][j].vulnerable = true);
+                        }
                     }
                 }
             }
@@ -437,22 +446,19 @@ void CheckValidation()
 {
     int i, j;
 
+    (Turn == TEAM_WHITE) ? (Player2.Checked = false) : (Player1.Checked = false);
+
     for (i = 0; i < 8; i++)
     {
         for (j = 0; j < 8; j++)
         {
-
-            if (GameBoard[i][j].piece.team != Turn)
+            if (GameBoard[i][j].piece.team == Turn && GameBoard[i][j].piece.type == PIECE_KING)
             {
-                continue;
-            }
-            if (GameBoard[i][j].piece.type == PIECE_KING && GameBoard[i][j].vulnerable)
-            {
-                Turn == TEAM_WHITE ? (Player1.Checked = true) : (Player2.Checked = true);
-            }
-            else if (GameBoard[i][j].piece.type == PIECE_KING && !GameBoard[i][j].vulnerable)
-            {
-                Turn == TEAM_WHITE ? (Player1.Checked = false) : (Player2.Checked = false);
+                if (GameBoard[i][j].vulnerable)
+                {
+                    (Turn == TEAM_WHITE) ? (Player1.Checked = true) : (Player2.Checked = true);
+                }
+                return;
             }
         }
     }
@@ -549,6 +555,7 @@ bool CheckmateflagCheck(Team playerteam) // Will also use for stalemate
     PieceType piece1, piece2;
     bool falsecheck = false;
     Team team1, team2;
+    ResetPrimaryValidation();
     for (i = 0; i < 8; i++)
     {
         for (j = 0; j < 8; j++)
@@ -574,25 +581,15 @@ bool CheckmateflagCheck(Team playerteam) // Will also use for stalemate
                             SimCheckValidation();
                             if (Turn == TEAM_WHITE)
                             {
-                                if (Player1.SimChecked)
+                                if (!Player1.SimChecked)
                                 {
-                                    GameBoard[k][l].isvalid = false;
-                                }
-                                else
-                                {
-                                    GameBoard[k][l].isvalid = true;
                                     falsecheck = true;
                                 }
                             }
                             else
                             {
-                                if (Player2.SimChecked)
+                                if (!Player2.SimChecked)
                                 {
-                                    GameBoard[k][l].isvalid = false;
-                                }
-                                else
-                                {
-                                    GameBoard[k][l].isvalid = true;
                                     falsecheck = true;
                                 }
                             }
