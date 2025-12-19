@@ -1,0 +1,32 @@
+use these emojis:
+    task type:
+        📝  TODO
+        🐛	BUG
+        ⚠️	FIXME
+        ✨  FEAT
+        🧪	TEST
+        ♻️	REFACTOR
+        🔒	SEC
+        🚀	PERF
+
+    task status:
+        ⚪  Pending
+        🟡  In Progress
+        ✅  Done
+        ❌  Cancelled
+
+critical changes:
+
+1) ⚠️	FIXME in save.c and load.c add player to move, castling rights and en-passant in the fen reader ⚪ Pending
+2) ✨   FEAT make the border around selected piece and move relative to the SquareLength ⚪ Pending
+3) 📝   TODO understand decide destination ⚪ Pending
+4) ♻️	REFACTOR update constant names to be CAPITAL_SNAKE ⚪ Pending
+5) 🐛	BUG update the documentation for displayPieces to say that it uses DrawTextureEx ⚪ Pending
+6) 📝   TODO understand ResetSelection ⚪ Pending
+7) ♻️	REFACTOR order the includes and make a commit before any thing else 🟡  In Progress
+8) ♻️	REFACTOR add the clamp to HighlightSquare ⚪ Pending
+9) 🚀	PERF don't compute SquareLength in HighlightSquare get it from the cell info
+
+
+big changes that we will probably don't do:
+1) ♻️	REFACTOR make the functions return more useful error logging on failure to help debug: void -> bool and TraceLog ⚪ Pending
