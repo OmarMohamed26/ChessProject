@@ -273,7 +273,7 @@ static void LoadHelper(char *pieceNameBuffer, int bufferSize, const char *pieceN
  * displayPieces (static)
  *
  * Draw all loaded piece textures stored in GameBoard. If a cell's piece type
- * is PIECE_NONE it is skipped. Uses DrawTextureV to place the texture at the
+ * is PIECE_NONE it is skipped. Uses DrawTextureEx to place the texture at the
  * precomputed GameBoard[row][col].pos position.
  *
  */
@@ -555,7 +555,6 @@ void HighlightHover(int ColorTheme)
  *    previously initialized by InitializeCellsPos(...).
  *  - It is intended to be called once per frame from DrawBoard().
  */
-
 static void DecideDestination(Vector2 topLeft)
 {
     bool TurnValidation = false;

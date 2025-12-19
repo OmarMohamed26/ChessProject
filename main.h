@@ -61,10 +61,10 @@ typedef struct Cell
     Piece piece;           /* piece occupying the cell (PIECE_NONE if empty) */
     Vector2 pos;           /* pixel position for rendering (top-left) */
     int row, col;          /* board coordinates (0..7) */
-    bool primaryValid : 1; // This is a primary validation
-    bool isvalid : 1;      // Final validation of moves
+    bool primaryValid : 1; // This is a primary validation geometrically
+    bool isvalid : 1;      // Final validation of moves FINAL_VALIDATION
     bool selected : 1;     // will also need this
-    bool vulnerable : 1;
+    bool vulnerable : 1;   // what pieces are under attack on my team this will help in EASY_MODE
 } Cell;
 
 typedef struct Player
@@ -75,6 +75,12 @@ typedef struct Player
     bool SimChecked : 1;
     bool Stalemate : 1;
 } Player;
+
+// typedef struct
+// {
+// row col(init/final) piece team
+
+// } Move;
 
 extern int pointer;
 extern Team Turn;

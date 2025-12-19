@@ -20,7 +20,7 @@ void HandleKnightMove(int CellX, int CellY, Team team);
 void HandleKingMove(int CellX, int CellY, Team team);
 void MoveSimulation(int CellX1, int CellY1, int CellX2, int CellY2, PieceType piece);
 void UndoSimulation(int CellX1, int CellY1, int CellX2, int CellY2, PieceType piece1, PieceType piece2, Team team2);
-bool CheckmateflagCheck(Team playerteam);
+bool CheckmateFlagCheck(Team playerteam);
 void CheckmateValidation();
 void StalemateValidation();
 void ScanFriendlyMoves();

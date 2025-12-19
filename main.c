@@ -27,6 +27,7 @@ Player Player1, Player2;
 Team Turn = TEAM_WHITE;
 bool Checkmate = false;
 bool Stalemate = false;
+
 int main(void)
 {
     Player1.team = TEAM_WHITE;
@@ -72,15 +73,18 @@ int main(void)
 
         BeginDrawing();
         ClearBackground(BACKGROUND);
-        DrawBoard(THEME_BROWN);
-        HighlightHover(THEME_BROWN);
+
+        ColorTheme theme = THEME_BROWN;
+
+        DrawBoard(theme);
+        HighlightHover(theme);
         if (Player1.Checked)
         {
-            DrawText("PLAYER1 IS CHECKED!", 20, 20, 30, BLACK);
+            DrawText("WHITE IS CHECKED!", 20, 20, 30, BLACK);
         }
         if (Player2.Checked)
         {
-            DrawText("PLAYER2 IS CHECKED!", GetRenderWidth() - 340, 20, 30, BLACK);
+            DrawText("BLACK IS CHECKED!", GetRenderWidth() - 340, 20, 30, BLACK);
         }
         if (Checkmate)
         {

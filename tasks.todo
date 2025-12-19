@@ -19,17 +19,21 @@ critical changes:
 
 1)  ⚠️	FIXME in save.c and load.c add player to move, castling rights and en-passant in the fen reader ⚪ Pending
 2)  ✨   FEAT make the border around selected piece and move relative to the SquareLength ✅  Done
-3)  📝   TODO understand decide destination ⚪ Pending
+3)  📝   TODO understand decide destination ✅  Done
 4)  ♻️	REFACTOR update constant names to be CAPITAL_SNAKE ✅  Done
-5)  🐛	BUG update the documentation for displayPieces to say that it uses DrawTextureEx ⚪ Pending
-6)  📝   TODO understand ResetSelection ⚪ Pending
+5)  🐛	BUG update the documentation for displayPieces to say that it uses DrawTextureEx ✅  Done
+6)  📝   TODO understand ResetSelection ✅  Done
 7)  ♻️	REFACTOR order the includes and make a commit before any thing else ✅  Done
 8)  ♻️	REFACTOR add the clamp to HighlightSquare ✅  Done
 9)  🚀	PERF don't compute SquareLength in HighlightSquare get it from the cell info ❌  Cancelled
-10) 📝  TODO order the prototypes as they are wrote in the file ⚪ Pending
+10) 📝  TODO order the prototypes as they are wrote in the file ❌  Cancelled
 11) 📝  TODO change highlight valid move to circle like chess.com 🟡  In Progress
-12) 📝  TODO update the documentation on HighlightValidMove when you add Hollow Circle ⚪ Pending
+12) 📝  TODO update the documentation on HighlightValidMove when you add Hollow Circle 🟡  In Progress
 13) 📝  TODO make the libraries local in the project folder ⚪ Pending
+14) 📝  TODO if a piece is selected and you click else where on the board it gets unselected 🟡  In Progress
+15) 📝  TODO add the undo/redo logic with buttons on the game and ctrl+z ctrl+y ⚪ Pending
+16) 📝  TODO add castling en-passant promotion ⚪ Pending
+17) 📝  TODO add stalemate by repetition logic ⚪ Pending
 
 
 big changes that we will probably don't do:

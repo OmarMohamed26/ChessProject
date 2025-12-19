@@ -20,6 +20,7 @@
 extern Cell GameBoard[8][8];
 extern Player Player1, Player2;
 bool checked = false, flag = false;
+
 /**
  * MovePiece
  *
@@ -54,18 +55,20 @@ void MovePiece(int initialRow, int initialCol, int finalRow, int finalCol)
         TraceLog(LOG_WARNING, "MovePiece: no piece at source (%d,%d)", initialRow, initialCol);
         return;
     }
+
     if (initialRow == finalRow && initialCol == finalCol) // This fixes the capturing self bug
     {
         return;
     }
     else
     {
+        // before loading piece save the move in struct Move
         LoadPiece(finalRow, finalCol, GameBoard[initialRow][initialCol].piece.type, GameBoard[initialRow][initialCol].piece.team);
         GameBoard[finalRow][finalCol].piece.hasMoved = 1;
         SetEmptyCell(&GameBoard[initialRow][initialCol]);
         Turn = (Turn == TEAM_WHITE) ? TEAM_BLACK : TEAM_WHITE; // Added turns
-        ResetVulnerable();
-        ScanEnemyMoves(); // Added vulnerability function checker
+        ResetVulnerable();                                     // Reset the curent piece that are in danger
+        ScanEnemyMoves();                                      // Added vulnerability function checker
         CheckValidation();
         StalemateValidation();
         if (Player1.Checked)
@@ -106,18 +109,21 @@ void SetEmptyCell(Cell *cell)
     cell->piece.type = PIECE_NONE;
     cell->piece.hasMoved = 0;
     cell->piece.team = TEAM_WHITE;
-    cell->piece.texture.id = 0; // Unload texture function was causing very weird behaviour had to replace it with this
+    // cell->piece.texture.id = 0; // Unload texture function was causing very weird behaviour had to replace it with this
+    UnloadTexture(cell->piece.texture);
 }
 
+// Check if this move is correct geometrically
 void MoveValidation(int CellX, int CellY, PieceType type, Team team, bool moved)
 {
     int i;
 
     if (type == PIECE_ROOK)
     {
+    rookLogic:
         for (i = CellX + 1; i < 8; i++)
             if (HandleLinearSquare(i, CellY, team))
-                break;
+                break; // We reached the end of the board or we or we hit self or enemy piece
         for (i = CellX - 1; i >= 0; i--)
             if (HandleLinearSquare(i, CellY, team))
                 break;
@@ -131,6 +137,7 @@ void MoveValidation(int CellX, int CellY, PieceType type, Team team, bool moved)
 
     if (type == PIECE_BISHOP)
     {
+    bishopLogic:
         for (i = 1; CellX + i < 8 && CellY + i < 8; i++)
             if (HandleLinearSquare(CellX + i, CellY + i, team))
                 break;
@@ -194,6 +201,7 @@ void ResetValidation()
         }
     }
 }
+
 void ResetVulnerable()
 {
     int i, j;
@@ -205,6 +213,7 @@ void ResetVulnerable()
         }
     }
 }
+
 void ResetPrimaryValidation()
 {
     int i, j;
@@ -217,6 +226,7 @@ void ResetPrimaryValidation()
     }
 }
 
+// Check if this move is correct geometrically
 void PrimaryValidation(PieceType Piece, int CellX, int CellY)
 {
     bool moved = GameBoard[CellX][CellY].piece.hasMoved;
@@ -267,6 +277,8 @@ void ScanEnemyMoves()
         }
     }
 }
+
+// Unused function and could be removed
 void ScanFriendlyMoves()
 {
     int i, j;
@@ -288,33 +300,35 @@ void ScanFriendlyMoves()
     }
 }
 
-bool HandleLinearSquare(int x, int y, Team team)
+// I am going to this square
+// the return will help us exit the raytracing loop
+bool HandleLinearSquare(int row, int col, Team team)
 {
-    if (GameBoard[x][y].piece.type == PIECE_NONE)
+    if (GameBoard[row][col].piece.type == PIECE_NONE)
     {
         if (Turn == team)
         {
-            GameBoard[x][y].primaryValid = true;
+            GameBoard[row][col].primaryValid = true;
         }
         else
         {
-            GameBoard[x][y].vulnerable = true;
+            GameBoard[row][col].vulnerable = true;
         }
         return false;
     }
-    else if (GameBoard[x][y].piece.team != team)
+    else if (GameBoard[row][col].piece.team != team)
     {
         if (Turn == team)
-            GameBoard[x][y].primaryValid = true;
+            GameBoard[row][col].primaryValid = true;
         else
-            GameBoard[x][y].vulnerable = true;
+            GameBoard[row][col].vulnerable = true;
 
         return true;
     }
     else
     {
         if (Turn != team)
-            GameBoard[x][y].vulnerable = true;
+            GameBoard[row][col].vulnerable = true;
 
         return true;
     }
@@ -386,6 +400,7 @@ void HandlePawnMove(int CellX, int CellY, Team team, bool moved)
         }
     }
 }
+
 void HandleKnightSquare(int x, int y, Team team)
 {
     if (x >= 0 && x < 8 && y >= 0 && y < 8)
@@ -441,6 +456,7 @@ void HandleKingMove(int CellX, int CellY, Team team)
     }
 }
 
+// is the king under attack
 void CheckValidation()
 {
     int i, j;
@@ -462,6 +478,7 @@ void CheckValidation()
         }
     }
 }
+
 void FinalValidation(int CellX, int CellY, bool selected)
 {
     int i, j;
@@ -521,6 +538,7 @@ void MoveSimulation(int CellX1, int CellY1, int CellX2, int CellY2, PieceType pi
     GameBoard[CellX1][CellY1].piece.type = PIECE_NONE;
     GameBoard[CellX2][CellY2].piece.type = piece;
 }
+
 void UndoSimulation(int CellX1, int CellY1, int CellX2, int CellY2, PieceType piece1, PieceType piece2, Team team2)
 {
     GameBoard[CellX1][CellY1].piece.type = piece1;
@@ -532,7 +550,7 @@ void CheckmateValidation()
 {
     if (Player1.Checked)
     {
-        Player1.Checkmated = CheckmateflagCheck(TEAM_WHITE);
+        Player1.Checkmated = CheckmateFlagCheck(TEAM_WHITE);
         if (Player1.Checkmated)
         {
             Checkmate = true;
@@ -540,7 +558,7 @@ void CheckmateValidation()
     }
     if (Player2.Checked)
     {
-        Player2.Checkmated = CheckmateflagCheck(TEAM_BLACK);
+        Player2.Checkmated = CheckmateFlagCheck(TEAM_BLACK);
         if (Player2.Checkmated)
         {
             Checkmate = true;
@@ -548,7 +566,7 @@ void CheckmateValidation()
     }
 }
 
-bool CheckmateflagCheck(Team playerteam) // Will also use for stalemate
+bool CheckmateFlagCheck(Team playerteam) // Will also use for stalemate
 {
     int i, j, k, l;
     PieceType piece1, piece2;
@@ -614,6 +632,7 @@ bool CheckmateflagCheck(Team playerteam) // Will also use for stalemate
     ResetPrimaryValidation();
     return true;
 }
+
 void SimCheckValidation()
 {
     int i, j;
@@ -645,7 +664,7 @@ void StalemateValidation()
 
         if (!Player1.Checked)
         {
-            Player1.Stalemate = CheckmateflagCheck(TEAM_WHITE);
+            Player1.Stalemate = CheckmateFlagCheck(TEAM_WHITE);
             if (Player1.Stalemate)
             {
                 Stalemate = true;
@@ -654,7 +673,7 @@ void StalemateValidation()
     }
     else if (!Player2.Checked)
     {
-        Player2.Stalemate = CheckmateflagCheck(TEAM_BLACK);
+        Player2.Stalemate = CheckmateFlagCheck(TEAM_BLACK);
         if (Player2.Stalemate)
         {
             Stalemate = true;
