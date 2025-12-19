@@ -728,6 +728,28 @@ static void ResizeCellBorder(SmartBorder *border)
     }
 }
 
+/**
+ * HighlightValidMoves
+ *
+ * Purpose:
+ *  - When a piece is currently selected, render per-frame visual markers on
+ *    every board cell that has its `isvalid` flag set. These markers indicate
+ *    legal destination squares for the selected piece.
+ *
+ * Behavior:
+ *  - If `selected` is false the function does nothing.
+ *  - Computes sizes from ComputeSquareLength() so markers scale with the board.
+ *  - Iterates the global GameBoard and for each cell with isvalid==true draws
+ *    a small filled circle centered in that square using VALID_MOVE_COLOR.
+ *
+ * Parameters:
+ *  - selected : boolean indicating whether a piece is selected (only then draw).
+ *
+ * Notes / Side-effects:
+ *  - Uses the globals `row` and `col` as loop indices.
+ *  - Relies on GameBoard[*][*].pos being initialized (InitializeCellsPos called).
+ *  - Rendering occurs immediately (per-frame); call from DrawBoard() during drawing.
+ */
 void HighlightValidMoves(bool selected)
 {
     if (selected)
@@ -742,7 +764,6 @@ void HighlightValidMoves(bool selected)
                 Cell thisCell = GameBoard[row][col];
                 if (thisCell.isvalid)
                 {
-                    // HighlightSquare(i, j, ColorTheme); // Change to circle
                     DrawCircle(thisCell.pos.x + halfSquareLength, thisCell.pos.y + halfSquareLength, validMoveCircleRadius, VALID_MOVE_COLOR);
                 }
             }
