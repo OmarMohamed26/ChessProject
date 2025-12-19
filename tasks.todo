@@ -27,7 +27,7 @@ critical changes:
 8)  ♻️	REFACTOR add the clamp to HighlightSquare ✅  Done
 9)  🚀	PERF don't compute SquareLength in HighlightSquare get it from the cell info ❌  Cancelled
 10) 📝  TODO order the prototypes as they are wrote in the file ⚪ Pending
-11) 📝  TODO change highlight valid move to circle like chess.com ⚪ Pending
+11) 📝  TODO change highlight valid move to circle like chess.com 🟡  In Progress
 
 
 big changes that we will probably don't do:

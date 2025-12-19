@@ -57,7 +57,7 @@ static void LoadHelper(char *pieceNameBuffer, int bufferSize, const char *pieceN
 static void InitializeCellsPos(int extra, int squareLength, float spaceText);
 static size_t TrimTrailingWhitespace(char *s);
 static void displayPieces(void);
-static void DecideDestination(Vector2 topLeft, int ColorTheme);
+static void DecideDestination(Vector2 topLeft);
 static bool CompareCells(Cell *cell1, Cell *cell2);
 static void swap(int *x, int *y);
 static void SetCellBorder(SmartBorder *border, Cell *selectedPiece);
@@ -70,15 +70,15 @@ static int Clamp(int number, int max);
 #define SPACE_TEXT 0.75f
 
 // Local variables
-int i1, i2;
+int row, col;
 int pointer;
 bool IsSelectedPieceEmpty; // made this global because I need it in my highlight square function
 
 Cell imaginaryCell = {.row = -1, .col = -1};
 
 // The program depends on these values to say there shouldn't be any rect to be drawn so be careful
-// Rectangle selectedCellBorder = {.x = -1, .y = -1};
-// Rectangle lastMoveCellBorder = {.x = -1, .y = -1};
+// SmartBorder selectedCellBorder = {.rect.x = -1, .rect.y = -1};
+// SmartBorder lastMoveCellBorder = {.rect.x = -1, .rect.y = -1};
 
 SmartBorder selectedCellBorder = {.rect.x = -1, .rect.y = -1};
 SmartBorder lastMoveCellBorder = {.rect.x = -1, .rect.y = -1};
@@ -146,7 +146,7 @@ void DrawBoard(int ColorTheme)
         DrawText(fileText, (int)x, (int)y, fontSize, FONT_COLOR);
     }
 
-    DecideDestination(GameBoard[0][0].pos, ColorTheme);
+    DecideDestination(GameBoard[0][0].pos);
 
     if (IsWindowResized())
     {
@@ -451,39 +451,71 @@ static int Clamp(int number, int max)
     return (number <= max) ? number : max;
 }
 
+/**
+ * HighlightHover
+ *
+ * Purpose:
+ *  - Provide a per-frame hover feedback for the board square under the mouse.
+ *    When appropriate this will visually highlight the square and set a
+ *    pointing-hand mouse cursor so the UI indicates a selectable piece.
+ *
+ * Behavior:
+ *  - Maps the current mouse position into board coordinates (row/col) using
+ *    GameBoard[0][0].pos as the top-left origin and the computed square size.
+ *  - If the mouse is over the board and the square contains a piece, the
+ *    function will highlight that square only when no piece is currently
+ *    selected (IsSelectedPieceEmpty == true) and the piece belongs to the
+ *    side whose turn it is (global Turn).
+ *  - When a highlight is applied the mouse cursor is changed to MOUSE_CURSOR_POINTING_HAND.
+ *    Otherwise the cursor is kept as MOUSE_CURSOR_ARROW.
+ *
+ * Notes / Caveats:
+ *  - This function relies on InitializeCellsPos(...) having been called so
+ *    GameBoard[*][*].pos values reflect the current layout. Call ComputeSquareLength()
+ *    / InitializeCellsPos after any window resize before using this.
+ *  - It uses globals row and col to expose the computed row/col index of the hovered
+ *    cell for other code that may inspect it (they are assigned when the mouse
+ *    is inside the board).
+ *  - It only highlights owned pieces when it's that team's turn.
+ *
+ * Parameters:
+ *  - ColorTheme: index into PALETTE used to pick the board colors when drawing
+ *                the temporary hover highlight.
+ */
 void HighlightHover(int ColorTheme)
 {
     int Sql = ComputeSquareLength();
     int X_Pos = (GetMouseX());
     int Y_Pos = (GetMouseY());
-    float ratiox, ratioy;
+    float ratioX, ratioY;
     float Max_Board_X = (GameBoard[0][7].pos.x + Sql);
     float Max_Board_Y = (GameBoard[7][0].pos.y + Sql);
 
+    // Mouse coordinate checking
     if (X_Pos >= GameBoard[0][0].pos.x && X_Pos <= Max_Board_X &&
         Y_Pos >= GameBoard[0][0].pos.y && Y_Pos <= Max_Board_Y)
     {
-        ratiox = ((X_Pos - GameBoard[0][0].pos.x) * 8) / (Max_Board_X - GameBoard[0][0].pos.x);
-        i2 = (int)ratiox;
-        ratioy = ((Y_Pos - GameBoard[0][0].pos.y) * 8) / (Max_Board_Y - GameBoard[0][0].pos.y);
-        i1 = (int)ratioy;
-        if (GameBoard[i1][i2].piece.type != PIECE_NONE)
+        ratioX = ((X_Pos - GameBoard[0][0].pos.x) * 8) / (Max_Board_X - GameBoard[0][0].pos.x);
+        col = (int)ratioX;
+        ratioY = ((Y_Pos - GameBoard[0][0].pos.y) * 8) / (Max_Board_Y - GameBoard[0][0].pos.y);
+        row = (int)ratioY;
+        if (GameBoard[row][col].piece.type != PIECE_NONE)
         {
             if (IsSelectedPieceEmpty) // Makes hover highlight effect only when no piece is selected
             {
                 if (Turn == TEAM_WHITE)
                 {
-                    if (GameBoard[i1][i2].piece.team == Turn)
+                    if (GameBoard[row][col].piece.team == Turn)
                     {
-                        HighlightSquare(i1, i2, ColorTheme);
+                        HighlightSquare(row, col, ColorTheme);
                         SetMouseCursor(MOUSE_CURSOR_POINTING_HAND);
                     }
                 }
                 else
                 {
-                    if (GameBoard[i1][i2].piece.team == Turn)
+                    if (GameBoard[row][col].piece.team == Turn)
                     {
-                        HighlightSquare(i1, i2, ColorTheme);
+                        HighlightSquare(row, col, ColorTheme);
                         SetMouseCursor(MOUSE_CURSOR_POINTING_HAND);
                     }
                 }
@@ -524,7 +556,7 @@ void HighlightHover(int ColorTheme)
  *  - It is intended to be called once per frame from DrawBoard().
  */
 
-static void DecideDestination(Vector2 topLeft, int ColorTheme)
+static void DecideDestination(Vector2 topLeft)
 {
     bool TurnValidation = false;
 
@@ -565,7 +597,7 @@ static void DecideDestination(Vector2 topLeft, int ColorTheme)
             FinalValidation(CellX, CellY, selectedPiece.selected);
         }
     }
-    HighlightValidMoves(ColorTheme, selectedPiece.selected);
+    HighlightValidMoves(selectedPiece.selected);
     // Move the piece if you hold one
     if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && !IsSelectedPieceEmpty)
     {
@@ -610,6 +642,7 @@ static void DecideDestination(Vector2 topLeft, int ColorTheme)
         }
     }
 }
+
 /**
  * CompareCells (static)
  *
@@ -695,18 +728,22 @@ static void ResizeCellBorder(SmartBorder *border)
     }
 }
 
-void HighlightValidMoves(int ColorTheme, bool selected)
+void HighlightValidMoves(bool selected)
 {
-    int i, j;
     if (selected)
     {
-        for (i = 0; i < 8; i++)
+        int halfSquareLength = ComputeSquareLength() / 2;
+        int validMoveCircleRadius = round(halfSquareLength / (double)3);
+
+        for (row = 0; row < 8; row++)
         {
-            for (j = 0; j < 8; j++)
+            for (col = 0; col < 8; col++)
             {
-                if (GameBoard[i][j].isvalid)
+                Cell thisCell = GameBoard[row][col];
+                if (thisCell.isvalid)
                 {
-                    HighlightSquare(i, j, ColorTheme); // Change to circle
+                    // HighlightSquare(i, j, ColorTheme); // Change to circle
+                    DrawCircle(thisCell.pos.x + halfSquareLength, thisCell.pos.y + halfSquareLength, validMoveCircleRadius, VALID_MOVE_COLOR);
                 }
             }
         }

@@ -40,6 +40,8 @@
 
 #define LAST_MOVE_BORDER_COLOR GREEN
 
+#define VALID_MOVE_COLOR CLITERAL(Color){100, 100, 100, 100}
+
 typedef struct ColorPair
 {
     Color white;
