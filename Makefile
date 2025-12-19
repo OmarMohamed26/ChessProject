@@ -36,10 +36,20 @@ EXECUTABLE = $(BUILD_DIR)/$(TARGET)
 # Note: Removed -I. because system headers (raylib.h) are found automatically
 CFLAGS += -Wall -Wextra -std=c17 -MMD
 
-# LDFLAGS: Linker Flags
-# The compiler finds libraylib.so in the standard system path automatically
-LDFLAGS := -lraylib -lGL -lm -lpthread -ldl -lrt -lX11
+# --- Library / Include directory support ---
+# Add custom library dirs and include dirs when needed:
+#   make LIB_DIRS="/opt/local/lib /usr/local/lib" INCLUDE_DIRS="/opt/local/include" LIBS="raylib GL m pthread dl rt X11"
+LIB_DIRS ?=
+INCLUDE_DIRS ?= libs
+# Space-separated library names (without -l prefix). Defaults keep previous behaviour.
+LIBS ?= raylib GL m pthread dl rt X11
 
+# Expand include dirs into -I flags and library dirs/libs into -L / -l flags
+ifneq ($(strip $(INCLUDE_DIRS)),)
+CFLAGS += $(addprefix -I,$(INCLUDE_DIRS))
+endif
+
+LDFLAGS := $(addprefix -L,$(LIB_DIRS)) $(addprefix -l,$(LIBS))
 # --- Targets ---
 
 .PHONY: all debug run clean

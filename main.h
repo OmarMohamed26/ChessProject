@@ -8,7 +8,7 @@
 #ifndef MAIN_H
 #define MAIN_H
 
-#include <raylib.h>
+#include "raylib.h"
 
 /* PieceType
  * - PIECE_NONE == 0 so zero-initialized memory means "empty cell".

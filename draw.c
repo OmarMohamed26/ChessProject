@@ -40,9 +40,9 @@
 #include "colors.h"
 #include "main.h"
 #include "move.h"
+#include "raylib.h"
 #include <ctype.h>
 #include <math.h>
-#include <raylib.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdio.h>

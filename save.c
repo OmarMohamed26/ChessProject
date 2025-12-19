@@ -23,8 +23,8 @@
 
 #include "save.h"
 #include "main.h"
+#include "raylib.h"
 #include <ctype.h>
-#include <raylib.h>
 #include <stdlib.h>
 
 // TODO We must a add a small letter of the whole string to decide who is going to play next w or b

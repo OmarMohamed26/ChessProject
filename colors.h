@@ -12,7 +12,7 @@
 #ifndef COLORS_H
 #define COLORS_H
 
-#include <raylib.h>
+#include "raylib.h"
 
 #define BROWN_WHITE CLITERAL(Color){242, 212, 174, 255}
 #define BROWN_BLACK CLITERAL(Color){192, 132, 98, 255}
