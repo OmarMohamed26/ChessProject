@@ -11,18 +11,18 @@
  * - GameBoard is the global board state (defined below) used by draw.c.
  */
 
-#include <raylib.h>
 #ifdef DEBUG
 #include <stdio.h>
 #endif
 #include "colors.h"
 #include "draw.h"
-#include "main.h"
 #include "load.h"
-#include <string.h>
+#include "main.h"
 #include "save.h"
-#include <stdlib.h>
+#include <raylib.h>
 #include <stdbool.h>
+#include <stdlib.h>
+#include <string.h>
 
 /* Global board state accessible to draw.c and other modules. */
 Cell GameBoard[8][8];

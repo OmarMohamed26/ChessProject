@@ -21,11 +21,11 @@
  * - Optionally support castling rights, en-passant, and move clocks if needed.
  */
 
-#include "main.h"
-#include <stdlib.h>
-#include <raylib.h>
-#include <ctype.h>
 #include "save.h"
+#include "main.h"
+#include <ctype.h>
+#include <raylib.h>
+#include <stdlib.h>
 
 // TODO We must a add a small letter of the whole string to decide who is going to play next w or b
 

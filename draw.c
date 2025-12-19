@@ -36,16 +36,16 @@
  *   frames; treat them as single-threaded UI helpers.
  */
 
-#include <raylib.h>
-#include <string.h>
-#include <ctype.h>
-#include <stddef.h>
-#include <stdio.h>
-#include <stdbool.h>
-#include "colors.h"
 #include "draw.h"
+#include "colors.h"
 #include "main.h"
 #include "move.h"
+#include <ctype.h>
+#include <raylib.h>
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdio.h>
+#include <string.h>
 
 // access the GameBoard from the main.c file
 extern Cell GameBoard[8][8];

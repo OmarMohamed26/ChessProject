@@ -15,8 +15,8 @@
  * - Out-of-range files/ranks are clamped/ignored to avoid writes outside GameBoard.
  */
 
-#include "main.h"
 #include "draw.h"
+#include "main.h"
 #include <ctype.h>
 
 extern Cell GameBoard[8][8];

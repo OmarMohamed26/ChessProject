@@ -12,10 +12,10 @@
  * - All operations are intended to be called from the main thread.
  */
 
-#include "main.h"
-#include "draw.h"
 #include "move.h"
 #include "colors.h"
+#include "draw.h"
+#include "main.h"
 
 extern Cell GameBoard[8][8];
 extern Player Player1, Player2;
