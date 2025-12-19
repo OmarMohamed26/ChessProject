@@ -21,6 +21,10 @@ extern Cell GameBoard[8][8];
 extern Player Player1, Player2;
 bool checked = false, flag = false;
 
+/* Add prototypes near the top of the file (below includes) */
+static void RaycastRook(int CellX, int CellY, Team team);
+static void RaycastBishop(int CellX, int CellY, Team team);
+
 /**
  * MovePiece
  *
@@ -113,71 +117,44 @@ void SetEmptyCell(Cell *cell)
     UnloadTexture(cell->piece.texture);
 }
 
-// Check if this move is correct geometrically
+/**
+ * MoveValidation
+ *
+ * Compute primary (geometric) move/raytrace candidates for a piece located at (CellX,CellY).
+ *
+ * Parameters:
+ *  - CellX, CellY : coordinates of the piece to validate.
+ *  - type         : PieceType identifying movement rules to apply.
+ *  - team         : the piece's Team.
+ *  - moved        : whether the piece has moved before (affects pawn and castling logic).
+ *
+ * Behavior:
+ *  - Marks GameBoard squares' primaryValid or vulnerable flags according to geometric reachability
+ *    (does not perform final king-checking validation).
+ *  - Delegates to piece-specific helpers: rook/bishop/queen cast rays, pawns/knights/kings use helpers.
+ *
+ * Side effects:
+ *  - Mutates GameBoard[*][*].primaryValid and/or .vulnerable.
+ */
 void MoveValidation(int CellX, int CellY, PieceType type, Team team, bool moved)
 {
     int i;
 
     if (type == PIECE_ROOK)
     {
-    rookLogic:
-        for (i = CellX + 1; i < 8; i++)
-            if (HandleLinearSquare(i, CellY, team))
-                break; // We reached the end of the board or we or we hit self or enemy piece
-        for (i = CellX - 1; i >= 0; i--)
-            if (HandleLinearSquare(i, CellY, team))
-                break;
-        for (i = CellY + 1; i < 8; i++)
-            if (HandleLinearSquare(CellX, i, team))
-                break;
-        for (i = CellY - 1; i >= 0; i--)
-            if (HandleLinearSquare(CellX, i, team))
-                break;
+        RaycastRook(CellX, CellY, team);
     }
 
     if (type == PIECE_BISHOP)
     {
-    bishopLogic:
-        for (i = 1; CellX + i < 8 && CellY + i < 8; i++)
-            if (HandleLinearSquare(CellX + i, CellY + i, team))
-                break;
-        for (i = 1; CellX + i < 8 && CellY - i >= 0; i++)
-            if (HandleLinearSquare(CellX + i, CellY - i, team))
-                break;
-        for (i = 1; CellX - i >= 0 && CellY + i < 8; i++)
-            if (HandleLinearSquare(CellX - i, CellY + i, team))
-                break;
-        for (i = 1; CellX - i >= 0 && CellY - i >= 0; i++)
-            if (HandleLinearSquare(CellX - i, CellY - i, team))
-                break;
+        RaycastBishop(CellX, CellY, team);
     }
 
     if (type == PIECE_QUEEN)
     {
-        for (i = CellX + 1; i < 8; i++)
-            if (HandleLinearSquare(i, CellY, team))
-                break;
-        for (i = CellX - 1; i >= 0; i--)
-            if (HandleLinearSquare(i, CellY, team))
-                break;
-        for (i = CellY + 1; i < 8; i++)
-            if (HandleLinearSquare(CellX, i, team))
-                break;
-        for (i = CellY - 1; i >= 0; i--)
-            if (HandleLinearSquare(CellX, i, team))
-                break;
-        for (i = 1; CellX + i < 8 && CellY + i < 8; i++)
-            if (HandleLinearSquare(CellX + i, CellY + i, team))
-                break;
-        for (i = 1; CellX + i < 8 && CellY - i >= 0; i++)
-            if (HandleLinearSquare(CellX + i, CellY - i, team))
-                break;
-        for (i = 1; CellX - i >= 0 && CellY + i < 8; i++)
-            if (HandleLinearSquare(CellX - i, CellY + i, team))
-                break;
-        for (i = 1; CellX - i >= 0 && CellY - i >= 0; i++)
-            if (HandleLinearSquare(CellX - i, CellY - i, team))
-                break;
+        /* reuse rook + bishop raycasts */
+        RaycastRook(CellX, CellY, team);
+        RaycastBishop(CellX, CellY, team);
     }
 
     if (type == PIECE_PAWN)
@@ -190,6 +167,82 @@ void MoveValidation(int CellX, int CellY, PieceType type, Team team, bool moved)
         HandleKingMove(CellX, CellY, team);
 }
 
+/**
+ * RaycastRook
+ *
+ * Cast rook-like rays from (CellX,CellY) to mark reachable squares.
+ *
+ * Parameters:
+ *  - CellX, CellY : source coordinates.
+ *  - team         : team of the sliding piece.
+ *
+ * Behavior:
+ *  - Iterates in four orthogonal directions (up/down/left/right) until the board edge
+ *    or a blocking piece is reached. For each inspected square calls HandleLinearSquare()
+ *    which sets primaryValid or vulnerable and returns whether the ray must stop.
+ *
+ * Side effects:
+ *  - Mutates GameBoard[*][*].primaryValid / vulnerable via HandleLinearSquare.
+ */
+static void RaycastRook(int CellX, int CellY, Team team)
+{
+    int i;
+    for (i = CellX + 1; i < 8; i++)
+        if (HandleLinearSquare(i, CellY, team))
+            break;
+    for (i = CellX - 1; i >= 0; i--)
+        if (HandleLinearSquare(i, CellY, team))
+            break;
+    for (i = CellY + 1; i < 8; i++)
+        if (HandleLinearSquare(CellX, i, team))
+            break;
+    for (i = CellY - 1; i >= 0; i--)
+        if (HandleLinearSquare(CellX, i, team))
+            break;
+}
+
+/**
+ * RaycastBishop
+ *
+ * Cast bishop-like diagonal rays from (CellX,CellY) to mark reachable squares.
+ *
+ * Parameters:
+ *  - CellX, CellY : source coordinates.
+ *  - team         : team of the sliding piece.
+ *
+ * Behavior:
+ *  - Iterates along the four diagonals until the board edge or a blocking piece.
+ *    Uses HandleLinearSquare() for each square which sets primaryValid/vulnerable
+ *    and returns whether the ray must stop.
+ *
+ * Side effects:
+ *  - Mutates GameBoard[*][*].primaryValid / vulnerable via HandleLinearSquare.
+ */
+static void RaycastBishop(int CellX, int CellY, Team team)
+{
+    int i;
+    for (i = 1; CellX + i < 8 && CellY + i < 8; i++)
+        if (HandleLinearSquare(CellX + i, CellY + i, team))
+            break;
+    for (i = 1; CellX + i < 8 && CellY - i >= 0; i++)
+        if (HandleLinearSquare(CellX + i, CellY - i, team))
+            break;
+    for (i = 1; CellX - i >= 0 && CellY + i < 8; i++)
+        if (HandleLinearSquare(CellX - i, CellY + i, team))
+            break;
+    for (i = 1; CellX - i >= 0 && CellY - i >= 0; i++)
+        if (HandleLinearSquare(CellX - i, CellY - i, team))
+            break;
+}
+
+/**
+ * ResetValidation
+ *
+ * Clear the per-square final-validation flag (isvalid) across the entire board.
+ *
+ * Behavior:
+ *  - Sets GameBoard[i][j].isvalid = false for all squares.
+ */
 void ResetValidation()
 {
     int i, j;
@@ -202,6 +255,14 @@ void ResetValidation()
     }
 }
 
+/**
+ * ResetVulnerable
+ *
+ * Clear the per-square vulnerable flag across the entire board.
+ *
+ * Behavior:
+ *  - Sets GameBoard[i][j].vulnerable = false for all squares.
+ */
 void ResetVulnerable()
 {
     int i, j;
@@ -214,6 +275,14 @@ void ResetVulnerable()
     }
 }
 
+/**
+ * ResetPrimaryValidation
+ *
+ * Clear the per-square primary validation flag (primaryValid) for the whole board.
+ *
+ * Behavior:
+ *  - Sets GameBoard[i][j].primaryValid = false for all squares.
+ */
 void ResetPrimaryValidation()
 {
     int i, j;
@@ -226,7 +295,19 @@ void ResetPrimaryValidation()
     }
 }
 
-// Check if this move is correct geometrically
+/**
+ * PrimaryValidation
+ *
+ * Entry point to compute geometric primary-valid moves for a piece at (CellX,CellY).
+ *
+ * Parameters:
+ *  - Piece : PieceType at the source square.
+ *  - CellX, CellY : coordinates of the source piece.
+ *
+ * Behavior:
+ *  - Looks up whether the piece has moved and its team, then delegates to MoveValidation.
+ *  - Does no simulation/king-check filtering; primaryValid flags represent raw reachable squares.
+ */
 void PrimaryValidation(PieceType Piece, int CellX, int CellY)
 {
     bool moved = GameBoard[CellX][CellY].piece.hasMoved;
@@ -257,6 +338,18 @@ void PrimaryValidation(PieceType Piece, int CellX, int CellY)
     }
 }
 
+/**
+ * ScanEnemyMoves
+ *
+ * Compute primary move/vulnerability maps for all opponent pieces (non-Turn).
+ *
+ * Behavior:
+ *  - Iterates the board and runs MoveValidation for every non-empty cell whose team != Turn.
+ *  - Results populate primaryValid/vulnerable flags that other code uses for checks.
+ *
+ * Notes:
+ *  - Skips empty squares and pieces on the current Turn side.
+ */
 void ScanEnemyMoves()
 {
     int i, j;
@@ -278,7 +371,18 @@ void ScanEnemyMoves()
     }
 }
 
-// Unused function and could be removed
+/**
+ * ScanFriendlyMoves
+ *
+ * Compute primary move maps for all friendly pieces (currently on Turn).
+ *
+ * Behavior:
+ *  - Iterates the board and runs MoveValidation for every non-empty cell whose team == Turn.
+ *  - Useful for determining legal moves available to the current player.
+ *
+ * Note:
+ *  - This function is currently unused in the codebase but kept for completeness.
+ */
 void ScanFriendlyMoves()
 {
     int i, j;
@@ -300,8 +404,23 @@ void ScanFriendlyMoves()
     }
 }
 
-// I am going to this square
-// the return will help us exit the raytracing loop
+/**
+ * HandleLinearSquare
+ *
+ * Helper used by sliding pieces (rook/bishop/queen) to process one square along a ray.
+ *
+ * Parameters:
+ *  - row, col : coordinates of the square being inspected.
+ *  - team     : team of the sliding piece casting the ray.
+ *
+ * Returns:
+ *  - true  : the ray should stop after this square (square occupied).
+ *  - false : the ray may continue (square empty).
+ *
+ * Side effects:
+ *  - Sets GameBoard[row][col].primaryValid if the square is a valid destination for the given team.
+ *  - Sets GameBoard[row][col].vulnerable when evaluating vulnerability from the opponent perspective.
+ */
 bool HandleLinearSquare(int row, int col, Team team)
 {
     if (GameBoard[row][col].piece.type == PIECE_NONE)
@@ -333,7 +452,24 @@ bool HandleLinearSquare(int row, int col, Team team)
         return true;
     }
 }
-// Pawn move helper
+
+/**
+ * HandlePawnMove
+ *
+ * Compute pawn move targets (forward moves and captures) for a pawn at (CellX,CellY).
+ *
+ * Parameters:
+ *  - CellX, CellY : pawn coordinates.
+ *  - team         : pawn's team.
+ *  - moved        : whether the pawn has moved before (affects two-square advance).
+ *
+ * Behavior:
+ *  - Marks forward destinations as primaryValid when empty.
+ *  - Marks diagonal capture squares as primaryValid (if enemy present) or vulnerable when evaluating opponent threats.
+ *
+ * Notes:
+ *  - Does not handle en-passant or promotions specially; en-passant may be handled elsewhere.
+ */
 void HandlePawnMove(int CellX, int CellY, Team team, bool moved)
 {
     if (team == TEAM_BLACK && CellX + 1 < 8)
@@ -401,6 +537,19 @@ void HandlePawnMove(int CellX, int CellY, Team team, bool moved)
     }
 }
 
+/**
+ * HandleKnightSquare
+ *
+ * Helper to mark a single target square for a knight move.
+ *
+ * Parameters:
+ *  - x,y  : target coordinates to consider.
+ *  - team : team of the knight performing the move.
+ *
+ * Behavior:
+ *  - If inside the board and target square is empty or enemy, mark primaryValid when evaluating the current player's moves,
+ *    otherwise mark vulnerable when evaluating opponent's threats.
+ */
 void HandleKnightSquare(int x, int y, Team team)
 {
     if (x >= 0 && x < 8 && y >= 0 && y < 8)
@@ -415,6 +564,18 @@ void HandleKnightSquare(int x, int y, Team team)
         }
 }
 
+/**
+ * HandleKnightMove
+ *
+ * Generate knight move candidates from (CellX,CellY).
+ *
+ * Parameters:
+ *  - CellX, CellY : knight coordinates.
+ *  - team         : knight's team.
+ *
+ * Behavior:
+ *  - Calls HandleKnightSquare for all eight knight destinations.
+ */
 void HandleKnightMove(int CellX, int CellY, Team team)
 {
     int row1 = CellX + 2, row2 = CellX - 2;
@@ -430,6 +591,19 @@ void HandleKnightMove(int CellX, int CellY, Team team)
     HandleKnightSquare(row1 - 1, col2, team);
 }
 
+/**
+ * HandleKingMove
+ *
+ * Generate king move candidates from (CellX,CellY), respecting vulnerable squares.
+ *
+ * Parameters:
+ *  - CellX, CellY : king coordinates.
+ *  - team         : king's team.
+ *
+ * Behavior:
+ *  - Examines all adjacent squares; if the square is not marked vulnerable it may be marked primaryValid
+ *    (or vulnerable when scanning enemy coverage).
+ */
 void HandleKingMove(int CellX, int CellY, Team team)
 {
     int i, j;
@@ -456,7 +630,15 @@ void HandleKingMove(int CellX, int CellY, Team team)
     }
 }
 
-// is the king under attack
+/**
+ * CheckValidation
+ *
+ * Determine whether the current player's king is under attack and set Player.Checked.
+ *
+ * Behavior:
+ *  - Clears the opponent's Checked flag for the current turn, then locates the current player's king.
+ *  - If the king's square has the vulnerable flag set, marks the corresponding Player.Checked.
+ */
 void CheckValidation()
 {
     int i, j;
@@ -479,6 +661,23 @@ void CheckValidation()
     }
 }
 
+/**
+ * FinalValidation
+ *
+ * From primaryValid candidates compute final legal moves (isvalid) by simulating moves
+ * and rejecting those that leave the player's king in check.
+ *
+ * Parameters:
+ *  - CellX, CellY : coordinates of the selected piece.
+ *  - selected     : whether a piece is currently selected (only then do final validation).
+ *
+ * Behavior:
+ *  - Iterates primaryValid squares, simulates each move, re-scans enemy moves and checks for simulated check.
+ *  - Sets GameBoard[i][j].isvalid true only for moves that do not result in self-check.
+ *
+ * Side effects:
+ *  - Mutates GameBoard[*][*].isvalid and uses MoveSimulation/UndoSimulation repeatedly.
+ */
 void FinalValidation(int CellX, int CellY, bool selected)
 {
     int i, j;
@@ -532,6 +731,20 @@ void FinalValidation(int CellX, int CellY, bool selected)
     }
 }
 
+/**
+ * MoveSimulation
+ *
+ * Perform a lightweight in-place move of piece type between two squares for simulation purposes.
+ *
+ * Parameters:
+ *  - CellX1, CellY1 : source coordinates.
+ *  - CellX2, CellY2 : destination coordinates.
+ *  - piece           : PieceType being moved.
+ *
+ * Notes:
+ *  - Only updates piece.type and piece.team; does not touch textures or hasMoved.
+ *  - Intended for short-lived simulations that will be undone by UndoSimulation.
+ */
 void MoveSimulation(int CellX1, int CellY1, int CellX2, int CellY2, PieceType piece)
 {
     GameBoard[CellX2][CellY2].piece.team = GameBoard[CellX1][CellY1].piece.team;
@@ -539,6 +752,21 @@ void MoveSimulation(int CellX1, int CellY1, int CellX2, int CellY2, PieceType pi
     GameBoard[CellX2][CellY2].piece.type = piece;
 }
 
+/**
+ * UndoSimulation
+ *
+ * Restore board state after a MoveSimulation.
+ *
+ * Parameters:
+ *  - CellX1, CellY1 : source coordinates prior to simulation.
+ *  - CellX2, CellY2 : destination coordinates used in simulation.
+ *  - piece1          : original source PieceType before simulation.
+ *  - piece2          : original destination PieceType before simulation.
+ *  - team2           : original destination Team before simulation.
+ *
+ * Behavior:
+ *  - Restores piece types and team for the two involved squares.
+ */
 void UndoSimulation(int CellX1, int CellY1, int CellX2, int CellY2, PieceType piece1, PieceType piece2, Team team2)
 {
     GameBoard[CellX1][CellY1].piece.type = piece1;
@@ -546,6 +774,14 @@ void UndoSimulation(int CellX1, int CellY1, int CellX2, int CellY2, PieceType pi
     GameBoard[CellX2][CellY2].piece.team = team2;
 }
 
+/**
+ * CheckmateValidation
+ *
+ * Run a full search to determine whether a checked player has any legal escapes.
+ *
+ * Behavior:
+ *  - If a player's Checked flag is set, calls CheckmateFlagCheck for that player and sets Player.Checkmated and global Checkmate.
+ */
 void CheckmateValidation()
 {
     if (Player1.Checked)
@@ -566,6 +802,22 @@ void CheckmateValidation()
     }
 }
 
+/**
+ * CheckmateFlagCheck
+ *
+ * Determine whether playerteam has any legal move that avoids check.
+ *
+ * Parameters:
+ *  - playerteam : the Team to analyze.
+ *
+ * Returns:
+ *  - true  : the player has no legal moves that avoid check (checkmate / no legal escape).
+ *  - false : the player has at least one legal move that avoids check.
+ *
+ * Behavior:
+ *  - For each piece of playerteam, computes primaryValid moves, simulates each, and checks whether any move leads
+ *    to a position where the king is not in check (using SimCheckValidation).
+ */
 bool CheckmateFlagCheck(Team playerteam) // Will also use for stalemate
 {
     int i, j, k, l;
@@ -633,6 +885,17 @@ bool CheckmateFlagCheck(Team playerteam) // Will also use for stalemate
     return true;
 }
 
+/**
+ * SimCheckValidation
+ *
+ * After simulating moves and scanning enemy coverage, determine if the current player's king is in check.
+ *
+ * Behavior:
+ *  - Iterates the board and sets Player1.SimChecked or Player2.SimChecked if the king of Turn is vulnerable.
+ *
+ * Side effects:
+ *  - Updates Player*.SimChecked flags used by simulation logic.
+ */
 void SimCheckValidation()
 {
     int i, j;
@@ -654,6 +917,15 @@ void SimCheckValidation()
     }
 }
 
+/**
+ * StalemateValidation
+ *
+ * Determine whether the current position is a stalemate for the side to move.
+ *
+ * Behavior:
+ *  - Uses CheckmateFlagCheck while ensuring the side is not currently in check.
+ *  - If no legal move exists and the side is not in check, sets Player.Stalemate and global Stalemate.
+ */
 void StalemateValidation()
 {
     Player1.Stalemate = false;
