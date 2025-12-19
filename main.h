@@ -31,6 +31,18 @@ typedef enum
     TEAM_BLACK
 } Team;
 
+/*We need 4 bits to store castle rights in game state think of it in binary*/
+// 1111 all rights are reserved
+// 1001 white can castle king side and black can castle queen side
+typedef enum
+{
+    WHITE_KING_SIDE = 1,
+    WHITE_QUEEN_SIDE = 2,
+    BLACK_KING_SIDE = 4,
+    BLACK_QUEEN_SIDE = 8
+
+} CastleRights;
+
 /* Piece
  * Represents a single chess piece and its small state.
  *
@@ -43,10 +55,11 @@ typedef enum
  */
 typedef struct Piece
 {
-    Texture2D texture; /* put large/aligned field first to avoid padding gaps */
-    PieceType type;    /* enum (usually 4 bytes) */
-    Team team;         /* enum (usually 4 bytes) */
-    char hasMoved;     /* single byte; now sits after other 4-byte fields */
+    Texture2D texture;  /* put large/aligned field first to avoid padding gaps */
+    PieceType type : 3; /* enum (usually 4 bytes) */
+    Team team : 1;      /* enum (usually 4 bytes) */
+    char hasMoved : 1;  /* single byte; now sits after other 4-byte fields */
+    // Saved 8 bytes with these bitfields and it will also help us debug errors
 } Piece;
 
 /* Cell
@@ -60,27 +73,60 @@ typedef struct Cell
 {
     Piece piece;           /* piece occupying the cell (PIECE_NONE if empty) */
     Vector2 pos;           /* pixel position for rendering (top-left) */
-    int row, col;          /* board coordinates (0..7) */
+    int row : 3, col : 3;  /* board coordinates (0..7) */
     bool primaryValid : 1; // This is a primary validation geometrically
     bool isvalid : 1;      // Final validation of moves FINAL_VALIDATION
     bool selected : 1;     // will also need this
     bool vulnerable : 1;   // what pieces are under attack on my team this will help in EASY_MODE
+    // Saved 8 bytes with these bitfields and it will also help us debug errors
+
 } Cell;
 
 typedef struct Player
 {
-    Team team;
+    Team team : 1;
     bool Checked : 1;
     bool Checkmated : 1;
     bool SimChecked : 1;
     bool Stalemate : 1;
+    // Saved 1 byte with these bitfields and it will also help us debug errors
+
 } Player;
 
-// typedef struct
-// {
-// row col(init/final) piece team
+typedef struct __attribute__((packed))
+{
+    // Done a very good job packing all this info in 5 bytes actually 38 bits
 
-// } Move;
+    // Squares
+    int initialRow : 3, initialCol : 3;
+    int finalRow : 3, finalCol : 3;
+
+    // Piece info
+    PieceType pieceMovedType : 3;
+    Team pieceMovedTeam : 1;
+    PieceType pieceCapturedType : 3; // this should be PIECE_NONE if I didn't capture any piece
+    // We don't need pieceCapturedTeam because it must be the opposite of PieceMovedTeam
+
+    // Promotion
+    PieceType promotionType : 3; // If my piece was pawn and it got promoted what is its new type so that I can undo it **** this should be PIECE_NONE if the pawn didn't promote in this move
+
+    // En-Passant
+    int wasEnPassant : 1;
+    int previousEnPassantCol : 3;
+    // This is why we don't need the previousEnPassantRow
+    // if (sideToMove == WHITE)
+    //     enPassantRow = 2;
+    // else
+    //     enPassantRow = 5;
+
+    // Castling
+    int wasCastling : 1;
+    CastleRights castleRights : 4;
+
+    // Draw
+    int halfMove : 7;
+
+} Move;
 
 extern int pointer;
 extern Team Turn;

@@ -1,3 +1,5 @@
 build/
 example.fen
 .vscode/
+test.c
+test

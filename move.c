@@ -138,8 +138,6 @@ void SetEmptyCell(Cell *cell)
  */
 void MoveValidation(int CellX, int CellY, PieceType type, Team team, bool moved)
 {
-    int i;
-
     if (type == PIECE_ROOK)
     {
         RaycastRook(CellX, CellY, team);
