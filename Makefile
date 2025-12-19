@@ -39,8 +39,8 @@ CFLAGS += -Wall -Wextra -std=c17 -MMD
 # --- Library / Include directory support ---
 # Add custom library dirs and include dirs when needed:
 #   make LIB_DIRS="/opt/local/lib /usr/local/lib" INCLUDE_DIRS="/opt/local/include" LIBS="raylib GL m pthread dl rt X11"
-LIB_DIRS ?=
-INCLUDE_DIRS ?= libs
+LIB_DIRS ?= libs
+INCLUDE_DIRS ?= includes
 # Space-separated library names (without -l prefix). Defaults keep previous behaviour.
 LIBS ?= raylib GL m pthread dl rt X11
 
@@ -49,7 +49,13 @@ ifneq ($(strip $(INCLUDE_DIRS)),)
 CFLAGS += $(addprefix -I,$(INCLUDE_DIRS))
 endif
 
+# Build LDFLAGS and add rpath entries when LIB_DIRS is set so the runtime can find .so there
 LDFLAGS := $(addprefix -L,$(LIB_DIRS)) $(addprefix -l,$(LIBS))
+ifneq ($(strip $(LIB_DIRS)),)
+# Add rpath entries for each LIB_DIR so the runtime loader can find shared libs there.
+# Use foreach to produce one "-Wl,-rpath=DIR" token per directory (avoids addprefix comma parsing issues).
+LDFLAGS += $(foreach d,$(LIB_DIRS),-Wl,-rpath=$(d))
+endif
 # --- Targets ---
 
 .PHONY: all debug run clean
