@@ -63,6 +63,7 @@ static void SetCellBorder(SmartBorder *border, Cell *selectedPiece);
 static void ResetCellBorder(SmartBorder *border);
 static void ResizeCellBorder(SmartBorder *border);
 static void ResetSelection();
+static int Clamp(int number, int max);
 
 // This constant determines How much space is left for the text in terms of squareLength
 #define SPACE_TEXT 0.75f
@@ -434,14 +435,19 @@ void HighlightSquare(int row, int col, int ColorTheme)
     ColorPair theme = PALETTE[ColorTheme];
     int squareLength = ComputeSquareLength();
     Color colr = ((row + col) & 1) ? theme.black : theme.white;
-    colr.r = (colr.r + 30 <= 255) ? colr.r + 30 : 255;
-    colr.g = (colr.g + 30 <= 255) ? colr.g + 30 : 255;
-    colr.b = (colr.b + 30 <= 255) ? colr.b + 30 : 255;
+    colr.r = Clamp(colr.r + 30, 255);
+    colr.g = Clamp(colr.g + 30, 255);
+    colr.b = Clamp(colr.b + 30, 255);
     DrawRectangleV(GameBoard[row][col].pos, (Vector2){squareLength, squareLength}, colr);
     if (GameBoard[row][col].piece.texture.id != 0)
     {
         DrawTextureEx(GameBoard[row][col].piece.texture, GameBoard[row][col].pos, 0, (float)ComputeSquareLength() / GameBoard[row][col].piece.texture.width, WHITE);
     }
+}
+
+static int Clamp(int number, int max)
+{
+    return (number <= max) ? number : max;
 }
 
 void HighlightHover(int ColorTheme)
