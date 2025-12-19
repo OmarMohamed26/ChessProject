@@ -43,11 +43,10 @@ typedef enum
  */
 typedef struct Piece
 {
-    PieceType type;     /* piece kind (PIECE_NONE = empty) */
-    Team team;          /* TEAM_WHITE / TEAM_BLACK */
-    char hasMoved : 1;  /* boolean: moved before (castling/pawn) */
-    char enPassant : 1; /* boolean: pawn is vulnerable to en-passant */
-    Texture2D texture;  /* GPU texture; texture.id == 0 means "no texture" */
+    Texture2D texture; /* put large/aligned field first to avoid padding gaps */
+    PieceType type;    /* enum (usually 4 bytes) */
+    Team team;         /* enum (usually 4 bytes) */
+    char hasMoved;     /* single byte; now sits after other 4-byte fields */
 } Piece;
 
 /* Cell
@@ -59,22 +58,22 @@ typedef struct Piece
  */
 typedef struct Cell
 {
-    int row, col;      /* board coordinates (0..7) */
-    Vector2 pos;       /* pixel position for rendering (top-left) */
-    Piece piece;       /* piece occupying the cell (PIECE_NONE if empty) */
-    bool primaryvalid; // This is a primary validation
-    bool isvalid;      // Final validation of moves
-    bool selected;     // will also need this
-    bool vulnerable;
+    Piece piece;           /* piece occupying the cell (PIECE_NONE if empty) */
+    Vector2 pos;           /* pixel position for rendering (top-left) */
+    int row, col;          /* board coordinates (0..7) */
+    bool primaryValid : 1; // This is a primary validation
+    bool isvalid : 1;      // Final validation of moves
+    bool selected : 1;     // will also need this
+    bool vulnerable : 1;
 } Cell;
 
 typedef struct Player
 {
-    bool Checked;
-    bool Checkmated;
     Team team;
-    bool SimChecked;
-    bool Stalemate;
+    bool Checked : 1;
+    bool Checkmated : 1;
+    bool SimChecked : 1;
+    bool Stalemate : 1;
 } Player;
 
 extern int pointer;

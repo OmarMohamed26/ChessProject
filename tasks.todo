@@ -29,6 +29,7 @@ critical changes:
 10) 📝  TODO order the prototypes as they are wrote in the file ⚪ Pending
 11) 📝  TODO change highlight valid move to circle like chess.com 🟡  In Progress
 12) 📝  TODO update the documentation on HighlightValidMove when you add Hollow Circle ⚪ Pending
+13) 📝  TODO make the libraries local in the project folder ⚪ Pending
 
 
 big changes that we will probably don't do:

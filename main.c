@@ -5,9 +5,6 @@
  *
  * Notes:
  * - Create the window (InitWindow) before calling ComputeSquareLength or loading
- *   resources that depend on render size.
- * - Recompute layout after resize (IsWindowResized) and update positions/textures
- *   as needed.
  * - GameBoard is the global board state (defined below) used by draw.c.
  */
 

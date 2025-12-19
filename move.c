@@ -105,7 +105,6 @@ void SetEmptyCell(Cell *cell)
 {
     cell->piece.type = PIECE_NONE;
     cell->piece.hasMoved = 0;
-    cell->piece.enPassant = 0;
     cell->piece.team = TEAM_WHITE;
     cell->piece.texture.id = 0; // Unload texture function was causing very weird behaviour had to replace it with this
 }
@@ -213,7 +212,7 @@ void ResetPrimaryValidation()
     {
         for (j = 0; j < 8; j++)
         {
-            GameBoard[i][j].primaryvalid = false;
+            GameBoard[i][j].primaryValid = false;
         }
     }
 }
@@ -295,7 +294,7 @@ bool HandleLinearSquare(int x, int y, Team team)
     {
         if (Turn == team)
         {
-            GameBoard[x][y].primaryvalid = true;
+            GameBoard[x][y].primaryValid = true;
         }
         else
         {
@@ -306,7 +305,7 @@ bool HandleLinearSquare(int x, int y, Team team)
     else if (GameBoard[x][y].piece.team != team)
     {
         if (Turn == team)
-            GameBoard[x][y].primaryvalid = true;
+            GameBoard[x][y].primaryValid = true;
         else
             GameBoard[x][y].vulnerable = true;
 
@@ -328,14 +327,14 @@ void HandlePawnMove(int CellX, int CellY, Team team, bool moved)
         if (GameBoard[CellX + 1][CellY].piece.type == PIECE_NONE)
         {
             if (Turn == team)
-                GameBoard[CellX + 1][CellY].primaryvalid = true;
+                GameBoard[CellX + 1][CellY].primaryValid = true;
 
             if (!moved && CellX + 2 < 8)
             {
                 if (GameBoard[CellX + 2][CellY].piece.type == PIECE_NONE)
                 {
                     if (Turn == team)
-                        GameBoard[CellX + 2][CellY].primaryvalid = true;
+                        GameBoard[CellX + 2][CellY].primaryValid = true;
                 }
             }
         }
@@ -343,14 +342,14 @@ void HandlePawnMove(int CellX, int CellY, Team team, bool moved)
         if (GameBoard[CellX + 1][CellY + 1].piece.team != team)
         {
             if (Turn == team && GameBoard[CellX + 1][CellY + 1].piece.type != PIECE_NONE)
-                GameBoard[CellX + 1][CellY + 1].primaryvalid = true;
+                GameBoard[CellX + 1][CellY + 1].primaryValid = true;
             else if (Turn != team)
                 GameBoard[CellX + 1][CellY + 1].vulnerable = true;
         }
         if (GameBoard[CellX + 1][CellY - 1].piece.team != team)
         {
             if (Turn == team && GameBoard[CellX + 1][CellY - 1].piece.type != PIECE_NONE)
-                GameBoard[CellX + 1][CellY - 1].primaryvalid = true;
+                GameBoard[CellX + 1][CellY - 1].primaryValid = true;
             else if (Turn != team)
                 GameBoard[CellX + 1][CellY - 1].vulnerable = true;
         }
@@ -360,13 +359,13 @@ void HandlePawnMove(int CellX, int CellY, Team team, bool moved)
         if (GameBoard[CellX - 1][CellY].piece.type == PIECE_NONE)
         {
             if (Turn == team)
-                GameBoard[CellX - 1][CellY].primaryvalid = true;
+                GameBoard[CellX - 1][CellY].primaryValid = true;
             if (!moved && CellX - 2 >= 0)
             {
                 if (GameBoard[CellX - 2][CellY].piece.type == PIECE_NONE)
                 {
                     if (Turn == team)
-                        GameBoard[CellX - 2][CellY].primaryvalid = true;
+                        GameBoard[CellX - 2][CellY].primaryValid = true;
                 }
             }
         }
@@ -374,14 +373,14 @@ void HandlePawnMove(int CellX, int CellY, Team team, bool moved)
         if (GameBoard[CellX - 1][CellY - 1].piece.team != team)
         {
             if (Turn == team && GameBoard[CellX - 1][CellY - 1].piece.type != PIECE_NONE)
-                GameBoard[CellX - 1][CellY - 1].primaryvalid = true;
+                GameBoard[CellX - 1][CellY - 1].primaryValid = true;
             else if (Turn != team)
                 GameBoard[CellX - 1][CellY - 1].vulnerable = true;
         }
         if (GameBoard[CellX - 1][CellY + 1].piece.team != team)
         {
             if (Turn == team && GameBoard[CellX - 1][CellY + 1].piece.type != PIECE_NONE)
-                GameBoard[CellX - 1][CellY + 1].primaryvalid = true;
+                GameBoard[CellX - 1][CellY + 1].primaryValid = true;
             else if (Turn != team)
                 GameBoard[CellX - 1][CellY + 1].vulnerable = true;
         }
@@ -393,7 +392,7 @@ void HandleKnightSquare(int x, int y, Team team)
         if (GameBoard[x][y].piece.team != team || GameBoard[x][y].piece.type == PIECE_NONE)
         {
             if (Turn == team)
-                (GameBoard[x][y].primaryvalid = true);
+                (GameBoard[x][y].primaryValid = true);
             else // --- FIX: Removed type check here ---
             {
                 (GameBoard[x][y].vulnerable = true);
@@ -430,7 +429,7 @@ void HandleKingMove(int CellX, int CellY, Team team)
                     if (GameBoard[i][j].piece.team != team || GameBoard[i][j].piece.type == PIECE_NONE)
                     {
                         if (Turn == team)
-                            (GameBoard[i][j].primaryvalid = true);
+                            (GameBoard[i][j].primaryValid = true);
                         else // --- FIX: Removed type check here ---
                         {
                             (GameBoard[i][j].vulnerable = true);
@@ -478,7 +477,7 @@ void FinalValidation(int CellX, int CellY, bool selected)
         {
             for (j = 0; j < 8; j++)
             {
-                if (GameBoard[i][j].primaryvalid)
+                if (GameBoard[i][j].primaryValid)
                 {
                     piece2 = GameBoard[i][j].piece.type;
                     team2 = GameBoard[i][j].piece.team;
@@ -571,7 +570,7 @@ bool CheckmateflagCheck(Team playerteam) // Will also use for stalemate
                 {
                     for (l = 0; l < 8; l++)
                     {
-                        if (GameBoard[k][l].primaryvalid)
+                        if (GameBoard[k][l].primaryValid)
                         {
                             piece2 = GameBoard[k][l].piece.type;
                             team2 = GameBoard[k][l].piece.team;
