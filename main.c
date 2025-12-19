@@ -44,7 +44,8 @@ int main(void)
     SetTargetFPS(60);
     InitializeBoard();
 
-    char standard_game[] = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR";
+    // char standard_game[] = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR";
+    char standard_game[] = "8/8/8/8/8/8/8/R1N1K2k";
     ReadFEN(standard_game, strlen(standard_game));
 
     bool showFps = false;
