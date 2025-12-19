@@ -41,6 +41,7 @@
 #include "main.h"
 #include "move.h"
 #include <ctype.h>
+#include <math.h>
 #include <raylib.h>
 #include <stdbool.h>
 #include <stddef.h>
@@ -72,8 +73,6 @@ static int Clamp(int number, int max);
 int i1, i2;
 int pointer;
 bool IsSelectedPieceEmpty; // made this global because I need it in my highlight square function
-
-#define BORDER_THICKNESS 5
 
 Cell imaginaryCell = {.row = -1, .col = -1};
 
@@ -155,14 +154,16 @@ void DrawBoard(int ColorTheme)
         ResizeCellBorder(&lastMoveCellBorder);
     }
 
+    int borderThickness = round(squareLength / (double)15);
+
     if (selectedCellBorder.rect.x != -1 && selectedCellBorder.rect.y != -1)
     {
-        DrawRectangleLinesEx(selectedCellBorder.rect, BORDER_THICKNESS, SELECTED_BORDER_COLOR);
+        DrawRectangleLinesEx(selectedCellBorder.rect, borderThickness, SELECTED_BORDER_COLOR);
     }
 
     if (lastMoveCellBorder.rect.x != -1 && lastMoveCellBorder.rect.y != -1)
     {
-        DrawRectangleLinesEx(lastMoveCellBorder.rect, BORDER_THICKNESS, LAST_MOVE_BORDER_COLOR);
+        DrawRectangleLinesEx(lastMoveCellBorder.rect, borderThickness, LAST_MOVE_BORDER_COLOR);
     }
 
     displayPieces();
