@@ -65,7 +65,7 @@ static void ResizeCellBorder(SmartBorder *border);
 static void ResetSelection();
 
 // This constant determines How much space is left for the text in terms of squareLength
-#define SPACETEXT 0.75f
+#define SPACE_TEXT 0.75f
 
 // Local variables
 int i1, i2;
@@ -100,11 +100,11 @@ SmartBorder lastMoveCellBorder = {.rect.x = -1, .rect.y = -1};
 void DrawBoard(int ColorTheme)
 {
     ColorPair theme = PALETTE[ColorTheme];
-    float squareCount = 8 + SPACETEXT;
+    float squareCount = 8 + SPACE_TEXT;
     int squareLength = ComputeSquareLength();
     int extra = (GetRenderWidth() - squareCount * squareLength) / 2;
 
-    InitializeCellsPos(extra, squareLength, SPACETEXT);
+    InitializeCellsPos(extra, squareLength, SPACE_TEXT);
 
     // Draw the chess board (row = y, col = x)
     for (int row = 0; row < 8; row++)
@@ -118,8 +118,8 @@ void DrawBoard(int ColorTheme)
 
     // Font
     //  compute once (matches InitializeCellsPos math)
-    float boardLeft = extra + squareLength * SPACETEXT / 2.0f;
-    float boardTop = squareLength * SPACETEXT / 2.0f;
+    float boardLeft = extra + squareLength * SPACE_TEXT / 2.0f;
+    float boardTop = squareLength * SPACE_TEXT / 2.0f;
 
     // Draw rank numbers (left) and file letters (bottom), centered in each square.
     int fontSize = (int)(squareLength * 0.25f);
@@ -298,7 +298,7 @@ static void displayPieces(void)
  * Parameters:
  *  - extra: horizontal offset to center the board
  *  - squareLength: size of each square in pixels
- *  - spaceText: fractional extra space used when computing board layout (SPACETEXT)
+ *  - spaceText: fractional extra space used when computing board layout (SPACE_TEXT)
  *
  * Calling pattern:
  *  - Compute squareLength and extra in DrawBoard (or main), then call this to set positions.
@@ -364,13 +364,13 @@ static void ResetSelection()
  * ComputeSquareLength
  *
  * Public helper to compute a reasonable square size given the current render
- * width/height and the SPACETEXT constant. This is useful to compute positions
+ * width/height and the SPACE_TEXT constant. This is useful to compute positions
  * or to pass to LoadPiece from main after InitWindow() so that resource sizing
  * and layout logic agree.
  */
 int ComputeSquareLength()
 {
-    float squareCount = 8 + SPACETEXT;
+    float squareCount = 8 + SPACE_TEXT;
     return Min2(GetRenderWidth(), GetRenderHeight()) / squareCount;
 }
 

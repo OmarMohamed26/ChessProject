@@ -20,7 +20,7 @@ critical changes:
 1) ⚠️	FIXME in save.c and load.c add player to move, castling rights and en-passant in the fen reader ⚪ Pending
 2) ✨   FEAT make the border around selected piece and move relative to the SquareLength ⚪ Pending
 3) 📝   TODO understand decide destination ⚪ Pending
-4) ♻️	REFACTOR update constant names to be CAPITAL_SNAKE ⚪ Pending
+4) ♻️	REFACTOR update constant names to be CAPITAL_SNAKE ✅  Done
 5) 🐛	BUG update the documentation for displayPieces to say that it uses DrawTextureEx ⚪ Pending
 6) 📝   TODO understand ResetSelection ⚪ Pending
 7) ♻️	REFACTOR order the includes and make a commit before any thing else ✅  Done
