@@ -3,6 +3,10 @@
  *
  * Core game types used across the project.
  * Keep this header small and self-contained so other modules can include it.
+
+ VERY IMPORTANT NOTE:
+ ! I added an extra bit for the enums because wether its signed or unsigned is implementation defined an extra bit will make us guarantee that it works as intended
+
  */
 
 #ifndef MAIN_H
@@ -56,9 +60,9 @@ typedef enum
 typedef struct Piece
 {
     Texture2D texture;  /* put large/aligned field first to avoid padding gaps */
-    PieceType type : 3; /* enum (usually 4 bytes) */
-    Team team : 1;      /* enum (usually 4 bytes) */
-    char hasMoved : 1;  /* single byte; now sits after other 4-byte fields */
+    PieceType type : 4; // I added an extra bit for the enums because wether its signed or unsigned is implementation defined an extra bit will make us guarantee that it works as intended
+    Team team : 2;
+    unsigned char hasMoved : 1; /* single byte; now sits after other 4-byte fields */
     // Saved 8 bytes with these bitfields and it will also help us debug errors
 } Piece;
 
@@ -71,20 +75,20 @@ typedef struct Piece
  */
 typedef struct Cell
 {
-    Piece piece;           /* piece occupying the cell (PIECE_NONE if empty) */
-    Vector2 pos;           /* pixel position for rendering (top-left) */
-    int row : 3, col : 3;  /* board coordinates (0..7) */
-    bool primaryValid : 1; // This is a primary validation geometrically
-    bool isvalid : 1;      // Final validation of moves FINAL_VALIDATION
-    bool selected : 1;     // will also need this
-    bool vulnerable : 1;   // what pieces are under attack on my team this will help in EASY_MODE
+    Piece piece;                   /* piece occupying the cell (PIECE_NONE if empty) */
+    Vector2 pos;                   /* pixel position for rendering (top-left) */
+    unsigned int row : 3, col : 3; /* board coordinates (0..7) */
+    bool primaryValid : 1;         // This is a primary validation geometrically
+    bool isvalid : 1;              // Final validation of moves FINAL_VALIDATION
+    bool selected : 1;             // will also need this
+    bool vulnerable : 1;           // what pieces are under attack on my team this will help in EASY_MODE
     // Saved 8 bytes with these bitfields and it will also help us debug errors
 
 } Cell;
 
 typedef struct Player
 {
-    Team team : 1;
+    Team team : 2;
     bool Checked : 1;
     bool Checkmated : 1;
     bool SimChecked : 1;
@@ -95,24 +99,24 @@ typedef struct Player
 
 typedef struct __attribute__((packed))
 {
-    // Done a very good job packing all this info in 5 bytes actually 38 bits
+    // Done a very good job packing all this info in 6 bytes actually 45 bits
 
     // Squares
-    int initialRow : 3, initialCol : 3;
-    int finalRow : 3, finalCol : 3;
+    unsigned int initialRow : 3, initialCol : 3;
+    unsigned int finalRow : 3, finalCol : 3;
 
     // Piece info
-    PieceType pieceMovedType : 3;
-    Team pieceMovedTeam : 1;
-    PieceType pieceCapturedType : 3; // this should be PIECE_NONE if I didn't capture any piece
+    PieceType pieceMovedType : 4;
+    Team pieceMovedTeam : 4;
+    PieceType pieceCapturedType : 4; // this should be PIECE_NONE if I didn't capture any piece
     // We don't need pieceCapturedTeam because it must be the opposite of PieceMovedTeam
 
     // Promotion
-    PieceType promotionType : 3; // If my piece was pawn and it got promoted what is its new type so that I can undo it **** this should be PIECE_NONE if the pawn didn't promote in this move
+    PieceType promotionType : 4; // If my piece was pawn and it got promoted what is its new type so that I can undo it **** this should be PIECE_NONE if the pawn didn't promote in this move
 
     // En-Passant
-    int wasEnPassant : 1;
-    int previousEnPassantCol : 3;
+    unsigned int wasEnPassant : 1;
+    unsigned int previousEnPassantCol : 3;
     // This is why we don't need the previousEnPassantRow
     // if (sideToMove == WHITE)
     //     enPassantRow = 2;
@@ -120,11 +124,11 @@ typedef struct __attribute__((packed))
     //     enPassantRow = 5;
 
     // Castling
-    int wasCastling : 1;
-    CastleRights castleRights : 4;
+    unsigned int wasCastling : 1;
+    CastleRights castleRights : 5;
 
     // Draw
-    int halfMove : 7;
+    unsigned int halfMove : 7;
 
 } Move;
 
