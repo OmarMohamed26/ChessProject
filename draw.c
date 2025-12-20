@@ -41,6 +41,7 @@
 #include "main.h"
 #include "move.h"
 #include "raylib.h"
+#include "settings.h"
 #include <ctype.h>
 #include <math.h>
 #include <stdbool.h>
@@ -49,22 +50,22 @@
 #include <string.h>
 
 // access the GameBoard from the main.c file
-extern Cell GameBoard[8][8];
+extern Cell GameBoard[BOARD_SIZE][BOARD_SIZE];
 
 // Local Prototypes
-static int Min2(int x, int y);
+static int Min2(int num1, int num2);
 static void LoadHelper(char *pieceNameBuffer, int bufferSize, const char *pieceName, Team team, int row, int col, PieceType type);
 static void InitializeCellsPos(int extra, int squareLength, float spaceText);
-static size_t TrimTrailingWhitespace(char *s);
+static size_t TrimTrailingWhitespace(char *string);
 static void displayPieces(void);
 static void DecideDestination(Vector2 topLeft);
 static bool CompareCells(Cell *cell1, Cell *cell2);
-static void swap(int *x, int *y);
+static void swap(int *num1, int *num2);
 static void SetCellBorder(SmartBorder *border, Cell *selectedPiece);
 static void ResetCellBorder(SmartBorder *border);
 static void ResizeCellBorder(SmartBorder *border);
 static void ResetSelection();
-static int Clamp(int number, int max);
+static int Clamp(int num, int max);
 
 // This constant determines How much space is left for the text in terms of squareLength
 #define SPACE_TEXT 0.75f
@@ -100,35 +101,39 @@ SmartBorder lastMoveCellBorder = {.rect.x = -1, .rect.y = -1};
 void DrawBoard(int ColorTheme)
 {
     ColorPair theme = PALETTE[ColorTheme];
-    float squareCount = 8 + SPACE_TEXT;
+    float squareCount = BOARD_SIZE + SPACE_TEXT;
     int squareLength = ComputeSquareLength();
-    int extra = (GetRenderWidth() - squareCount * squareLength) / 2;
+    int extra = (int)((float)GetRenderWidth() - (squareCount * (float)squareLength)) / 2;
 
     InitializeCellsPos(extra, squareLength, SPACE_TEXT);
 
     // Draw the chess board (row = y, col = x)
-    for (int row = 0; row < 8; row++)
+    for (int row = 0; row < BOARD_SIZE; row++)
     {
-        for (int col = 0; col < 8; col++)
+        for (int col = 0; col < BOARD_SIZE; col++)
         {
             Color colr = ((row + col) & 1) ? theme.black : theme.white;
-            DrawRectangleV(GameBoard[row][col].pos, (Vector2){squareLength, squareLength}, colr);
+            DrawRectangleV(GameBoard[row][col].pos, (Vector2){(float)squareLength, (float)squareLength}, colr);
         }
     }
 
     // Font
     //  compute once (matches InitializeCellsPos math)
-    float boardLeft = extra + squareLength * SPACE_TEXT / 2.0f;
-    float boardTop = squareLength * SPACE_TEXT / 2.0f;
+    float boardLeft = (float)extra + ((float)squareLength * SPACE_TEXT / 2);
+    float boardTop = (float)squareLength * SPACE_TEXT / 2;
 
     // Draw rank numbers (left) and file letters (bottom), centered in each square.
-    int fontSize = (int)(squareLength * 0.25f);
-    if (fontSize < 10)
-        fontSize = 10;
+    int fontSize = (int)((float)squareLength / FONT_SQUARE_LENGTH_COEFFICIENT);
+    if (fontSize < FONT_MIN)
+    {
+        fontSize = FONT_MIN;
+    }
     if (fontSize > squareLength)
+    {
         fontSize = squareLength;
+    }
 
-    for (int row = 0; row < 8; row++)
+    for (int row = 0; row < BOARD_SIZE; row++)
     {
         char rankText[2] = {(char)('8' - row), '\0'};
         int w = MeasureText(rankText, fontSize);
@@ -137,7 +142,7 @@ void DrawBoard(int ColorTheme)
         DrawText(rankText, (int)x, (int)y, fontSize, FONT_COLOR);
     }
 
-    for (int col = 0; col < 8; col++)
+    for (int col = 0; col < BOARD_SIZE; col++)
     {
         char fileText[2] = {(char)('a' + col), '\0'};
         int w = MeasureText(fileText, fontSize);
@@ -154,16 +159,16 @@ void DrawBoard(int ColorTheme)
         ResizeCellBorder(&lastMoveCellBorder);
     }
 
-    int borderThickness = round(squareLength / (double)15);
+    int borderThickness = (int)round(squareLength / (double)CELL_BORDER_THICKNESS_COEFFICIENT);
 
     if (selectedCellBorder.rect.x != -1 && selectedCellBorder.rect.y != -1)
     {
-        DrawRectangleLinesEx(selectedCellBorder.rect, borderThickness, SELECTED_BORDER_COLOR);
+        DrawRectangleLinesEx(selectedCellBorder.rect, (float)borderThickness, SELECTED_BORDER_COLOR);
     }
 
     if (lastMoveCellBorder.rect.x != -1 && lastMoveCellBorder.rect.y != -1)
     {
-        DrawRectangleLinesEx(lastMoveCellBorder.rect, borderThickness, LAST_MOVE_BORDER_COLOR);
+        DrawRectangleLinesEx(lastMoveCellBorder.rect, (float)borderThickness, LAST_MOVE_BORDER_COLOR);
     }
 
     displayPieces();
@@ -187,10 +192,12 @@ void DrawBoard(int ColorTheme)
  */
 void LoadPiece(int row, int col, PieceType type, Team team)
 {
-    if (row < 0 || row >= 8 || col < 0 || col >= 8)
+    if (row < 0 || row >= BOARD_SIZE || col < 0 || col >= BOARD_SIZE)
+    {
         return;
+    }
 
-    char pieceName[64];
+    char pieceName[MAX_PIECE_NAME_BUFFER_SIZE + 1];
 
     switch (type)
     {
@@ -237,11 +244,15 @@ static void LoadHelper(char *pieceNameBuffer, int bufferSize, const char *pieceN
     /*This function loads the texture for any given piece correctly and handles errors
     and puts a new texture if one already exists at this cell*/
 
-    int n = snprintf(pieceNameBuffer, (size_t)bufferSize, "assets/pieces/%s%c.png", pieceName, (team == TEAM_WHITE) ? 'W' : 'B');
-    if (n < 0)
+    int length = snprintf(pieceNameBuffer, (size_t)bufferSize, "assets/pieces/%s%c.png", pieceName, (team == TEAM_WHITE) ? 'W' : 'B');
+    if (length < 0)
+    {
         return;
-    if (n >= bufferSize)
+    }
+    if (length >= bufferSize)
+    {
         TraceLog(LOG_WARNING, "Filename was truncated: %s", pieceNameBuffer);
+    }
 
     TrimTrailingWhitespace(pieceNameBuffer);
 
@@ -261,7 +272,9 @@ static void LoadHelper(char *pieceNameBuffer, int bufferSize, const char *pieceN
 
     // unload previous texture if present
     if (GameBoard[row][col].piece.texture.id != 0)
+    {
         UnloadTexture(GameBoard[row][col].piece.texture);
+    }
 
     // Add the piece to the GameBoard
     GameBoard[row][col].piece.texture = texture;
@@ -280,13 +293,13 @@ static void LoadHelper(char *pieceNameBuffer, int bufferSize, const char *pieceN
 static void displayPieces(void)
 {
     // Draw pieces using same row/col ordering
-    for (int row = 0; row < 8; row++)
+    for (int row = 0; row < BOARD_SIZE; row++)
     {
-        for (int col = 0; col < 8; col++)
+        for (int col = 0; col < BOARD_SIZE; col++)
         {
             if (GameBoard[row][col].piece.type != PIECE_NONE)
             {
-                DrawTextureEx(GameBoard[row][col].piece.texture, GameBoard[row][col].pos, 0, (float)ComputeSquareLength() / GameBoard[row][col].piece.texture.width, WHITE);
+                DrawTextureEx(GameBoard[row][col].piece.texture, GameBoard[row][col].pos, 0, (float)ComputeSquareLength() / (float)GameBoard[row][col].piece.texture.width, WHITE);
             }
         }
     }
@@ -308,13 +321,13 @@ static void displayPieces(void)
 static void InitializeCellsPos(int extra, int squareLength, float spaceText)
 {
     // row = y, col = x
-    for (int row = 0; row < 8; row++)
+    for (int row = 0; row < BOARD_SIZE; row++)
     {
-        for (int col = 0; col < 8; col++)
+        for (int col = 0; col < BOARD_SIZE; col++)
         {
             GameBoard[row][col].pos = (Vector2){
-                extra + squareLength * spaceText / 2 + col * squareLength, // x = col
-                row * squareLength + squareLength * spaceText / 2          // y = row
+                (float)extra + ((float)squareLength * spaceText / 2) + ((float)col * (float)squareLength), // x = col
+                ((float)row * (float)squareLength) + ((float)squareLength * spaceText / 2)                 // y = row
             };
         }
     }
@@ -329,15 +342,19 @@ static void InitializeCellsPos(int extra, int squareLength, float spaceText)
  * Returns:
  *  - new length (size_t) after trimming.
  */
-static size_t TrimTrailingWhitespace(char *s)
+static size_t TrimTrailingWhitespace(char *string)
 {
     // Check to see if it's an empty sting
-    if (!s)
+    if (!string)
+    {
         return 0;
-    size_t len = strlen(s);
-    while (len > 0 && isspace((unsigned char)s[len - 1]))
+    }
+    size_t len = strlen(string);
+    while (len > 0 && isspace((unsigned char)string[len - 1]))
+    {
         len--;
-    s[len] = '\0';
+    }
+    string[len] = '\0';
     return len;
 }
 
@@ -346,16 +363,16 @@ static size_t TrimTrailingWhitespace(char *s)
  *
  * Return the smaller of two ints.
  */
-static int Min2(int x, int y)
+static int Min2(int num1, int num2)
 {
-    return x < y ? x : y;
+    return num1 < num2 ? num1 : num2;
 }
 
 static void ResetSelection()
 {
-    for (int i = 0; i < 8; i++)
+    for (int i = 0; i < BOARD_SIZE; i++)
     {
-        for (int j = 0; j < 8; j++)
+        for (int j = 0; j < BOARD_SIZE; j++)
         {
             GameBoard[i][j].selected = false;
         }
@@ -372,8 +389,8 @@ static void ResetSelection()
  */
 int ComputeSquareLength()
 {
-    float squareCount = 8 + SPACE_TEXT;
-    return Min2(GetRenderWidth(), GetRenderHeight()) / squareCount;
+    float squareCount = BOARD_SIZE + SPACE_TEXT;
+    return (int)((float)Min2(GetRenderWidth(), GetRenderHeight()) / squareCount);
 }
 
 /**
@@ -391,9 +408,9 @@ int ComputeSquareLength()
  */
 void InitializeBoard(void)
 {
-    for (int i = 0; i < 8; i++)
+    for (int i = 0; i < BOARD_SIZE; i++)
     {
-        for (int j = 0; j < 8; j++)
+        for (int j = 0; j < BOARD_SIZE; j++)
         {
             GameBoard[i][j].row = i;
             GameBoard[i][j].col = j;
@@ -417,9 +434,9 @@ void InitializeBoard(void)
  */
 void UnloadBoard(void)
 {
-    for (int i = 0; i < 8; i++)
+    for (int i = 0; i < BOARD_SIZE; i++)
     {
-        for (int j = 0; j < 8; j++)
+        for (int j = 0; j < BOARD_SIZE; j++)
         {
             if (GameBoard[i][j].piece.type != PIECE_NONE)
             {
@@ -436,19 +453,19 @@ void HighlightSquare(int row, int col, int ColorTheme)
     ColorPair theme = PALETTE[ColorTheme];
     int squareLength = ComputeSquareLength();
     Color colr = ((row + col) & 1) ? theme.black : theme.white;
-    colr.r = Clamp(colr.r + 30, 255);
-    colr.g = Clamp(colr.g + 30, 255);
-    colr.b = Clamp(colr.b + 30, 255);
-    DrawRectangleV(GameBoard[row][col].pos, (Vector2){squareLength, squareLength}, colr);
+    colr.r = Clamp(colr.r + HIGHLIGHT_COLOR_AMOUNT, MAX_VALID_COLOR);
+    colr.g = Clamp(colr.g + HIGHLIGHT_COLOR_AMOUNT, MAX_VALID_COLOR);
+    colr.b = Clamp(colr.b + HIGHLIGHT_COLOR_AMOUNT, MAX_VALID_COLOR);
+    DrawRectangleV(GameBoard[row][col].pos, (Vector2){(float)squareLength, (float)squareLength}, colr);
     if (GameBoard[row][col].piece.texture.id != 0)
     {
-        DrawTextureEx(GameBoard[row][col].piece.texture, GameBoard[row][col].pos, 0, (float)ComputeSquareLength() / GameBoard[row][col].piece.texture.width, WHITE);
+        DrawTextureEx(GameBoard[row][col].piece.texture, GameBoard[row][col].pos, 0, (float)ComputeSquareLength() / (float)GameBoard[row][col].piece.texture.width, WHITE);
     }
 }
 
-static int Clamp(int number, int max)
+static int Clamp(int num, int max)
 {
-    return (number <= max) ? number : max;
+    return (num <= max) ? num : max;
 }
 
 /**
@@ -487,17 +504,18 @@ void HighlightHover(int ColorTheme)
     int Sql = ComputeSquareLength();
     int X_Pos = (GetMouseX());
     int Y_Pos = (GetMouseY());
-    float ratioX, ratioY;
-    float Max_Board_X = (GameBoard[0][7].pos.x + Sql);
-    float Max_Board_Y = (GameBoard[7][0].pos.y + Sql);
+    float ratioX;
+    float ratioY;
+    float Max_Board_X = (GameBoard[0][BOARD_SIZE - 1].pos.x + (float)Sql);
+    float Max_Board_Y = (GameBoard[BOARD_SIZE - 1][0].pos.y + (float)Sql);
 
     // Mouse coordinate checking
-    if (X_Pos >= GameBoard[0][0].pos.x && X_Pos <= Max_Board_X &&
-        Y_Pos >= GameBoard[0][0].pos.y && Y_Pos <= Max_Board_Y)
+    if ((float)X_Pos >= GameBoard[0][0].pos.x && (float)X_Pos <= Max_Board_X &&
+        (float)Y_Pos >= GameBoard[0][0].pos.y && (float)Y_Pos <= Max_Board_Y)
     {
-        ratioX = ((X_Pos - GameBoard[0][0].pos.x) * 8) / (Max_Board_X - GameBoard[0][0].pos.x);
+        ratioX = (((float)X_Pos - GameBoard[0][0].pos.x) * BOARD_SIZE) / (Max_Board_X - GameBoard[0][0].pos.x);
         col = (int)ratioX;
-        ratioY = ((Y_Pos - GameBoard[0][0].pos.y) * 8) / (Max_Board_Y - GameBoard[0][0].pos.y);
+        ratioY = (((float)Y_Pos - GameBoard[0][0].pos.y) * BOARD_SIZE) / (Max_Board_Y - GameBoard[0][0].pos.y);
         row = (int)ratioY;
         if (GameBoard[row][col].piece.type != PIECE_NONE)
         {
@@ -522,10 +540,14 @@ void HighlightHover(int ColorTheme)
             } // Nice effect added where hover only works when It's the team's turn
         }
         else
+        {
             SetMouseCursor(MOUSE_CURSOR_ARROW); // this fixes twitching of cursor
+        }
     }
     else
+    {
         SetMouseCursor(MOUSE_CURSOR_ARROW);
+    }
 }
 
 /**
@@ -559,9 +581,10 @@ static void DecideDestination(Vector2 topLeft)
 {
     bool TurnValidation = false;
 
-    ResetSelection(); // this is to set all the selction values to false
+    ResetSelection(); // this is to set all the selection values to false
 
-    static int CellX = -1, CellY = -1;
+    static int CellX = -1;
+    static int CellY = -1;
 
     // It's initially equal to imaginaryCell but I can't write it directly
     static Cell selectedPiece = {.row = -1, .col = -1};
@@ -578,7 +601,7 @@ static void DecideDestination(Vector2 topLeft)
 
         swap(&CellX, &CellY);
 
-        if (CellX < 0 || CellX > 7 || CellY < 0 || CellY > 7)
+        if (CellX < 0 || CellX > (BOARD_SIZE - 1) || CellY < 0 || CellY > (BOARD_SIZE - 1))
         {
             return;
         }
@@ -605,7 +628,7 @@ static void DecideDestination(Vector2 topLeft)
 
         swap(&NewCellX, &NewCellY);
 
-        if (NewCellX < 0 || NewCellX > 7 || NewCellY < 0 || NewCellY > 7)
+        if (NewCellX < 0 || NewCellX > (BOARD_SIZE - 1) || NewCellY < 0 || NewCellY > (BOARD_SIZE - 1))
         {
             selectedPiece.selected = false;
             ResetCellBorder(&selectedCellBorder);
@@ -624,7 +647,6 @@ static void DecideDestination(Vector2 topLeft)
             selectedPiece = imaginaryCell;
             return;
         }
-
         else
         {
             if (GameBoard[NewCellX][NewCellY].isvalid)
@@ -657,7 +679,9 @@ static bool CompareCells(Cell *cell1, Cell *cell2)
 {
     // This is not a full comparison but it's enough for our usage
     if (cell1->row == cell2->row && cell1->col == cell2->col)
+    {
         return true;
+    }
     return false;
 }
 
@@ -667,13 +691,13 @@ static bool CompareCells(Cell *cell1, Cell *cell2)
  * Exchange two integer values in-place.
  *
  * Parameters:
- *  - x, y: pointers to the integers to swap.
+ *  - num1, num2: pointers to the integers to swap.
  */
-static void swap(int *x, int *y)
+static void swap(int *num1, int *num2)
 {
-    int temp = *x;
-    *x = *y;
-    *y = temp;
+    int temp = *num1;
+    *num1 = *num2;
+    *num2 = temp;
 }
 
 /**
@@ -688,7 +712,7 @@ static void swap(int *x, int *y)
  */
 static void SetCellBorder(SmartBorder *border, Cell *selectedPiece)
 {
-    border->rect.width = border->rect.height = ComputeSquareLength();
+    border->rect.width = border->rect.height = (float)ComputeSquareLength();
     border->rect.x = selectedPiece->pos.x;
     border->rect.y = selectedPiece->pos.y;
     border->row = selectedPiece->row;
@@ -719,7 +743,7 @@ static void ResetCellBorder(SmartBorder *border)
  */
 static void ResizeCellBorder(SmartBorder *border)
 {
-    border->rect.width = border->rect.height = ComputeSquareLength();
+    border->rect.width = border->rect.height = (float)ComputeSquareLength();
     if (border->rect.x != -1 && border->rect.y != -1)
     {
         border->rect.x = GameBoard[border->row][border->col].pos.x;
@@ -754,16 +778,16 @@ void HighlightValidMoves(bool selected)
     if (selected)
     {
         int halfSquareLength = ComputeSquareLength() / 2;
-        int validMoveCircleRadius = round(halfSquareLength / (double)3);
+        int validMoveCircleRadius = (int)round(halfSquareLength / (double)VALID_MOVE_CIRCLE_SQUARE_COEFFICIENT);
 
-        for (row = 0; row < 8; row++)
+        for (row = 0; row < BOARD_SIZE; row++)
         {
-            for (col = 0; col < 8; col++)
+            for (col = 0; col < BOARD_SIZE; col++)
             {
                 Cell thisCell = GameBoard[row][col];
                 if (thisCell.isvalid)
                 {
-                    DrawCircle(thisCell.pos.x + halfSquareLength, thisCell.pos.y + halfSquareLength, validMoveCircleRadius, VALID_MOVE_COLOR);
+                    DrawCircle((int)thisCell.pos.x + halfSquareLength, (int)thisCell.pos.y + halfSquareLength, (float)validMoveCircleRadius, VALID_MOVE_COLOR);
                 }
             }
         }
