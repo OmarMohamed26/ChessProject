@@ -136,19 +136,19 @@ void DrawBoard(int ColorTheme)
     for (int row = 0; row < BOARD_SIZE; row++)
     {
         char rankText[2] = {(char)('8' - row), '\0'};
-        int w = MeasureText(rankText, fontSize);
-        float x = boardLeft - (float)w - ((float)fontSize * 0.25f); // small gap
-        float y = GameBoard[row][0].pos.y + (squareLength - fontSize) * 0.5f;
-        DrawText(rankText, (int)x, (int)y, fontSize, FONT_COLOR);
+        int textWidth = MeasureText(rankText, fontSize);
+        float textPosX = boardLeft - (float)textWidth - ((float)fontSize / FONT_GAP_COEFFICIENT); // small gap
+        float textPosY = GameBoard[row][0].pos.y + ((float)(squareLength - fontSize) / 2);
+        DrawText(rankText, (int)textPosX, (int)textPosY, fontSize, FONT_COLOR);
     }
 
     for (int col = 0; col < BOARD_SIZE; col++)
     {
         char fileText[2] = {(char)('a' + col), '\0'};
-        int w = MeasureText(fileText, fontSize);
-        float x = GameBoard[7][col].pos.x + (squareLength - w) * 0.5f;
-        float y = (int)(boardTop + 8 * (float)squareLength + (fontSize * 0.25f)); // below board
-        DrawText(fileText, (int)x, (int)y, fontSize, FONT_COLOR);
+        int textWidth = MeasureText(fileText, fontSize);
+        float textPosX = GameBoard[BOARD_SIZE - 1][col].pos.x + ((float)(squareLength - textWidth) / 2);
+        float textPosY = (boardTop + (BOARD_SIZE * (float)squareLength) + ((float)fontSize / FONT_GAP_COEFFICIENT)); // below board
+        DrawText(fileText, (int)textPosX, (int)textPosY, fontSize, FONT_COLOR);
     }
 
     DecideDestination(GameBoard[0][0].pos);
