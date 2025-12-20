@@ -521,22 +521,12 @@ void HighlightHover(int ColorTheme)
         {
             if (IsSelectedPieceEmpty) // Makes hover highlight effect only when no piece is selected
             {
-                if (Turn == TEAM_WHITE)
+                if (GameBoard[row][col].piece.team == Turn)
                 {
-                    if (GameBoard[row][col].piece.team == Turn)
-                    {
-                        HighlightSquare(row, col, ColorTheme);
-                        SetMouseCursor(MOUSE_CURSOR_POINTING_HAND);
-                    }
+                    HighlightSquare(row, col, ColorTheme);
+                    SetMouseCursor(MOUSE_CURSOR_POINTING_HAND);
                 }
-                else
-                {
-                    if (GameBoard[row][col].piece.team == Turn)
-                    {
-                        HighlightSquare(row, col, ColorTheme);
-                        SetMouseCursor(MOUSE_CURSOR_POINTING_HAND);
-                    }
-                }
+
             } // Nice effect added where hover only works when It's the team's turn
         }
         else
