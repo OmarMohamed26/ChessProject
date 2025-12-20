@@ -98,7 +98,7 @@ SmartBorder lastMoveCellBorder = {.rect.x = -1, .rect.y = -1};
  *  - Draws the 8x8 board using the chosen ColorPair.
  *  - Calls displayPieces() to render piece textures at computed positions.
  */
-void DrawBoard(int ColorTheme)
+void DrawBoard(int ColorTheme, bool showFileRank)
 {
     ColorPair theme = PALETTE[ColorTheme];
     float squareCount = BOARD_SIZE + SPACE_TEXT;
@@ -118,37 +118,40 @@ void DrawBoard(int ColorTheme)
     }
 
     // Font
-    //  compute once (matches InitializeCellsPos math)
-    float boardLeft = (float)extra + ((float)squareLength * SPACE_TEXT / 2);
-    float boardTop = (float)squareLength * SPACE_TEXT / 2;
+    if (showFileRank)
+    {
+        //  compute once (matches InitializeCellsPos math)
+        float boardLeft = (float)extra + ((float)squareLength * SPACE_TEXT / 2);
+        float boardTop = (float)squareLength * SPACE_TEXT / 2;
 
-    // Draw rank numbers (left) and file letters (bottom), centered in each square.
-    int fontSize = (int)((float)squareLength / FONT_SQUARE_LENGTH_COEFFICIENT);
-    if (fontSize < FONT_MIN)
-    {
-        fontSize = FONT_MIN;
-    }
-    if (fontSize > squareLength)
-    {
-        fontSize = squareLength;
-    }
+        // Draw rank numbers (left) and file letters (bottom), centered in each square.
+        int fontSize = (int)((float)squareLength / FONT_SQUARE_LENGTH_COEFFICIENT);
+        if (fontSize < FONT_MIN)
+        {
+            fontSize = FONT_MIN;
+        }
+        if (fontSize > squareLength)
+        {
+            fontSize = squareLength;
+        }
 
-    for (int row = 0; row < BOARD_SIZE; row++)
-    {
-        char rankText[2] = {(char)('8' - row), '\0'};
-        int textWidth = MeasureText(rankText, fontSize);
-        float textPosX = boardLeft - (float)textWidth - ((float)fontSize / FONT_GAP_COEFFICIENT); // small gap
-        float textPosY = GameBoard[row][0].pos.y + ((float)(squareLength - fontSize) / 2);
-        DrawText(rankText, (int)textPosX, (int)textPosY, fontSize, FONT_COLOR);
-    }
+        for (int row = 0; row < BOARD_SIZE; row++)
+        {
+            char rankText[2] = {(char)('8' - row), '\0'};
+            int textWidth = MeasureText(rankText, fontSize);
+            float textPosX = boardLeft - (float)textWidth - ((float)fontSize / FONT_GAP_COEFFICIENT); // small gap
+            float textPosY = GameBoard[row][0].pos.y + ((float)(squareLength - fontSize) / 2);
+            DrawText(rankText, (int)textPosX, (int)textPosY, fontSize, FONT_COLOR);
+        }
 
-    for (int col = 0; col < BOARD_SIZE; col++)
-    {
-        char fileText[2] = {(char)('a' + col), '\0'};
-        int textWidth = MeasureText(fileText, fontSize);
-        float textPosX = GameBoard[BOARD_SIZE - 1][col].pos.x + ((float)(squareLength - textWidth) / 2);
-        float textPosY = (boardTop + (BOARD_SIZE * (float)squareLength) + ((float)fontSize / FONT_GAP_COEFFICIENT)); // below board
-        DrawText(fileText, (int)textPosX, (int)textPosY, fontSize, FONT_COLOR);
+        for (int col = 0; col < BOARD_SIZE; col++)
+        {
+            char fileText[2] = {(char)('a' + col), '\0'};
+            int textWidth = MeasureText(fileText, fontSize);
+            float textPosX = GameBoard[BOARD_SIZE - 1][col].pos.x + ((float)(squareLength - textWidth) / 2);
+            float textPosY = (boardTop + (BOARD_SIZE * (float)squareLength) + ((float)fontSize / FONT_GAP_COEFFICIENT)); // below board
+            DrawText(fileText, (int)textPosX, (int)textPosY, fontSize, FONT_COLOR);
+        }
     }
 
     DecideDestination(GameBoard[0][0].pos);

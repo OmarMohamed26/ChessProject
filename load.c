@@ -18,6 +18,7 @@
 #include "draw.h"
 #include "main.h"
 #include <ctype.h>
+#include <stddef.h>
 
 extern Cell GameBoard[8][8];
 
@@ -47,13 +48,13 @@ extern Cell GameBoard[8][8];
  *  - This function only writes piece placement; it does not clear or reset other
  *    board state (call InitializeBoard/UnloadBoard as appropriate before use).
  */
-void ReadFEN(const char *FENstring, int size)
+void ReadFEN(const char *FENstring, size_t size)
 {
     int row, col;
     int rank = 0; /* 0 = top rank (FEN first rank). Use 7 and decrement if your row0 is bottom */
     int file = 0; /* 0 = a-file (left) */
 
-    for (int i = 0; i < size && FENstring[i] != '\0'; i++)
+    for (size_t i = 0; i < size && FENstring[i] != '\0'; i++)
     {
         char ch = FENstring[i];
 

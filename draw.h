@@ -12,9 +12,10 @@
 #define DRAW_H
 
 #include "main.h"
+#include <stdbool.h>
 
 /* Render board and pieces for the provided color theme index. */
-void DrawBoard(int ColorTheme);
+void DrawBoard(int ColorTheme, bool showFileRank);
 
 /* Load a piece texture for cell (row,col). squareLength selects texture size. */
 void LoadPiece(int row, int col, PieceType type, Team team);
