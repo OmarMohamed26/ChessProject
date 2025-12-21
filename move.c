@@ -19,7 +19,7 @@
 #include <raylib.h>
 #include <stdbool.h>
 
-extern Cell GameBoard[BOARD_SIZE][BOARD_SIZE];
+// extern Cell GameBoard[BOARD_SIZE][BOARD_SIZE];
 extern Player Player1, Player2;
 extern int deadWhiteCounter;
 extern int deadBlackCounter;

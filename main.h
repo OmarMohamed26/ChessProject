@@ -13,6 +13,7 @@
 #define MAIN_H
 
 #include "raylib.h"
+#include "settings.h"
 
 /* PieceType
  * - PIECE_NONE == 0 so zero-initialized memory means "empty cell".
@@ -131,6 +132,37 @@ typedef struct __attribute__((packed))
     unsigned int halfMove : 7;
 
 } Move;
+
+typedef struct
+{
+    // Physical board info
+    Cell board[BOARD_SIZE][BOARD_SIZE];
+    Cell DeadWhitePieces[2 * BOARD_SIZE];
+    Cell DeadBlackPieces[2 * BOARD_SIZE];
+
+    // active player info
+    Team turn;
+    Player whitePlayer;
+    Player blackPlayer;
+
+    // Rule Specific State
+    CastleRights rights;
+    int enPassantCol;
+    int halfMoveClock;
+    int fullMoveNumber;
+
+    // Game Status
+    bool isCheckmate;
+    bool isStalemate;
+
+    int deadWhiteCounter;
+    int deadBlackCounter;
+
+} GameState;
+
+extern GameState state;
+
+#define GameBoard (state.board) // This is the best line to de a ton of very tedious textual replaces that could lead to errors and it's very clear how we updated our code
 
 extern int pointer;
 extern Team Turn;

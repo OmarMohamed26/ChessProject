@@ -21,7 +21,7 @@
 #include <ctype.h>
 #include <stddef.h>
 
-extern Cell GameBoard[BOARD_SIZE][BOARD_SIZE];
+// extern Cell GameBoard[BOARD_SIZE][BOARD_SIZE];
 
 /**
  * ReadFEN

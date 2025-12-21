@@ -1,10 +1,10 @@
+#ifndef SETTINGS_H
+#define SETTINGS_H
 /*This file has some constants not all of them*/
 
 // These settings are at build time you can't change them after the game has been built
 enum settings
 {
-     BOARD_SIZE = 8, // this constant shouldn't be changed at all because the game is built with 8x8 assumptions
-
      // draw.c settings
      FONT_SQUARE_LENGTH_COEFFICIENT = 4, // the bigger the number the smaller the font
      FONT_MIN = 10,
@@ -25,3 +25,6 @@ enum settings
      FPS = 60,
 
 };
+
+#define BOARD_SIZE 8
+#endif

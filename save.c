@@ -29,7 +29,7 @@
 
 // TODO We must a add a small letter of the whole string to decide who is going to play next w or b
 
-extern Cell GameBoard[8][8];
+// extern Cell GameBoard[8][8];
 
 char *SaveFEN(void)
 {

@@ -51,7 +51,9 @@
 #include <string.h>
 
 // access the GameBoard from the main.c file
-extern Cell GameBoard[BOARD_SIZE][BOARD_SIZE];
+// extern GameState state;
+
+// extern Cell GameBoard[BOARD_SIZE][BOARD_SIZE];
 extern Cell DeadWhitePieces[2 * BOARD_SIZE];
 extern Cell DeadBlackPieces[2 * BOARD_SIZE];
 
