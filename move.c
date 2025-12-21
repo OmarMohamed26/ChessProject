@@ -508,19 +508,23 @@ bool HandleLinearSquare(int row, int col, Team team)
  */
 void HandlePawnMove(int CellX, int CellY, Team team, bool moved)
 {
-    if (team == TEAM_BLACK && CellX + 1 < 8)
+    if (team == TEAM_BLACK && CellX + 1 < BOARD_SIZE)
     {
         if (GameBoard[CellX + 1][CellY].piece.type == PIECE_NONE)
         {
             if (Turn == team)
+            {
                 GameBoard[CellX + 1][CellY].primaryValid = true;
+            }
 
-            if (!moved && CellX + 2 < 8)
+            if (!moved && CellX + 2 < BOARD_SIZE)
             {
                 if (GameBoard[CellX + 2][CellY].piece.type == PIECE_NONE)
                 {
                     if (Turn == team)
+                    {
                         GameBoard[CellX + 2][CellY].primaryValid = true;
+                    }
                 }
             }
         }
@@ -528,16 +532,24 @@ void HandlePawnMove(int CellX, int CellY, Team team, bool moved)
         if (GameBoard[CellX + 1][CellY + 1].piece.team != team)
         {
             if (Turn == team && GameBoard[CellX + 1][CellY + 1].piece.type != PIECE_NONE)
+            {
                 GameBoard[CellX + 1][CellY + 1].primaryValid = true;
+            }
             else if (Turn != team)
+            {
                 GameBoard[CellX + 1][CellY + 1].vulnerable = true;
+            }
         }
         if (GameBoard[CellX + 1][CellY - 1].piece.team != team)
         {
             if (Turn == team && GameBoard[CellX + 1][CellY - 1].piece.type != PIECE_NONE)
+            {
                 GameBoard[CellX + 1][CellY - 1].primaryValid = true;
+            }
             else if (Turn != team)
+            {
                 GameBoard[CellX + 1][CellY - 1].vulnerable = true;
+            }
         }
     }
     else if (team == TEAM_WHITE && CellX - 1 >= 0)
@@ -545,13 +557,17 @@ void HandlePawnMove(int CellX, int CellY, Team team, bool moved)
         if (GameBoard[CellX - 1][CellY].piece.type == PIECE_NONE)
         {
             if (Turn == team)
+            {
                 GameBoard[CellX - 1][CellY].primaryValid = true;
+            }
             if (!moved && CellX - 2 >= 0)
             {
                 if (GameBoard[CellX - 2][CellY].piece.type == PIECE_NONE)
                 {
                     if (Turn == team)
+                    {
                         GameBoard[CellX - 2][CellY].primaryValid = true;
+                    }
                 }
             }
         }
@@ -559,16 +575,24 @@ void HandlePawnMove(int CellX, int CellY, Team team, bool moved)
         if (GameBoard[CellX - 1][CellY - 1].piece.team != team)
         {
             if (Turn == team && GameBoard[CellX - 1][CellY - 1].piece.type != PIECE_NONE)
+            {
                 GameBoard[CellX - 1][CellY - 1].primaryValid = true;
+            }
             else if (Turn != team)
+            {
                 GameBoard[CellX - 1][CellY - 1].vulnerable = true;
+            }
         }
         if (GameBoard[CellX - 1][CellY + 1].piece.team != team)
         {
             if (Turn == team && GameBoard[CellX - 1][CellY + 1].piece.type != PIECE_NONE)
+            {
                 GameBoard[CellX - 1][CellY + 1].primaryValid = true;
+            }
             else if (Turn != team)
+            {
                 GameBoard[CellX - 1][CellY + 1].vulnerable = true;
+            }
         }
     }
 }
@@ -724,8 +748,8 @@ void CheckValidation()
  */
 void FinalValidation(int CellX, int CellY, bool selected)
 {
-    int i, j;
-    PieceType piece1, piece2;
+    PieceType piece1;
+    PieceType piece2;
     Team team2;
     Player1.SimChecked = false;
     Player2.SimChecked = false;
@@ -733,15 +757,17 @@ void FinalValidation(int CellX, int CellY, bool selected)
     if (selected)
     {
         piece1 = GameBoard[CellX][CellY].piece.type;
-        for (i = 0; i < 8; i++)
+        for (int row = 0; row < BOARD_SIZE; row++)
         {
-            for (j = 0; j < 8; j++)
+            for (int col = 0; col < BOARD_SIZE; col++)
             {
-                if (GameBoard[i][j].primaryValid)
+                Cell thisCell = GameBoard[row][col];
+
+                if (thisCell.primaryValid)
                 {
-                    piece2 = GameBoard[i][j].piece.type;
-                    team2 = GameBoard[i][j].piece.team;
-                    MoveSimulation(CellX, CellY, i, j, piece1);
+                    piece2 = thisCell.piece.type;
+                    team2 = thisCell.piece.team;
+                    MoveSimulation(CellX, CellY, row, col, piece1);
                     ResetVulnerable();
                     ScanEnemyMoves();
                     SimCheckValidation(); // simulation checkvalidation
@@ -749,22 +775,26 @@ void FinalValidation(int CellX, int CellY, bool selected)
                     {
                         if (Player1.SimChecked)
                         {
-                            GameBoard[i][j].isvalid = false;
+                            thisCell.isvalid = false;
                         }
                         else
-                            GameBoard[i][j].isvalid = true;
+                        {
+                            thisCell.isvalid = true;
+                        }
                     }
                     else
                     {
                         if (Player2.SimChecked)
                         {
-                            GameBoard[i][j].isvalid = false;
+                            thisCell.isvalid = false;
                         }
                         else
-                            GameBoard[i][j].isvalid = true;
+                        {
+                            thisCell.isvalid = true;
+                        }
                     }
 
-                    UndoSimulation(CellX, CellY, i, j, piece1, piece2, team2);
+                    UndoSimulation(CellX, CellY, row, col, piece1, piece2, team2);
                     ResetVulnerable();
                     ScanEnemyMoves();
                     Player1.SimChecked = false;
@@ -864,14 +894,17 @@ void CheckmateValidation()
  */
 bool CheckmateFlagCheck(Team playerTeam) // Will also use for stalemate
 {
+    // I won't change these four variables to row/col I will let it as so
     int i, j, k, l;
-    PieceType piece1, piece2;
+    PieceType piece1;
+    PieceType piece2;
     bool falsecheck = false;
-    Team team1, team2;
+    Team team1;
+    Team team2;
     ResetPrimaryValidation();
-    for (i = 0; i < 8; i++)
+    for (i = 0; i < BOARD_SIZE; i++)
     {
-        for (j = 0; j < 8; j++)
+        for (j = 0; j < BOARD_SIZE; j++)
         {
             /* code */
             piece1 = GameBoard[i][j].piece.type;
@@ -880,9 +913,9 @@ bool CheckmateFlagCheck(Team playerTeam) // Will also use for stalemate
             if (team1 == playerTeam && piece1 != PIECE_NONE)
             {
                 PrimaryValidation(piece1, i, j);
-                for (k = 0; k < 8; k++)
+                for (k = 0; k < BOARD_SIZE; k++)
                 {
-                    for (l = 0; l < 8; l++)
+                    for (l = 0; l < BOARD_SIZE; l++)
                     {
                         if (GameBoard[k][l].primaryValid)
                         {
