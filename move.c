@@ -458,11 +458,11 @@ bool HandleLinearSquare(int row, int col, Team team)
     {
         if (Turn == team)
         {
-            thisCell.primaryValid = true;
+            GameBoard[row][col].primaryValid = true;
         }
         else
         {
-            thisCell.vulnerable = true;
+            GameBoard[row][col].vulnerable = true;
         }
         return false;
     }
@@ -471,11 +471,11 @@ bool HandleLinearSquare(int row, int col, Team team)
     {
         if (Turn == team)
         {
-            thisCell.primaryValid = true;
+            GameBoard[row][col].primaryValid = true;
         }
         else
         {
-            thisCell.vulnerable = true;
+            GameBoard[row][col].vulnerable = true;
         }
 
         return true;
@@ -483,7 +483,7 @@ bool HandleLinearSquare(int row, int col, Team team)
 
     if (Turn != team)
     {
-        thisCell.vulnerable = true;
+        GameBoard[row][col].vulnerable = true;
     }
 
     return true;
@@ -775,22 +775,22 @@ void FinalValidation(int CellX, int CellY, bool selected)
                     {
                         if (Player1.SimChecked)
                         {
-                            thisCell.isvalid = false;
+                            GameBoard[row][col].isvalid = false;
                         }
                         else
                         {
-                            thisCell.isvalid = true;
+                            GameBoard[row][col].isvalid = true;
                         }
                     }
                     else
                     {
                         if (Player2.SimChecked)
                         {
-                            thisCell.isvalid = false;
+                            GameBoard[row][col].isvalid = false;
                         }
                         else
                         {
-                            thisCell.isvalid = true;
+                            GameBoard[row][col].isvalid = true;
                         }
                     }
 
