@@ -712,7 +712,7 @@ static void DecideDestination(Vector2 topLeft)
             selectedPiece.selected = true;
             SetCellBorder(&selectedCellBorder, &selectedPiece);
             TraceLog(LOG_DEBUG, "Selected A new Piece: %d %d", CellX, CellY);
-            PrimaryValidation(selectedPiece.piece.type, CellX, CellY); // Renamed Validateanddevalidate to just validate
+            PrimaryValidation(selectedPiece.piece.type, CellX, CellY, true); // Renamed Validateanddevalidate to just validate
             FinalValidation(CellX, CellY, selectedPiece.selected);
         }
     }

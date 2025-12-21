@@ -69,7 +69,6 @@ void MovePiece(int initialRow, int initialCol, int finalRow, int finalCol)
     {
         return;
     }
-
     // before loading piece save the move in struct Move
 
     // DeadPiece Handling
@@ -87,29 +86,54 @@ void MovePiece(int initialRow, int initialCol, int finalRow, int finalCol)
             LoadPiece(deadWhiteCounter++, 1 /*This is not important*/, GameBoard[finalRow][finalCol].piece.type, TEAM_WHITE, DEAD_WHITE_PIECES);
         }
     }
+    if (Turn == TEAM_WHITE && (KingSide || QueenSide))
+    {
+        if (finalRow == 7 && finalCol == 6)
+        {
+            LoadPiece(7, 6, PIECE_KING, Turn, GAME_BOARD);
+            SetEmptyCell(&GameBoard[7][4]);
+            LoadPiece(7, 5, PIECE_ROOK, Turn, GAME_BOARD);
+            SetEmptyCell(&GameBoard[7][7]);
+            ResetsAndValidations();
+            return;
+        }
+        if (finalRow == 7 && finalCol == 2)
+        {
+            LoadPiece(7, 2, PIECE_KING, Turn, GAME_BOARD);
+            SetEmptyCell(&GameBoard[7][4]);
+            LoadPiece(7, 3, PIECE_ROOK, Turn, GAME_BOARD);
+            SetEmptyCell(&GameBoard[7][0]);
+            ResetsAndValidations();
+            return;
+        }
+    }
+
+    else if (Turn == TEAM_BLACK && (KingSide || QueenSide))
+    {
+        if (finalRow == 0 && finalCol == 6)
+        {
+            LoadPiece(0, 6, PIECE_KING, Turn, GAME_BOARD);
+            SetEmptyCell(&GameBoard[0][4]);
+            LoadPiece(0, 5, PIECE_ROOK, Turn, GAME_BOARD);
+            SetEmptyCell(&GameBoard[0][7]);
+            ResetsAndValidations();
+            return;
+        }
+        if (finalRow == 0 && finalCol == 2)
+        {
+            LoadPiece(0, 2, PIECE_KING, Turn, GAME_BOARD);
+            SetEmptyCell(&GameBoard[0][4]);
+            LoadPiece(0, 3, PIECE_ROOK, Turn, GAME_BOARD);
+            SetEmptyCell(&GameBoard[0][0]);
+            ResetsAndValidations();
+            return;
+        }
+    }
 
     LoadPiece(finalRow, finalCol, GameBoard[initialRow][initialCol].piece.type, GameBoard[initialRow][initialCol].piece.team, GAME_BOARD);
     GameBoard[finalRow][finalCol].piece.hasMoved = 1;
     SetEmptyCell(&GameBoard[initialRow][initialCol]);
-    Turn = (Turn == TEAM_WHITE) ? TEAM_BLACK : TEAM_WHITE; // Added turns
-    ResetVulnerable();                                     // Reset the curent piece that are in danger
-    ScanEnemyMoves();                                      // Added vulnerability function checker
-    CheckValidation();
-    StalemateValidation();
-    if (Player1.Checked)
-    {
-        if (Turn == TEAM_WHITE)
-        {
-            CheckmateValidation();
-        }
-    }
-    else if (Player2.Checked)
-    {
-        if (Turn == TEAM_BLACK)
-        {
-            CheckmateValidation();
-        }
-    }
+    ResetsAndValidations();
 }
 
 /**
@@ -348,6 +372,17 @@ void ResetPrimaryValidation()
     }
 }
 
+void ResetMovedStatus()
+{
+    for (int row = 0; row < BOARD_SIZE; row++)
+    {
+        for (int col = 0; col < BOARD_SIZE; col++)
+        {
+            GameBoard[row][col].hasMoved = false;
+        }
+    }
+}
+
 /**
  * PrimaryValidation
  *
@@ -361,7 +396,7 @@ void ResetPrimaryValidation()
  *  - Looks up whether the piece has moved and its team, then delegates to MoveValidation.
  *  - Does no simulation/king-check filtering; primaryValid flags represent raw reachable squares.
  */
-void PrimaryValidation(PieceType Piece, int CellX, int CellY)
+void PrimaryValidation(PieceType Piece, int CellX, int CellY, bool selected)
 {
     bool moved = GameBoard[CellX][CellY].piece.hasMoved;
     Team team = GameBoard[CellX][CellY].piece.team;
@@ -370,6 +405,11 @@ void PrimaryValidation(PieceType Piece, int CellX, int CellY)
     {
     case PIECE_KING:
         MoveValidation(CellX, CellY, PIECE_KING, team, moved);
+        if (selected)
+        {
+            PrimaryCastlingValidation();
+        }
+
         break;
     case PIECE_QUEEN:
         MoveValidation(CellX, CellY, PIECE_QUEEN, team, moved);
@@ -800,6 +840,14 @@ void FinalValidation(int CellX, int CellY, bool selected)
                         else
                         {
                             GameBoard[row][col].isvalid = true;
+                            if (PrimaryKingSide)
+                            {
+                                KingSide = true;
+                            }
+                            if (PrimaryQueenSide)
+                            {
+                                QueenSide = true;
+                            }
                         }
                     }
                     else
@@ -811,6 +859,14 @@ void FinalValidation(int CellX, int CellY, bool selected)
                         else
                         {
                             GameBoard[row][col].isvalid = true;
+                            if (PrimaryKingSide)
+                            {
+                                KingSide = true;
+                            }
+                            if (PrimaryQueenSide)
+                            {
+                                QueenSide = true;
+                            }
                         }
                     }
 
@@ -932,7 +988,7 @@ bool CheckmateFlagCheck(Team playerTeam) // Will also use for stalemate
 
             if (team1 == playerTeam && piece1 != PIECE_NONE)
             {
-                PrimaryValidation(piece1, i, j);
+                PrimaryValidation(piece1, i, j, false);
                 for (k = 0; k < BOARD_SIZE; k++)
                 {
                     for (l = 0; l < BOARD_SIZE; l++)
@@ -1046,6 +1102,104 @@ void StalemateValidation()
         if (Player2.Stalemate)
         {
             Stalemate = true;
+        }
+    }
+}
+
+void ResetsAndValidations()
+{
+    Turn = (Turn == TEAM_WHITE) ? TEAM_BLACK : TEAM_WHITE; // Added turns
+    ResetVulnerable();                                     // Reset the curent piece that are in danger
+    ScanEnemyMoves();                                      // Added vulnerability function checker
+    CheckValidation();
+    StalemateValidation();
+    if (Player1.Checked)
+    {
+        if (Turn == TEAM_WHITE)
+        {
+            CheckmateValidation();
+        }
+    }
+    else if (Player2.Checked)
+    {
+        if (Turn == TEAM_BLACK)
+        {
+            CheckmateValidation();
+        }
+    }
+}
+
+void PrimaryCastlingValidation()
+{
+    Cell BlackKing = GameBoard[0][4];
+    Cell WhiteKing = GameBoard[7][4];
+    Cell BlackRook1 = GameBoard[0][0];
+    Cell BlackRook2 = GameBoard[0][7];
+    Cell WhiteRook1 = GameBoard[7][0];
+    Cell WhiteRook2 = GameBoard[7][7];
+
+    if (Turn == TEAM_WHITE)
+    {
+        if (WhiteKing.piece.type == PIECE_KING && !WhiteKing.hasMoved && !Player1.Checked)
+        {
+            if (WhiteRook1.piece.type == PIECE_ROOK && !WhiteRook1.hasMoved)
+            {
+                // Must be empty: b1, c1, d1
+                if (!(GameBoard[7][1].piece.type || GameBoard[7][2].piece.type || GameBoard[7][3].piece.type))
+                {
+                    // King only passes through/lands on: c1, d1
+                    if (!(GameBoard[7][2].vulnerable || GameBoard[7][3].vulnerable))
+                    {
+                        GameBoard[7][2].primaryValid = true;
+                        PrimaryQueenSide = true;
+                    }
+                }
+            }
+            if (WhiteRook2.piece.type == PIECE_ROOK && !WhiteRook2.hasMoved)
+            {
+                // Must be empty: f1, g1
+                if (!(GameBoard[7][5].piece.type || GameBoard[7][6].piece.type))
+                {
+                    // King passes through/lands on: f1, g1
+                    if (!(GameBoard[7][5].vulnerable || GameBoard[7][6].vulnerable))
+                    {
+                        GameBoard[7][6].primaryValid = true;
+                        PrimaryKingSide = true;
+                    }
+                }
+            }
+        }
+    }
+    else // BLACK TEAM
+    {
+        if (BlackKing.piece.type == PIECE_KING && !BlackKing.hasMoved && !Player2.Checked)
+        {
+            if (BlackRook1.piece.type == PIECE_ROOK && !BlackRook1.hasMoved)
+            {
+                // Must be empty: b8, c8, d8
+                if (!(GameBoard[0][1].piece.type || GameBoard[0][2].piece.type || GameBoard[0][3].piece.type))
+                {
+                    // King only passes through/lands on: c8, d8
+                    if (!(GameBoard[0][2].vulnerable || GameBoard[0][3].vulnerable))
+                    {
+                        GameBoard[0][2].primaryValid = true;
+                        PrimaryQueenSide = true;
+                    }
+                }
+            }
+            if (BlackRook2.piece.type == PIECE_ROOK && !BlackRook2.hasMoved)
+            {
+                // Must be empty: f8, g8
+                if (!(GameBoard[0][5].piece.type || GameBoard[0][6].piece.type))
+                {
+                    // King passes through/lands on: f8, g8
+                    if (!(GameBoard[0][5].vulnerable || GameBoard[0][6].vulnerable))
+                    {
+                        GameBoard[0][6].primaryValid = true;
+                        PrimaryKingSide = true;
+                    }
+                }
+            }
         }
     }
 }

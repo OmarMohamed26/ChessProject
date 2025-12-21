@@ -15,6 +15,7 @@
 #include "draw.h"
 #include "load.h"
 #include "main.h"
+#include "move.h"
 #include "raylib.h"
 #include "save.h"
 #include "settings.h"
@@ -30,6 +31,10 @@ Player Player1, Player2;
 Team Turn = TEAM_WHITE;
 bool Checkmate = false;
 bool Stalemate = false;
+bool KingSide = false;
+bool QueenSide = false;
+bool PrimaryKingSide = false;
+bool PrimaryQueenSide = false;
 int deadWhiteCounter = 0;
 int deadBlackCounter = 0;
 
@@ -37,6 +42,7 @@ int main(void)
 {
     Player1.team = TEAM_WHITE;
     Player2.team = TEAM_BLACK;
+    ResetMovedStatus();
     // Initialize the game window
     SetConfigFlags(FLAG_WINDOW_RESIZABLE);
 #ifdef DEBUG
