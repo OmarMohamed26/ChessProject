@@ -1,6 +1,8 @@
 #ifndef LOAD_H
 #define LOAD_H
 
-void ReadFEN(const char *FENstring, int size);
+#include <stddef.h>
+
+void ReadFEN(const char *FENstring, size_t size);
 
 #endif

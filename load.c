@@ -17,9 +17,11 @@
 
 #include "draw.h"
 #include "main.h"
+#include "settings.h"
 #include <ctype.h>
+#include <stddef.h>
 
-extern Cell GameBoard[8][8];
+extern Cell GameBoard[BOARD_SIZE][BOARD_SIZE];
 
 /**
  * ReadFEN
@@ -47,43 +49,50 @@ extern Cell GameBoard[8][8];
  *  - This function only writes piece placement; it does not clear or reset other
  *    board state (call InitializeBoard/UnloadBoard as appropriate before use).
  */
-void ReadFEN(const char *FENstring, int size)
+void ReadFEN(const char *FENstring, size_t size)
 {
-    int row, col;
+    int row;
+    int col;
     int rank = 0; /* 0 = top rank (FEN first rank). Use 7 and decrement if your row0 is bottom */
     int file = 0; /* 0 = a-file (left) */
 
-    for (int i = 0; i < size && FENstring[i] != '\0'; i++)
+    for (size_t i = 0; i < size && FENstring[i] != '\0'; i++)
     {
-        char ch = FENstring[i];
+        unsigned char ch = FENstring[i];
 
         if (ch == '/')
         {
             rank++;
             file = 0;
-            if (rank >= 8)
+            if (rank >= BOARD_SIZE)
+            {
                 break;
+            }
             continue;
         }
 
         if (isdigit((unsigned char)ch))
         {
             file += ch - '0';
-            if (file > 8)
-                file = 8;
+            if (file > BOARD_SIZE)
+            {
+                file = BOARD_SIZE;
+            }
             continue;
         }
 
         if (!isalpha((unsigned char)ch))
+        {
             continue;
+        }
 
         Team color = islower((unsigned char)ch) ? TEAM_BLACK : TEAM_WHITE;
-        char piece = tolower((unsigned char)ch);
+        unsigned char piece = tolower(ch);
 
         row = rank;
         col = file;
 
-        if (row < 0 || row >= 8 || col < 0 || col >= 8)
+        if (row < 0 || row >= BOARD_SIZE || col < 0 || col >= BOARD_SIZE)
         {
             file++;
             continue;
