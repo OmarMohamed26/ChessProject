@@ -77,7 +77,7 @@ typedef struct Cell
 {
     Piece piece;                   /* piece occupying the cell (PIECE_NONE if empty) */
     Vector2 pos;                   /* pixel position for rendering (top-left) */
-    unsigned int row : 3, col : 3; /* board coordinates (0..7) */
+    unsigned int row : 4, col : 4; /* board coordinates (0..7) */
     bool primaryValid : 1;         // This is a primary validation geometrically
     bool isvalid : 1;              // Final validation of moves FINAL_VALIDATION
     bool selected : 1;             // will also need this
@@ -102,8 +102,8 @@ typedef struct __attribute__((packed))
     // Done a very good job packing all this info in 6 bytes actually 45 bits
 
     // Squares
-    unsigned int initialRow : 3, initialCol : 3;
-    unsigned int finalRow : 3, finalCol : 3;
+    unsigned int initialRow : 4, initialCol : 4;
+    unsigned int finalRow : 4, finalCol : 4;
 
     // Piece info
     PieceType pieceMovedType : 4;
