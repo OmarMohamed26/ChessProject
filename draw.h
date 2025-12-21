@@ -36,6 +36,9 @@ void InitializeDeadPieces(void);
 /*Run after the game finishes or you want a new game to prevent memory leaks and flush the board*/
 void UnloadBoard(void);
 
+/*Run after the game finishes or you want a new game to prevent memory leaks and flush the DeadPieces*/
+void UnloadDeadPieces(void);
+
 /*Highlight a single square*/
 void HighlightSquare(int row, int col, int ColorTheme);
 

@@ -528,6 +528,33 @@ void UnloadBoard(void)
     }
 }
 
+void UnloadDeadPieces(void)
+{
+    for (int row = 0; row < 2 * BOARD_SIZE; row++)
+    {
+        if (DeadWhitePieces[row].piece.type != PIECE_NONE)
+        {
+            UnloadTexture(DeadWhitePieces[row].piece.texture);
+        }
+        else
+        {
+            break;
+        }
+    }
+
+    for (int row = 0; row < 2 * BOARD_SIZE; row++)
+    {
+        if (DeadBlackPieces[row].piece.type != PIECE_NONE)
+        {
+            UnloadTexture(DeadBlackPieces[row].piece.texture);
+        }
+        else
+        {
+            break;
+        }
+    }
+}
+
 void HighlightSquare(int row, int col, int ColorTheme)
 { // This now fixes the select bug
     ColorPair theme = PALETTE[ColorTheme];

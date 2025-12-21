@@ -120,6 +120,7 @@ int main(void)
     }
 
     UnloadBoard();
+    UnloadDeadPieces();
     UnloadImage(icon);
     CloseWindow();
 
