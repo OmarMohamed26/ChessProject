@@ -101,22 +101,22 @@ void ReadFEN(const char *FENstring, size_t size)
         switch (piece)
         {
         case 'r':
-            LoadPiece(row, col, PIECE_ROOK, color);
+            LoadPiece(row, col, PIECE_ROOK, color, GAME_BOARD);
             break;
         case 'n':
-            LoadPiece(row, col, PIECE_KNIGHT, color);
+            LoadPiece(row, col, PIECE_KNIGHT, color, GAME_BOARD);
             break;
         case 'b':
-            LoadPiece(row, col, PIECE_BISHOP, color);
+            LoadPiece(row, col, PIECE_BISHOP, color, GAME_BOARD);
             break;
         case 'q':
-            LoadPiece(row, col, PIECE_QUEEN, color);
+            LoadPiece(row, col, PIECE_QUEEN, color, GAME_BOARD);
             break;
         case 'k':
-            LoadPiece(row, col, PIECE_KING, color);
+            LoadPiece(row, col, PIECE_KING, color, GAME_BOARD);
             break;
         case 'p':
-            LoadPiece(row, col, PIECE_PAWN, color);
+            LoadPiece(row, col, PIECE_PAWN, color, GAME_BOARD);
             break;
         default:
             break;

@@ -3,7 +3,7 @@
  *
  * Public drawing/layout API used by main.c.
  * - DrawBoard(theme): render board + pieces (call inside BeginDrawing/EndDrawing).
- * - LoadPiece(r,c,type,team,sq): load and assign a piece texture for a cell.
+ * - LoadPiece(r,c,type,team, place): load and assign a piece texture for a cell.
  * - ComputeSquareLength(): compute a consistent square size based on current window.
  *
  * Keep prototypes small and self-explanatory; implementation lives in draw.c.
@@ -14,14 +14,24 @@
 #include "main.h"
 #include <stdbool.h>
 
+typedef enum LoadPlace
+{
+    GAME_BOARD = 0,
+    DEAD_WHITE_PIECES,
+    DEAD_BLACK_PIECES,
+} LoadPlace;
+
 /* Render board and pieces for the provided color theme index. */
 void DrawBoard(int ColorTheme, bool showFileRank);
 
 /* Load a piece texture for cell (row,col). squareLength selects texture size. */
-void LoadPiece(int row, int col, PieceType type, Team team);
+void LoadPiece(int row, int col, PieceType type, Team team, LoadPlace place);
 
 /*Initialize the chess board to have appropriate starting values*/
 void InitializeBoard(void);
+
+/*Initialize the DeadPieces to have appropriate starting values*/
+void InitializeDeadPieces(void);
 
 /*Run after the game finishes or you want a new game to prevent memory leaks and flush the board*/
 void UnloadBoard(void);

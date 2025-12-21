@@ -68,7 +68,7 @@ void MovePiece(int initialRow, int initialCol, int finalRow, int finalCol)
     }
 
     // before loading piece save the move in struct Move
-    LoadPiece(finalRow, finalCol, GameBoard[initialRow][initialCol].piece.type, GameBoard[initialRow][initialCol].piece.team);
+    LoadPiece(finalRow, finalCol, GameBoard[initialRow][initialCol].piece.type, GameBoard[initialRow][initialCol].piece.team, GAME_BOARD);
     GameBoard[finalRow][finalCol].piece.hasMoved = 1;
     SetEmptyCell(&GameBoard[initialRow][initialCol]);
     Turn = (Turn == TEAM_WHITE) ? TEAM_BLACK : TEAM_WHITE; // Added turns

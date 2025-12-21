@@ -77,7 +77,7 @@ typedef struct Cell
 {
     Piece piece;                   /* piece occupying the cell (PIECE_NONE if empty) */
     Vector2 pos;                   /* pixel position for rendering (top-left) */
-    unsigned int row : 4, col : 4; /* board coordinates (0..7) */
+    unsigned int row : 5, col : 5; /* board coordinates (0..7) */
     bool primaryValid : 1;         // This is a primary validation geometrically
     bool isvalid : 1;              // Final validation of moves FINAL_VALIDATION
     bool selected : 1;             // will also need this
@@ -107,7 +107,7 @@ typedef struct __attribute__((packed))
 
     // Piece info
     PieceType pieceMovedType : 4;
-    Team pieceMovedTeam : 4;
+    Team pieceMovedTeam : 1;
     PieceType pieceCapturedType : 4; // this should be PIECE_NONE if I didn't capture any piece
     // We don't need pieceCapturedTeam because it must be the opposite of PieceMovedTeam
 

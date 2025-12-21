@@ -13,6 +13,7 @@
  *     BeginDrawing()/EndDrawing(). Computes layout for the current window size
  *     and calls display routines.
  *
+ *  note that this function has been updated and this is no longer its signature
  * - void LoadPiece(int row, int col, PieceType type, Team team, int squareLength);
  *     Loads a piece image from assets/ and assigns the resulting Texture2D to
  *     GameBoard[row][col].piece.texture. If a texture already exists in that
@@ -51,10 +52,12 @@
 
 // access the GameBoard from the main.c file
 extern Cell GameBoard[BOARD_SIZE][BOARD_SIZE];
+extern Cell DeadWhitePieces[2 * BOARD_SIZE];
+extern Cell DeadBlackPieces[2 * BOARD_SIZE];
 
 // Local Prototypes
 static int Min2(int num1, int num2);
-static void LoadHelper(char *pieceNameBuffer, int bufferSize, const char *pieceName, Team team, int row, int col, PieceType type);
+static void LoadHelper(char *pieceNameBuffer, int bufferSize, const char *pieceName, Team team, int row, int col, PieceType type, LoadPlace place);
 static void InitializeCellsPos(int extra, int squareLength, float spaceText);
 static size_t TrimTrailingWhitespace(char *string);
 static void displayPieces(void);
@@ -187,17 +190,27 @@ void DrawBoard(int ColorTheme, bool showFileRank)
  *  - row, col : board coordinates (0..7)
  *  - type     : PieceType enum
  *  - team     : TEAM_WHITE or TEAM_BLACK
- *  - squareLength : desired texture dimension (square)
+ *  - LoadPlace: this allows us to use the function for multiple purposes (it takes an enum)
  *
  * Safety:
  *  - Performs bounds check on row/col.
  *  - LoadHelper handles logging and texture assignment.
  */
-void LoadPiece(int row, int col, PieceType type, Team team)
+void LoadPiece(int row, int col, PieceType type, Team team, LoadPlace place)
 {
-    if (row < 0 || row >= BOARD_SIZE || col < 0 || col >= BOARD_SIZE)
+    if (place == GAME_BOARD)
     {
-        return;
+        if (row < 0 || row >= BOARD_SIZE || col < 0 || col >= BOARD_SIZE)
+        {
+            return;
+        }
+    }
+    else if (place == DEAD_WHITE_PIECES || place == DEAD_BLACK_PIECES)
+    {
+        if (row < 0 || row >= 2 * BOARD_SIZE)
+        {
+            return;
+        }
     }
 
     char pieceName[MAX_PIECE_NAME_BUFFER_SIZE + 1];
@@ -205,22 +218,22 @@ void LoadPiece(int row, int col, PieceType type, Team team)
     switch (type)
     {
     case PIECE_PAWN:
-        LoadHelper(pieceName, sizeof pieceName, "pawn", team, row, col, type);
+        LoadHelper(pieceName, sizeof pieceName, "pawn", team, row, col, type, place);
         break;
     case PIECE_KNIGHT:
-        LoadHelper(pieceName, sizeof pieceName, "knight", team, row, col, type);
+        LoadHelper(pieceName, sizeof pieceName, "knight", team, row, col, type, place);
         break;
     case PIECE_BISHOP:
-        LoadHelper(pieceName, sizeof pieceName, "bishop", team, row, col, type);
+        LoadHelper(pieceName, sizeof pieceName, "bishop", team, row, col, type, place);
         break;
     case PIECE_ROOK:
-        LoadHelper(pieceName, sizeof pieceName, "rook", team, row, col, type);
+        LoadHelper(pieceName, sizeof pieceName, "rook", team, row, col, type, place);
         break;
     case PIECE_QUEEN:
-        LoadHelper(pieceName, sizeof pieceName, "queen", team, row, col, type);
+        LoadHelper(pieceName, sizeof pieceName, "queen", team, row, col, type, place);
         break;
     case PIECE_KING:
-        LoadHelper(pieceName, sizeof pieceName, "king", team, row, col, type);
+        LoadHelper(pieceName, sizeof pieceName, "king", team, row, col, type, place);
         break;
     default:
         break;
@@ -242,7 +255,7 @@ void LoadPiece(int row, int col, PieceType type, Team team)
  *  - row/col: target cell coordinates
  *  - type: PieceType to set on the cell
  */
-static void LoadHelper(char *pieceNameBuffer, int bufferSize, const char *pieceName, Team team, int row, int col, PieceType type)
+static void LoadHelper(char *pieceNameBuffer, int bufferSize, const char *pieceName, Team team, int row, int col, PieceType type, LoadPlace place)
 {
     /*This function loads the texture for any given piece correctly and handles errors
     and puts a new texture if one already exists at this cell*/
@@ -273,16 +286,32 @@ static void LoadHelper(char *pieceNameBuffer, int bufferSize, const char *pieceN
         return;
     }
 
-    // unload previous texture if present
-    if (GameBoard[row][col].piece.texture.id != 0)
+    if (place == GAME_BOARD)
     {
-        UnloadTexture(GameBoard[row][col].piece.texture);
-    }
+        // unload previous texture if present
+        if (GameBoard[row][col].piece.texture.id != 0)
+        {
+            UnloadTexture(GameBoard[row][col].piece.texture);
+        }
 
-    // Add the piece to the GameBoard
-    GameBoard[row][col].piece.texture = texture;
-    GameBoard[row][col].piece.type = type;
-    GameBoard[row][col].piece.team = team;
+        // Add the piece to the GameBoard
+        GameBoard[row][col].piece.texture = texture;
+        GameBoard[row][col].piece.type = type;
+        GameBoard[row][col].piece.team = team;
+    }
+    else if (place == DEAD_WHITE_PIECES)
+    {
+        printf("Loaded a piece in dead white.\n");
+        DeadWhitePieces[row].piece.texture = texture;
+        DeadWhitePieces[row].piece.type = type;
+        DeadWhitePieces[row].piece.team = team;
+    }
+    else if (place == DEAD_BLACK_PIECES)
+    {
+        DeadBlackPieces[row].piece.texture = texture;
+        DeadBlackPieces[row].piece.type = type;
+        DeadBlackPieces[row].piece.team = team;
+    }
 }
 
 /**
@@ -293,7 +322,7 @@ static void LoadHelper(char *pieceNameBuffer, int bufferSize, const char *pieceN
  * precomputed GameBoard[row][col].pos position.
  *
  */
-static void displayPieces(void)
+static void displayPieces(void) // and DeadPieces
 {
     // Draw pieces using same row/col ordering
     for (int row = 0; row < BOARD_SIZE; row++)
@@ -304,6 +333,32 @@ static void displayPieces(void)
             {
                 DrawTextureEx(GameBoard[row][col].piece.texture, GameBoard[row][col].pos, 0, (float)ComputeSquareLength() / (float)GameBoard[row][col].piece.texture.width, WHITE);
             }
+        }
+    }
+
+    // Display Dead White Pieces
+    for (int row = 0; row < 2 * BOARD_SIZE; row++)
+    {
+        if (DeadWhitePieces[row].piece.type != PIECE_NONE)
+        {
+            DrawTextureEx(DeadWhitePieces[row].piece.texture, DeadWhitePieces[row].pos, 0, (float)ComputeSquareLength() / (4 * (float)DeadWhitePieces[row].piece.texture.width), WHITE);
+        }
+        else
+        {
+            break;
+        }
+    }
+
+    // Display Dead Black Pieces
+    for (int row = 0; row < 2 * BOARD_SIZE; row++)
+    {
+        if (DeadBlackPieces[row].piece.type != PIECE_NONE)
+        {
+            DrawTextureEx(DeadBlackPieces[row].piece.texture, DeadBlackPieces[row].pos, 0, (float)ComputeSquareLength() / (4 * (float)DeadBlackPieces[row].piece.texture.width), WHITE);
+        }
+        else
+        {
+            break;
         }
     }
 }
@@ -321,7 +376,7 @@ static void displayPieces(void)
  * Calling pattern:
  *  - Compute squareLength and extra in DrawBoard (or main), then call this to set positions.
  */
-static void InitializeCellsPos(int extra, int squareLength, float spaceText)
+static void InitializeCellsPos(int extra, int squareLength, float spaceText) // It also Initializes dead cells
 {
     // row = y, col = x
     for (int row = 0; row < BOARD_SIZE; row++)
@@ -333,6 +388,19 @@ static void InitializeCellsPos(int extra, int squareLength, float spaceText)
                 ((float)row * (float)squareLength) + ((float)squareLength * spaceText / 2)                 // y = row
             };
         }
+    }
+
+    // Initialize DeadWhite Cells
+    Vector2 topLeft = GameBoard[0][0].pos;
+    for (int row = 0; row < 2 * BOARD_SIZE; row++)
+    {
+        DeadWhitePieces[row].pos = (Vector2){topLeft.x + ((float)row * (float)squareLength / 4), topLeft.y - (float)((float)squareLength / 4)};
+    }
+
+    Vector2 topMiddle = GameBoard[0][4].pos;
+    for (int row = 0; row < 2 * BOARD_SIZE; row++)
+    {
+        DeadBlackPieces[row].pos = (Vector2){topMiddle.x + ((float)row * (float)squareLength / 4), topMiddle.y - (float)((float)squareLength / 4)};
     }
 }
 
@@ -419,6 +487,15 @@ void InitializeBoard(void)
             GameBoard[i][j].col = j;
             SetEmptyCell(&GameBoard[i][j]);
         }
+    }
+}
+
+void InitializeDeadPieces(void)
+{
+    for (int row = 0; row < 2 * BOARD_SIZE; row++)
+    {
+        DeadWhitePieces[row].piece.type = PIECE_NONE;
+        DeadBlackPieces[row].piece.type = PIECE_NONE;
     }
 }
 

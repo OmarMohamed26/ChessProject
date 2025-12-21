@@ -23,6 +23,8 @@
 #include <string.h>
 
 /* Global board state accessible to draw.c and other modules. */
+Cell DeadWhitePieces[2 * BOARD_SIZE];
+Cell DeadBlackPieces[2 * BOARD_SIZE];
 Cell GameBoard[BOARD_SIZE][BOARD_SIZE];
 Player Player1, Player2;
 Team Turn = TEAM_WHITE;
@@ -44,6 +46,7 @@ int main(void)
     SetWindowIcon(icon);
     SetTargetFPS(FPS);
     InitializeBoard();
+    InitializeDeadPieces();
 
     char standard_game[] = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR";
     ReadFEN(standard_game, strlen(standard_game));
@@ -59,6 +62,11 @@ int main(void)
             printf("%d ", GameBoard[i][j].piece.type);
         }
         printf("\n");
+    }
+
+    for (int i = 0; i < 2 * BOARD_SIZE; i++)
+    {
+        printf("%d ", DeadWhitePieces[i].piece.type);
     }
 #endif
 
