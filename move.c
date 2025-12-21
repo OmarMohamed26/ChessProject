@@ -21,6 +21,9 @@
 
 extern Cell GameBoard[BOARD_SIZE][BOARD_SIZE];
 extern Player Player1, Player2;
+extern int deadWhiteCounter;
+extern int deadBlackCounter;
+
 bool checked = false, flag = false;
 
 /* Add prototypes near the top of the file (below includes) */
@@ -68,6 +71,23 @@ void MovePiece(int initialRow, int initialCol, int finalRow, int finalCol)
     }
 
     // before loading piece save the move in struct Move
+
+    // DeadPiece Handling
+    if (Turn == TEAM_WHITE)
+    {
+        if (GameBoard[finalRow][finalCol].piece.type != PIECE_NONE && GameBoard[finalRow][finalCol].piece.team == TEAM_BLACK)
+        {
+            LoadPiece(deadBlackCounter++, 1 /*This is not important*/, GameBoard[finalRow][finalCol].piece.type, TEAM_BLACK, DEAD_BLACK_PIECES);
+        }
+    }
+    else
+    {
+        if (GameBoard[finalRow][finalCol].piece.type != PIECE_NONE && GameBoard[finalRow][finalCol].piece.team == TEAM_WHITE)
+        {
+            LoadPiece(deadWhiteCounter++, 1 /*This is not important*/, GameBoard[finalRow][finalCol].piece.type, TEAM_WHITE, DEAD_WHITE_PIECES);
+        }
+    }
+
     LoadPiece(finalRow, finalCol, GameBoard[initialRow][initialCol].piece.type, GameBoard[initialRow][initialCol].piece.team, GAME_BOARD);
     GameBoard[finalRow][finalCol].piece.hasMoved = 1;
     SetEmptyCell(&GameBoard[initialRow][initialCol]);

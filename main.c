@@ -30,6 +30,8 @@ Player Player1, Player2;
 Team Turn = TEAM_WHITE;
 bool Checkmate = false;
 bool Stalemate = false;
+int deadWhiteCounter = 0;
+int deadBlackCounter = 0;
 
 int main(void)
 {
