@@ -54,8 +54,8 @@
 // extern GameState state;
 
 // extern Cell GameBoard[BOARD_SIZE][BOARD_SIZE];
-extern Cell DeadWhitePieces[2 * BOARD_SIZE];
-extern Cell DeadBlackPieces[2 * BOARD_SIZE];
+// extern Cell DeadWhitePieces[2 * BOARD_SIZE];
+// extern Cell DeadBlackPieces[2 * BOARD_SIZE];
 
 // Local Prototypes
 static int Min2(int num1, int num2);

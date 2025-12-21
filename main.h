@@ -160,9 +160,16 @@ typedef struct
 
 } GameState;
 
+#ifndef MAIN_C
 extern GameState state;
 
 #define GameBoard (state.board) // This is the best line to de a ton of very tedious textual replaces that could lead to errors and it's very clear how we updated our code
+
+#define DeadWhitePieces (state.DeadWhitePieces)
+#define DeadBlackPieces (state.DeadBlackPieces)
+#define deadWhiteCounter (state.deadWhiteCounter)
+#define deadBlackCounter (state.deadBlackCounter)
+#endif
 
 extern int pointer;
 extern Team Turn;

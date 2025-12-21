@@ -8,6 +8,7 @@
  * - GameBoard is the global board state (defined below) used by draw.c.
  */
 
+#define MAIN_C
 #ifdef DEBUG
 #include <stdio.h>
 #endif
@@ -26,19 +27,22 @@
 
 GameState state;
 
-Cell DeadWhitePieces[2 * BOARD_SIZE];
-Cell DeadBlackPieces[2 * BOARD_SIZE];
+// Cell DeadWhitePieces[2 * BOARD_SIZE];
+// Cell DeadBlackPieces[2 * BOARD_SIZE];
 // Cell GameBoard[BOARD_SIZE][BOARD_SIZE];
 
 Player Player1, Player2;
 Team Turn = TEAM_WHITE;
 bool Checkmate = false;
 bool Stalemate = false;
-int deadWhiteCounter = 0;
-int deadBlackCounter = 0;
+// int deadWhiteCounter = 0;
+// int deadBlackCounter = 0;
 
 int main(void)
 {
+    state.deadWhiteCounter = 0;
+    state.deadBlackCounter = 0;
+
     Player1.team = TEAM_WHITE;
     Player2.team = TEAM_BLACK;
     // Initialize the game window
