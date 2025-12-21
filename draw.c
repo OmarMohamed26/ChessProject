@@ -756,7 +756,8 @@ static void ResizeCellBorder(SmartBorder *border)
  *  - If `selected` is false the function does nothing.
  *  - Computes sizes from ComputeSquareLength() so markers scale with the board.
  *  - Iterates the global GameBoard and for each cell with isvalid==true draws
- *    a small filled circle centered in that square using VALID_MOVE_COLOR.
+ *    a small filled circle centered if the cell is empty in that square using VALID_MOVE_COLOR
+ *    otherwise it draws a hollow circle.
  *
  * Parameters:
  *  - selected : boolean indicating whether a piece is selected (only then draw).
@@ -772,6 +773,8 @@ void HighlightValidMoves(bool selected)
     {
         int halfSquareLength = ComputeSquareLength() / 2;
         int validMoveCircleRadius = (int)round(halfSquareLength / (double)VALID_MOVE_CIRCLE_SQUARE_COEFFICIENT);
+        int innerRingRadius = halfSquareLength * (INNER_VALID_MOVE_RADIUS / (float)100);
+        int outerRingRadius = halfSquareLength * (OUTER_VALID_MOVE_RADIUS / (float)100);
 
         for (row = 0; row < BOARD_SIZE; row++)
         {
@@ -780,7 +783,19 @@ void HighlightValidMoves(bool selected)
                 Cell thisCell = GameBoard[row][col];
                 if (thisCell.isvalid)
                 {
-                    DrawCircle((int)thisCell.pos.x + halfSquareLength, (int)thisCell.pos.y + halfSquareLength, (float)validMoveCircleRadius, VALID_MOVE_COLOR);
+                    Vector2 centerPos = thisCell.pos;
+                    centerPos.x += (float)halfSquareLength;
+                    centerPos.y += (float)halfSquareLength;
+
+                    if (thisCell.piece.type == PIECE_NONE)
+                    {
+                        DrawCircleV(centerPos, (float)validMoveCircleRadius, VALID_MOVE_COLOR);
+                    }
+                    else
+                    {
+                        DrawRing(centerPos, (float)innerRingRadius, (float)outerRingRadius, 0, FULL_CIRCLE_ANGLE, 25 /*this is the resolution just leave it as is*/, VALID_MOVE_COLOR);
+                        // DrawRingLines(centerPos, innerRingRadius, halfSquareLength, 0, 360, 25, VALID_MOVE_COLOR);
+                    }
                 }
             }
         }
