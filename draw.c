@@ -602,7 +602,7 @@ static void DecideDestination(Vector2 topLeft)
         {
             TurnValidation = true;
         }
-        if (GameBoard[CellX][CellY].piece.type != PIECE_NONE && TurnValidation)
+        if (GameBoard[CellX][CellY].piece.type != PIECE_NONE && TurnValidation) // We try to pick a piece in our turn
         {
             selectedPiece = GameBoard[CellX][CellY];
             selectedPiece.selected = true;
@@ -630,6 +630,20 @@ static void DecideDestination(Vector2 topLeft)
             selectedPiece = imaginaryCell;
             TraceLog(LOG_DEBUG, "Unselected the piece because you tried to move it to an invalid pos");
             return;
+        }
+        else // I know this else is redundant but it kind of makes it easier to read the code
+        {
+            // I add this part to unselect a piece if you click on an invalid position
+            if (!GameBoard[NewCellX][NewCellY].isvalid)
+            {
+                selectedPiece.selected = false;
+                ResetCellBorder(&selectedCellBorder);
+                ResetValidation();
+                ResetPrimaryValidation(); // replaced old big function with just reset validation
+                selectedPiece = imaginaryCell;
+                TraceLog(LOG_DEBUG, "Unselected the piece because you tried to move it to an invalid pos");
+                return;
+            }
         }
         if (NewCellX == CellX && NewCellY == CellY)
         {
