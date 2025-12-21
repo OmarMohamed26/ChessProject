@@ -1,5 +1,6 @@
 #ifndef MOVE_H
 #define MOVE_H
+
 #include "main.h"
 
 void MovePiece(int initialRow, int initialCol, int finalRow, int finalCol);
@@ -13,14 +14,14 @@ void CheckValidation();
 void SimCheckValidation();
 void ResetValidation();
 void ResetVulnerable();
-bool HandleLinearSquare(int x, int y, Team team);
+bool HandleLinearSquare(int row, int col, Team team);
 void HandlePawnMove(int CellX, int CellY, Team team, bool moved);
-void HandleKnightSquare(int x, int y, Team team);
+void HandleKnightSquare(int row, int col, Team team);
 void HandleKnightMove(int CellX, int CellY, Team team);
 void HandleKingMove(int CellX, int CellY, Team team);
 void MoveSimulation(int CellX1, int CellY1, int CellX2, int CellY2, PieceType piece);
 void UndoSimulation(int CellX1, int CellY1, int CellX2, int CellY2, PieceType piece1, PieceType piece2, Team team2);
-bool CheckmateFlagCheck(Team playerteam);
+bool CheckmateFlagCheck(Team playerTeam);
 void CheckmateValidation();
 void StalemateValidation();
 void ScanFriendlyMoves();
