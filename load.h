@@ -3,6 +3,6 @@
 
 #include <stddef.h>
 
-void ReadFEN(const char *FENstring, size_t size);
+bool ReadFEN(const char *FENstring, size_t size, bool testInputStringOnly);
 
 #endif

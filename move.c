@@ -26,16 +26,6 @@ bool checked = false, flag = false;
 static void RaycastRook(int CellX, int CellY, Team team);
 static void RaycastBishop(int CellX, int CellY, Team team);
 
-// --- ADD THIS FUNCTION ---
-// Call this function once when starting a new game to enable castling!
-void InitCastlingRights(void)
-{
-    state.whiteKingSide = true;
-    state.whiteQueenSide = true;
-    state.blackKingSide = true;
-    state.blackQueenSide = true;
-}
-
 /**
  * MovePiece
  *

@@ -147,7 +147,9 @@ typedef struct
     unsigned char whiteQueenSide : 1;
     unsigned char blackKingSide : 1;
     unsigned char blackQueenSide : 1;
-    int enPassantCol;
+    int enPassantCol; // check if this is -1 there is no EnPassant available
+    /*If it is White's turn, they can only capture a Black pawn that just moved.
+    If it is Black's turn, they can only capture a White pawn that just moved.*/
     int halfMoveClock;
     int fullMoveNumber;
 

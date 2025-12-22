@@ -3,7 +3,6 @@
 
 #include "main.h"
 
-void InitCastlingRights(void);
 void MovePiece(int initialRow, int initialCol, int finalRow, int finalCol);
 void SetEmptyCell(Cell *cell);
 void PrimaryValidation(PieceType Piece, int CellX, int CellY, bool selected);

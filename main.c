@@ -32,10 +32,8 @@ int main(void)
     state.deadBlackCounter = 0;
     state.whitePlayer.team = TEAM_WHITE;
     state.blackPlayer.team = TEAM_BLACK;
-    state.turn = TEAM_WHITE;
     state.isCheckmate = false;
     state.isStalemate = false;
-    InitCastlingRights();
 
     // Initialize the game window
     SetConfigFlags(FLAG_WINDOW_RESIZABLE);
@@ -50,8 +48,10 @@ int main(void)
     InitializeBoard();
     InitializeDeadPieces();
 
-    char standard_game[] = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR";
-    ReadFEN(standard_game, strlen(standard_game));
+    char standard_game[] = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+    // it should look like this rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
+    // Pieces Turn CastlingRights(or -) EnPassant(could look like e3) halfMoveClock fullMoveClock(after black moves)
+    ReadFEN(standard_game, strlen(standard_game), false);
 
     bool showFps = false;
     bool showFileRank = true;

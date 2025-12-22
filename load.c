@@ -19,7 +19,13 @@
 #include "main.h"
 #include "settings.h"
 #include <ctype.h>
+#include <stdbool.h>
 #include <stddef.h>
+
+#include <stdio.h>
+
+static void ZeroRights(void);
+static bool charInSequence(unsigned char chr);
 
 /**
  * ReadFEN
@@ -47,14 +53,17 @@
  *  - This function only writes piece placement; it does not clear or reset other
  *    board state (call InitializeBoard/UnloadBoard as appropriate before use).
  */
-void ReadFEN(const char *FENstring, size_t size)
+bool ReadFEN(const char *FENstring, size_t size, bool testInputStringOnly) // It returns true if this a valid or semi-valid FEN-string false otherwise
 {
     int row;
     int col;
     int rank = 0; /* 0 = top rank (FEN first rank). Use 7 and decrement if your row0 is bottom */
     int file = 0; /* 0 = a-file (left) */
 
-    for (size_t i = 0; i < size && FENstring[i] != '\0'; i++)
+    size_t i;
+
+    // --- 1. PIECE PLACEMENT ---
+    for (i = 0; i < size && FENstring[i] != '\0' && FENstring[i] != ' '; i++)
     {
         unsigned char chr = FENstring[i];
 
@@ -81,10 +90,10 @@ void ReadFEN(const char *FENstring, size_t size)
 
         if (!isalpha((unsigned char)chr))
         {
-            continue;
+            return false;
         }
 
-        Team color = islower((unsigned char)chr) ? TEAM_BLACK : TEAM_WHITE;
+        Team color = islower(chr) ? TEAM_BLACK : TEAM_WHITE;
         unsigned char piece = tolower(chr);
 
         row = rank;
@@ -96,30 +105,201 @@ void ReadFEN(const char *FENstring, size_t size)
             continue;
         }
 
-        switch (piece)
+        // ONLY Load pieces if we are NOT just testing
+        if (!testInputStringOnly)
         {
-        case 'r':
-            LoadPiece(row, col, PIECE_ROOK, color, GAME_BOARD);
-            break;
-        case 'n':
-            LoadPiece(row, col, PIECE_KNIGHT, color, GAME_BOARD);
-            break;
-        case 'b':
-            LoadPiece(row, col, PIECE_BISHOP, color, GAME_BOARD);
-            break;
-        case 'q':
-            LoadPiece(row, col, PIECE_QUEEN, color, GAME_BOARD);
-            break;
-        case 'k':
-            LoadPiece(row, col, PIECE_KING, color, GAME_BOARD);
-            break;
-        case 'p':
-            LoadPiece(row, col, PIECE_PAWN, color, GAME_BOARD);
-            break;
-        default:
-            break;
+            switch (piece)
+            {
+            case 'r':
+                LoadPiece(row, col, PIECE_ROOK, color, GAME_BOARD);
+                break;
+            case 'n':
+                LoadPiece(row, col, PIECE_KNIGHT, color, GAME_BOARD);
+                break;
+            case 'b':
+                LoadPiece(row, col, PIECE_BISHOP, color, GAME_BOARD);
+                break;
+            case 'q':
+                LoadPiece(row, col, PIECE_QUEEN, color, GAME_BOARD);
+                break;
+            case 'k':
+                LoadPiece(row, col, PIECE_KING, color, GAME_BOARD);
+                break;
+            case 'p':
+                LoadPiece(row, col, PIECE_PAWN, color, GAME_BOARD);
+                break;
+            default:
+                break;
+            }
         }
-
         file++;
     }
+
+    // --- 2. ACTIVE COLOR ---
+
+    // Safe whitespace skip
+    while (i < size && FENstring[i] != '\0' && isblank((unsigned char)FENstring[i]))
+    {
+        i++;
+    }
+    if (i >= size || FENstring[i] == '\0')
+    {
+        return false;
+    }
+
+    unsigned char chr = tolower((unsigned char)FENstring[i++]);
+    if (chr != 'w' && chr != 'b')
+    {
+        return false;
+    }
+
+    if (!testInputStringOnly)
+    {
+        state.turn = (chr == 'w') ? TEAM_WHITE : TEAM_BLACK;
+    }
+
+    // Read the CastlingRights
+
+    // FIX: Safe loop that doesn't overrun buffer or swallow the first char
+    while (i < size && isblank((unsigned char)FENstring[i]))
+    {
+        i++;
+    }
+    if (i >= size)
+    {
+        return false;
+    }
+    chr = (unsigned char)FENstring[i++];
+
+    if (chr != '-' && tolower(chr) != 'k' && tolower(chr) != 'q')
+    {
+        return false;
+    }
+
+    if (!testInputStringOnly)
+    {
+        ZeroRights();
+    }
+
+    if (chr == '-')
+    {
+        ; // Just leave it that way it's good enough
+    }
+    else
+    {
+        do
+        {
+            if (!testInputStringOnly) // <--- Added check
+            {
+                switch (chr)
+                {
+                case 'K':
+                    state.whiteKingSide = true;
+                    break;
+                case 'k':
+                    state.blackKingSide = true;
+                    break;
+                case 'Q':
+                    state.whiteQueenSide = true;
+                    break;
+                case 'q':
+                    state.blackQueenSide = true;
+                    break;
+                default:
+                    break;
+                }
+            }
+
+            // Check bounds and stop IF next char is space (don't consume the space yet)
+            if (i >= size || FENstring[i] == '\0' || isblank((unsigned char)FENstring[i]))
+            {
+                break;
+            }
+
+            chr = (unsigned char)FENstring[i++];
+
+        } while (true);
+    }
+
+    // FIX: Safe loop for En Passant
+    while (i < size && isblank((unsigned char)FENstring[i]))
+    {
+        i++;
+    }
+    if (i >= size)
+    {
+        return false;
+    }
+
+    chr = (unsigned char)FENstring[i++];
+
+    if (!charInSequence(chr))
+    {
+        return false;
+    }
+
+    if (chr == '-')
+    {
+        if (!testInputStringOnly)
+        {
+            state.enPassantCol = -1;
+        }
+    }
+    else
+    {
+        int num = tolower(chr) - 'a';
+        if (!testInputStringOnly)
+        {
+            state.enPassantCol = num;
+        }
+
+        if (i >= size)
+        {
+            return false;
+        }
+
+        chr = (unsigned char)FENstring[i++];
+        num = chr - '0';
+
+        if (num < 1 || num > BOARD_SIZE)
+        {
+            return false;
+        }
+    }
+
+    // FIX: Use local variables so we don't corrupt state during validation
+    int halfMove = 0;
+    int fullMove = 1;
+
+    if (sscanf(FENstring + i, "%d %d", &halfMove, &fullMove) != 2)
+    {
+        return false;
+    }
+
+    if (!testInputStringOnly) // <--- Added check
+    {
+        state.halfMoveClock = halfMove;
+        state.fullMoveNumber = fullMove;
+    }
+
+    return true;
+}
+
+static void ZeroRights(void)
+{
+    state.whiteKingSide = false;
+    state.whiteQueenSide = false;
+    state.blackKingSide = false;
+    state.blackQueenSide = false;
+}
+
+static bool charInSequence(unsigned char chr)
+{
+    // '-' or file letter a-h/A-H
+    if (chr == '-')
+    {
+        return true;
+    }
+    unsigned char lower = tolower(chr);
+    return (lower >= 'a' && lower <= 'h');
 }
