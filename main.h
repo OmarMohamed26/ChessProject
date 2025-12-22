@@ -39,14 +39,6 @@ typedef enum
 /*We need 4 bits to store castle rights in game state think of it in binary*/
 // 1111 all rights are reserved
 // 1001 white can castle king side and black can castle queen side
-typedef enum
-{
-    WHITE_KING_SIDE = 1,
-    WHITE_QUEEN_SIDE = 2,
-    BLACK_KING_SIDE = 4,
-    BLACK_QUEEN_SIDE = 8
-
-} CastleRights;
 
 /* Piece
  * Represents a single chess piece and its small state.
@@ -102,7 +94,7 @@ typedef struct Player
 
 typedef struct __attribute__((packed))
 {
-    // Done a very good job packing all this info in 6 bytes actually 45 bits
+    // Done a very good job packing all this info in 6 bytes actually 44 bits
 
     // Squares
     unsigned int initialRow : 4, initialCol : 4;
@@ -128,7 +120,10 @@ typedef struct __attribute__((packed))
 
     // Castling
     unsigned int wasCastling : 1;
-    CastleRights castleRights : 5;
+    unsigned char whiteKingSide : 1;
+    unsigned char whiteQueenSide : 1;
+    unsigned char blackKingSide : 1;
+    unsigned char blackQueenSide : 1;
 
     // Draw
     unsigned int halfMove : 7;
@@ -148,7 +143,10 @@ typedef struct
     Player blackPlayer;
 
     // Rule Specific State
-    CastleRights rights;
+    unsigned char whiteKingSide : 1;
+    unsigned char whiteQueenSide : 1;
+    unsigned char blackKingSide : 1;
+    unsigned char blackQueenSide : 1;
     int enPassantCol;
     int halfMoveClock;
     int fullMoveNumber;
