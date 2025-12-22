@@ -175,5 +175,4 @@ extern GameState state;
 #define Checkmate (state.isCheckmate)
 #endif
 
-extern int pointer;
 #endif /* MAIN_H */

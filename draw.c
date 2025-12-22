@@ -69,8 +69,6 @@ static int Clamp(int num, int max);
 #define SPACE_TEXT 0.75f
 
 // Local variables
-int row, col;
-int pointer;
 bool IsSelectedPieceEmpty; // made this global because I need it in my highlight square function
 
 Cell imaginaryCell = {.row = -1, .col = -1};
@@ -611,6 +609,10 @@ void HighlightHover(int ColorTheme)
     float Max_Board_X = (GameBoard[0][BOARD_SIZE - 1].pos.x + (float)Sql);
     float Max_Board_Y = (GameBoard[BOARD_SIZE - 1][0].pos.y + (float)Sql);
 
+    // Added local declarations here
+    int col = 0;
+    int row = 0;
+
     // Mouse coordinate checking
     if ((float)X_Pos >= GameBoard[0][0].pos.x && (float)X_Pos <= Max_Board_X &&
         (float)Y_Pos >= GameBoard[0][0].pos.y && (float)Y_Pos <= Max_Board_Y)
@@ -886,9 +888,9 @@ void HighlightValidMoves(bool selected)
         int innerRingRadius = (int)((float)halfSquareLength * (INNER_VALID_MOVE_RADIUS / (float)FULL_VALID_MOVE_RADIUS));
         int outerRingRadius = (int)((float)halfSquareLength * (OUTER_VALID_MOVE_RADIUS / (float)FULL_VALID_MOVE_RADIUS));
 
-        for (row = 0; row < BOARD_SIZE; row++)
+        for (int row = 0; row < BOARD_SIZE; row++)
         {
-            for (col = 0; col < BOARD_SIZE; col++)
+            for (int col = 0; col < BOARD_SIZE; col++)
             {
                 Cell thisCell = GameBoard[row][col];
                 if (thisCell.isvalid)
