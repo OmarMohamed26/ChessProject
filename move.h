@@ -5,7 +5,7 @@
 
 void MovePiece(int initialRow, int initialCol, int finalRow, int finalCol);
 void SetEmptyCell(Cell *cell);
-void PrimaryValidation(PieceType Piece, int CellX, int CellY);
+void PrimaryValidation(PieceType Piece, int CellX, int CellY, bool selected);
 void MoveValidation(int CellX, int CellY, PieceType type, Team team, bool moved);
 void FinalValidation(int CellX, int CellY, bool selected);
 // Replaced all validation functions with one function
@@ -26,7 +26,8 @@ void CheckmateValidation();
 void StalemateValidation();
 void ScanFriendlyMoves();
 void ResetPrimaryValidation();
-
-//
+void ResetsAndValidations();
+void ResetMovedStatus();
+void PrimaryCastlingValidation();
 
 #endif

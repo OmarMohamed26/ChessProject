@@ -16,6 +16,7 @@
 #include "draw.h"
 #include "load.h"
 #include "main.h"
+#include "move.h"
 #include "raylib.h"
 #include "save.h"
 #include "settings.h"
@@ -24,6 +25,11 @@
 #include <string.h>
 
 GameState state;
+
+bool KingSide = false;
+bool QueenSide = false;
+bool PrimaryKingSide = false;
+bool PrimaryQueenSide = false;
 
 int main(void)
 {

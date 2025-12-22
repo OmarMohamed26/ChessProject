@@ -83,8 +83,9 @@ typedef struct Cell
     bool isvalid : 1;              // Final validation of moves FINAL_VALIDATION
     bool selected : 1;             // will also need this
     bool vulnerable : 1;           // what pieces are under attack on my team this will help in EASY_MODE
+    bool hasMoved : 1;
+    bool PawnMovedtwo : 1;
     // Saved 8 bytes with these bitfields and it will also help us debug errors
-
 } Cell;
 
 typedef struct Player
@@ -94,6 +95,7 @@ typedef struct Player
     bool Checkmated : 1;
     bool SimChecked : 1;
     bool Stalemate : 1;
+
     // Saved 1 byte with these bitfields and it will also help us debug errors
 
 } Player;
@@ -176,4 +178,5 @@ extern GameState state;
 #endif
 
 extern int pointer;
+extern bool KingSide, QueenSide, PrimaryKingSide, PrimaryQueenSide;
 #endif /* MAIN_H */
