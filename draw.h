@@ -27,33 +27,28 @@ void DrawBoard(int ColorTheme, bool showFileRank);
 /* Load a piece texture for cell (row,col). squareLength selects texture size. */
 void LoadPiece(int row, int col, PieceType type, Team team, LoadPlace place);
 
-/*Initialize the chess board to have appropriate starting values*/
+/* Initialize the chess board to have appropriate starting values */
 void InitializeBoard(void);
 
-/*Initialize the DeadPieces to have appropriate starting values*/
+/* Initialize the DeadPieces to have appropriate starting values */
 void InitializeDeadPieces(void);
 
-/*Run after the game finishes or you want a new game to prevent memory leaks and flush the board*/
+/* Run after the game finishes or you want a new game to prevent memory leaks and flush the board */
 void UnloadBoard(void);
 
-/*Run after the game finishes or you want a new game to prevent memory leaks and flush the DeadPieces*/
+/* Run after the game finishes or you want a new game to prevent memory leaks and flush the DeadPieces */
 void UnloadDeadPieces(void);
 
-/*Highlight a single square*/
+/* Highlight a single square */
 void HighlightSquare(int row, int col, int ColorTheme);
 
-/*Highlights The piece when hovering over it*/
+/* Highlights The piece when hovering over it */
 void HighlightHover(int ColorTheme);
+
 /* Compute the pixel size of a single board square using current render dimensions. */
 int ComputeSquareLength(void);
 
+/* Highlight valid moves for the selected piece */
 void HighlightValidMoves(bool selected);
-// put reset validation in moves.h
-/*Used in Make selected and last move borders*/
-typedef struct SmartBorder
-{
-    int row, col;
-    Rectangle rect;
-} SmartBorder;
 
 #endif

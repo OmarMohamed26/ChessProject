@@ -50,6 +50,13 @@
 #include <stdio.h>
 #include <string.h>
 
+/* Used in Make selected and last move borders */
+typedef struct SmartBorder
+{
+    int row, col;
+    Rectangle rect;
+} SmartBorder;
+
 // Local Prototypes
 static int Min2(int num1, int num2);
 static void LoadHelper(char *pieceNameBuffer, int bufferSize, const char *pieceName, Team team, int row, int col, PieceType type, LoadPlace place);

@@ -26,11 +26,6 @@
 
 GameState state;
 
-bool KingSide = false;
-bool QueenSide = false;
-bool PrimaryKingSide = false;
-bool PrimaryQueenSide = false;
-
 int main(void)
 {
     state.deadWhiteCounter = 0;
@@ -83,6 +78,7 @@ int main(void)
 
     while (!WindowShouldClose())
     {
+        // Keyboard responses
         if (IsKeyPressed(KEY_F5))
         {
             showFps = !showFps;
