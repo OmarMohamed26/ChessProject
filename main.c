@@ -40,6 +40,7 @@ int main(void)
     state.turn = TEAM_WHITE;
     state.isCheckmate = false;
     state.isStalemate = false;
+    InitCastlingRights();
 
     // Initialize the game window
     SetConfigFlags(FLAG_WINDOW_RESIZABLE);
