@@ -70,8 +70,8 @@ int main(void)
     }
 #endif
 
-    char *savedGame = SaveFEN();
-    SaveFileText("example.fen", savedGame);
+    unsigned char *savedGame = SaveFEN();
+    SaveFileText("example.fen", (const char *)savedGame);
     free(savedGame);
 
     while (!WindowShouldClose())

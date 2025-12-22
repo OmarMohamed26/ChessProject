@@ -24,17 +24,16 @@
 #include "save.h"
 #include "main.h"
 #include "raylib.h"
+#include "settings.h"
 #include <ctype.h>
 #include <stdlib.h>
 
 // TODO We must a add a small letter of the whole string to decide who is going to play next w or b
 
-// extern Cell GameBoard[8][8];
-
-char *SaveFEN(void)
+unsigned char *SaveFEN(void)
 {
     // Big initial buffer size
-    char *out = malloc(128 * sizeof(char));
+    unsigned char *out = malloc((MAX_FEN_BUFFER_SIZE + 1) * sizeof(unsigned char));
     if (out == NULL)
     {
         TraceLog(LOG_WARNING, "Couldn't allocate space for the FEN string");
@@ -42,12 +41,12 @@ char *SaveFEN(void)
     }
 
     int consecutiveEmptyCells = 0;
-    char currentPiece;
+    unsigned char currentPiece;
     int counter = 0;
 
-    for (int row = 0; row < 8; row++)
+    for (int row = 0; row < BOARD_SIZE; row++)
     {
-        for (int col = 0; col < 8; col++)
+        for (int col = 0; col < BOARD_SIZE; col++)
         {
             PieceType type = GameBoard[row][col].piece.type;
             Team team = GameBoard[row][col].piece.team;
@@ -104,14 +103,14 @@ char *SaveFEN(void)
         }
 
         /* add rank separator except after the last rank */
-        if (row < 7)
+        if (row < BOARD_SIZE - 1)
         {
             out[counter++] = '/';
         }
     }
 
     /* ensure space for NUL terminator */
-    char *temp = realloc(out, counter + 1);
+    unsigned char *temp = realloc(out, counter + 1);
     if (temp == NULL)
     {
         free(out);
