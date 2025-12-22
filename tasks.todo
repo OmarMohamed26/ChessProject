@@ -17,7 +17,7 @@ use these emojis:
 
 critical changes:
 
-1)  ⚠️	FIXME in save.c and load.c add player to move, castling rights and en-passant in the fen reader ⚪ Pending
+1)  ⚠️	FIXME in save.c and load.c add player to move, castling rights and en-passant in the fen reader ✅  Done
 2)  ✨   FEAT make the border around selected piece and move relative to the SquareLength ✅  Done
 3)  📝   TODO understand decide destination ✅  Done
 4)  ♻️	REFACTOR update constant names to be CAPITAL_SNAKE ✅  Done
@@ -38,7 +38,7 @@ critical changes:
 19) 📝  TODO add move sound when a move happens 🟡  In Progress AbdElRahman should put the correct sounds (don't forget to unload the sounds before we exit the game)
 20) 📝  TODO add stalemate by Threefold Repetition: The game doesn't track if the same position has occurred three times. / add stalemate by Insufficient Material: If only two Kings are left, the game will likely continue indefinitely instead of declaring a draw. ⚪ Pending
 21) 📝  TODO load all textures once at the start and use a pointer to it or something so you don't have to load/unload for every move you make ❌  Cancelled
-22) 📝  TODO add  Rule specific fields to GameState 🟡  In Progress
+22) 📝  TODO add  Rule specific fields to GameState ✅  Done
 
 big changes that we will probably don't do:
 1) ♻️	REFACTOR make the functions return more useful error logging on failure to help debug: void -> bool and TraceLog ⚪ Pending

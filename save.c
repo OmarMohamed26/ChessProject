@@ -8,17 +8,12 @@
  * - SaveFEN allocates a heap buffer containing a FEN-like representation of the board.
  *   The caller is responsible for freeing the returned buffer with free().
  * - On allocation failure or invalid piece type the function returns NULL.
- * - Current implementation does not append side-to-move, castling, en-passant,
- *   halfmove clock or fullmove number fields. See TODOs below.
  *
- * FEN format used here (partial):
+ * FEN format used here:
  * - Ranks are serialized from top (row 0) to bottom (row 7).
  * - Pieces: k,q,r,b,n,p with lowercase for black and uppercase for white.
  * - Empty squares are represented by digits 1-8. Ranks are separated by '/'.
  *
- * TODO:
- * - Add side to move (single 'w' or 'b' char) to the serialized string.
- * - Optionally support castling rights, en-passant, and move clocks if needed.
  */
 
 #include "save.h"
@@ -26,9 +21,9 @@
 #include "raylib.h"
 #include "settings.h"
 #include <ctype.h>
+#include <stdbool.h>
+#include <stdio.h>
 #include <stdlib.h>
-
-// TODO We must a add a small letter of the whole string to decide who is going to play next w or b
 
 unsigned char *SaveFEN(void)
 {
@@ -109,13 +104,80 @@ unsigned char *SaveFEN(void)
         }
     }
 
+    // Active color
+
+    out[counter++] = ' '; // leave an empty space
+    out[counter++] = (state.turn == TEAM_WHITE) ? 'w' : 'b';
+
+    // CastleRights
+
+    out[counter++] = ' '; // leave an empty space
+
+    bool noRights = true;
+
+    if (state.whiteKingSide)
+    {
+        out[counter++] = 'K';
+        noRights = false;
+    }
+
+    if (state.whiteQueenSide)
+    {
+        out[counter++] = 'Q';
+        noRights = false;
+    }
+
+    if (state.blackKingSide)
+    {
+        out[counter++] = 'k';
+        noRights = false;
+    }
+
+    if (state.blackQueenSide)
+    {
+        out[counter++] = 'q';
+        noRights = false;
+    }
+
+    if (noRights)
+    {
+        out[counter++] = '-';
+    }
+
+    // EnPassant
+
+    out[counter++] = ' '; // leave an empty space
+
+    if (state.enPassantCol != -1)
+    {
+        out[counter++] = 'a' + state.enPassantCol;
+
+        if (state.turn == TEAM_WHITE)
+        {
+            out[counter++] = '6';
+        }
+        else
+        {
+            out[counter++] = '3';
+        }
+    }
+    else
+    {
+        out[counter++] = '-';
+    }
+    // halfMove counter
+
+    out[counter++] = ' '; // leave an empty space
+
+    counter += snprintf((char *)out + counter, (2 * MAX_HALF_FULL_MOVE_DIGITS) + 1, "%d %d", state.halfMoveClock, state.fullMoveNumber);
+
     /* ensure space for NUL terminator */
     unsigned char *temp = realloc(out, counter + 1);
     if (temp == NULL)
     {
-        free(out);
         TraceLog(LOG_WARNING, "Failed to resize the buffer");
-        return NULL;
+        out[counter] = '\0';
+        return out;
     }
 
     out = temp;
