@@ -15,9 +15,10 @@ enum settings
      HIGHLIGHT_COLOR_AMOUNT = 30,              // the bigger the number the more the highlight effect is visible
      MAX_VALID_COLOR = 255,                    // don't change this it's not customizable this is how colors work
      VALID_MOVE_CIRCLE_SQUARE_COEFFICIENT = 3, // the bigger the number the smaller the circle
-     INNER_VALID_MOVE_RADIUS = 80,             // this is out of 100
-     OUTER_VALID_MOVE_RADIUS = 90,             // this is out of 100
-     FULL_CIRCLE_ANGLE = 360,                  // this shouldn't be changed at all
+     FULL_VALID_MOVE_RADIUS = 100,
+     INNER_VALID_MOVE_RADIUS = 80, // this is out of FULL_VALID_MOVE_RADIUS
+     OUTER_VALID_MOVE_RADIUS = 90, // this is out of FULL_VALID_MOVE_RADIUS
+     FULL_CIRCLE_ANGLE = 360,      // this shouldn't be changed at all
 
      // move.c
      // Castling

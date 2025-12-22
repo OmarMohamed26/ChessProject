@@ -84,16 +84,24 @@ void MovePiece(int initialRow, int initialCol, int finalRow, int finalCol)
         if (GameBoard[finalRow][finalCol].piece.team == TEAM_WHITE)
         {
             if (finalRow == WHITE_BACK_RANK && finalCol == ROOK_QS_COL)
+            {
                 state.whiteQueenSide = false;
+            }
             if (finalRow == WHITE_BACK_RANK && finalCol == ROOK_KS_COL)
+            {
                 state.whiteKingSide = false;
+            }
         }
         else if (GameBoard[finalRow][finalCol].piece.team == TEAM_BLACK)
         {
             if (finalRow == BLACK_BACK_RANK && finalCol == ROOK_QS_COL)
+            {
                 state.blackQueenSide = false;
+            }
             if (finalRow == BLACK_BACK_RANK && finalCol == ROOK_KS_COL)
+            {
                 state.blackKingSide = false;
+            }
         }
     }
 
@@ -196,16 +204,24 @@ void MovePiece(int initialRow, int initialCol, int finalRow, int finalCol)
         if (Turn == TEAM_WHITE)
         {
             if (initialRow == WHITE_BACK_RANK && initialCol == ROOK_QS_COL)
+            {
                 state.whiteQueenSide = false;
+            }
             if (initialRow == WHITE_BACK_RANK && initialCol == ROOK_KS_COL)
+            {
                 state.whiteKingSide = false;
+            }
         }
         else
         {
             if (initialRow == BLACK_BACK_RANK && initialCol == ROOK_QS_COL)
+            {
                 state.blackQueenSide = false;
+            }
             if (initialRow == BLACK_BACK_RANK && initialCol == ROOK_KS_COL)
+            {
                 state.blackKingSide = false;
+            }
         }
     }
 
@@ -1197,6 +1213,9 @@ void ResetsAndValidations()
 
 void PrimaryCastlingValidation()
 {
+    // We use the GameState flags (whiteKingSide, etc.) which are persistent.
+    // This fixes the bug where moving a rook away and back would reset its 'hasMoved' status.
+
     if (Turn == TEAM_WHITE)
     {
         // Check King is present and not in check
@@ -1206,7 +1225,7 @@ void PrimaryCastlingValidation()
             if (state.whiteQueenSide)
             {
                 // Must be empty: b1, c1, d1
-                if (GameBoard[WHITE_BACK_RANK][1].piece.type == PIECE_NONE &&
+                if (GameBoard[WHITE_BACK_RANK][1].piece.type == PIECE_NONE && /*This is the b1 square but We don't have macros that match it*/
                     GameBoard[WHITE_BACK_RANK][CASTLE_QS_KING_COL].piece.type == PIECE_NONE &&
                     GameBoard[WHITE_BACK_RANK][CASTLE_QS_ROOK_COL].piece.type == PIECE_NONE)
                 {

@@ -30,14 +30,14 @@ critical changes:
 11) 📝  TODO change highlight valid move to circle like chess.com ✅  Done
 12) 📝  TODO update the documentation on HighlightValidMove when you add Hollow Circle ✅  Done
 13) 📝  TODO make the libraries local in the project folder ✅  Done
-14) 📝  TODO if a piece is selected and you click else where on the board it gets unselected 🟡  In Progress
-15) 📝  TODO add the undo/redo logic with buttons on the game and ctrl+z ctrl+y ⚪ Pending
-16) 📝  TODO add castling en-passant promotion ⚪ Pending
+14) 📝  TODO if a piece is selected and you click else where on the board it gets unselected ✅  Done
+15) 📝  TODO add the undo/redo logic with buttons on the game and ctrl+z ctrl+y 🟡  In Progress
+16) 📝  TODO add castling en-passant promotion 🟡  In Progress
 17) 📝  TODO add stalemate by repetition logic ⚪ Pending
-18) 📝  TODO add eaten pieces from each side ⚪ Pending
+18) 📝  TODO add eaten pieces from each side ✅  Done
 19) 📝  TODO add move sound when a move happens 🟡  In Progress AbdElRahman should put the correct sounds (don't forget to unload the sounds before we exit the game)
-20) 📝  TODO add stalemate by Threefold Repetition: The game doesn't track if the same position has occurred three times. / add stalemate by Insufficient Material: If only two Kings are left, the game will likely continue indefinitely instead of declaring a draw.
-21) 📝  TODO load all textures once at the start and use a pointer to it or something so you don't have to load/unload for every move you make
+20) 📝  TODO add stalemate by Threefold Repetition: The game doesn't track if the same position has occurred three times. / add stalemate by Insufficient Material: If only two Kings are left, the game will likely continue indefinitely instead of declaring a draw. ⚪ Pending
+21) 📝  TODO load all textures once at the start and use a pointer to it or something so you don't have to load/unload for every move you make ❌  Cancelled
 22) 📝  TODO add  Rule specific fields to GameState 🟡  In Progress
 
 big changes that we will probably don't do:

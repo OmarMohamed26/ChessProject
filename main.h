@@ -76,7 +76,7 @@ typedef struct Cell
     bool selected : 1;             // will also need this
     bool vulnerable : 1;           // what pieces are under attack on my team this will help in EASY_MODE
     bool hasMoved : 1;
-    bool PawnMovedtwo : 1;
+    bool PawnMovedTwo : 1;
     // Saved 8 bytes with these bitfields and it will also help us debug errors
 } Cell;
 
@@ -176,5 +176,4 @@ extern GameState state;
 #endif
 
 extern int pointer;
-extern bool KingSide, QueenSide, PrimaryKingSide, PrimaryQueenSide;
 #endif /* MAIN_H */
