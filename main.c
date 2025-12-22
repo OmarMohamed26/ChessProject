@@ -27,16 +27,15 @@
 
 GameState state;
 
-Team Turn = TEAM_WHITE;
-bool Checkmate = false;
-bool Stalemate = false;
-
 int main(void)
 {
     state.deadWhiteCounter = 0;
     state.deadBlackCounter = 0;
     state.whitePlayer.team = TEAM_WHITE;
     state.blackPlayer.team = TEAM_BLACK;
+    state.turn = TEAM_WHITE;
+    state.isCheckmate = false;
+    state.isStalemate = false;
 
     // Initialize the game window
     SetConfigFlags(FLAG_WINDOW_RESIZABLE);
@@ -104,11 +103,11 @@ int main(void)
         {
             DrawText("BLACK IS CHECKED!", GetRenderWidth() - 340, 20, 30, BLACK);
         }
-        if (Checkmate)
+        if (state.isCheckmate)
         {
             DrawText("CHECKMATE", GetRenderWidth() / 2 - 140, 30, 30, RED);
         }
-        if (Stalemate)
+        if (state.isStalemate)
         {
             DrawText("STALEMATE", GetRenderWidth() / 2 - 140, 20, 30, GRAY);
         }

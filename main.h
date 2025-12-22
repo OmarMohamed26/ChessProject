@@ -171,9 +171,9 @@ extern GameState state;
 #define deadBlackCounter (state.deadBlackCounter)
 #define Player1 (state.whitePlayer)
 #define Player2 (state.blackPlayer)
+#define Turn (state.turn)
+#define Checkmate (state.isCheckmate)
 #endif
 
 extern int pointer;
-extern Team Turn;
-extern bool Checkmate, Stalemate;
 #endif /* MAIN_H */

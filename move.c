@@ -1018,10 +1018,11 @@ void SimCheckValidation()
  *  - Uses CheckmateFlagCheck while ensuring the side is not currently in check.
  *  - If no legal move exists and the side is not in check, sets Player.Stalemate and global Stalemate.
  */
+
 void StalemateValidation()
 {
-    Player1.Stalemate = false;
-    Player2.Stalemate = false;
+    state.whitePlayer.Stalemate = false;
+    state.blackPlayer.Stalemate = false;
     if (Turn == TEAM_WHITE)
     {
         /* code */
@@ -1031,7 +1032,7 @@ void StalemateValidation()
             Player1.Stalemate = CheckmateFlagCheck(TEAM_WHITE);
             if (Player1.Stalemate)
             {
-                Stalemate = true;
+                state.isStalemate = true;
             }
         }
     }
@@ -1040,7 +1041,7 @@ void StalemateValidation()
         Player2.Stalemate = CheckmateFlagCheck(TEAM_BLACK);
         if (Player2.Stalemate)
         {
-            Stalemate = true;
+            state.isStalemate = true;
         }
     }
 }
