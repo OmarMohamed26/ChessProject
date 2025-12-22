@@ -23,8 +23,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-/* Global board state accessible to draw.c and other modules. */
-
 GameState state;
 
 int main(void)
