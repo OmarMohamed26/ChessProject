@@ -50,6 +50,13 @@
 #include <stdio.h>
 #include <string.h>
 
+/* Used in Make selected and last move borders */
+typedef struct SmartBorder
+{
+    int row, col;
+    Rectangle rect;
+} SmartBorder;
+
 // Local Prototypes
 static int Min2(int num1, int num2);
 static void LoadHelper(char *pieceNameBuffer, int bufferSize, const char *pieceName, Team team, int row, int col, PieceType type, LoadPlace place);
@@ -69,8 +76,6 @@ static int Clamp(int num, int max);
 #define SPACE_TEXT 0.75f
 
 // Local variables
-int row, col;
-int pointer;
 bool IsSelectedPieceEmpty; // made this global because I need it in my highlight square function
 
 Cell imaginaryCell = {.row = -1, .col = -1};
@@ -611,6 +616,10 @@ void HighlightHover(int ColorTheme)
     float Max_Board_X = (GameBoard[0][BOARD_SIZE - 1].pos.x + (float)Sql);
     float Max_Board_Y = (GameBoard[BOARD_SIZE - 1][0].pos.y + (float)Sql);
 
+    // Added local declarations here
+    int col = 0;
+    int row = 0;
+
     // Mouse coordinate checking
     if ((float)X_Pos >= GameBoard[0][0].pos.x && (float)X_Pos <= Max_Board_X &&
         (float)Y_Pos >= GameBoard[0][0].pos.y && (float)Y_Pos <= Max_Board_Y)
@@ -730,20 +739,19 @@ static void DecideDestination(Vector2 topLeft)
             TraceLog(LOG_DEBUG, "Unselected the piece because you tried to move it to an invalid pos");
             return;
         }
-        else // I know this else is redundant but it kind of makes it easier to read the code
+
+        // I add this part to unselect a piece if you click on an invalid position
+        if (!GameBoard[NewCellX][NewCellY].isvalid)
         {
-            // I add this part to unselect a piece if you click on an invalid position
-            if (!GameBoard[NewCellX][NewCellY].isvalid)
-            {
-                selectedPiece.selected = false;
-                ResetCellBorder(&selectedCellBorder);
-                ResetValidation();
-                ResetPrimaryValidation(); // replaced old big function with just reset validation
-                selectedPiece = imaginaryCell;
-                TraceLog(LOG_DEBUG, "Unselected the piece because you tried to move it to an invalid pos");
-                return;
-            }
+            selectedPiece.selected = false;
+            ResetCellBorder(&selectedCellBorder);
+            ResetValidation();
+            ResetPrimaryValidation(); // replaced old big function with just reset validation
+            selectedPiece = imaginaryCell;
+            TraceLog(LOG_DEBUG, "Unselected the piece because you tried to move it to an invalid pos");
+            return;
         }
+
         if (NewCellX == CellX && NewCellY == CellY)
         {
             selectedPiece.selected = false;
@@ -753,19 +761,17 @@ static void DecideDestination(Vector2 topLeft)
             selectedPiece = imaginaryCell;
             return;
         }
-        else
+
+        if (GameBoard[NewCellX][NewCellY].isvalid)
         {
-            if (GameBoard[NewCellX][NewCellY].isvalid)
-            {
-                MovePiece(CellX, CellY, NewCellX, NewCellY);
-                SetCellBorder(&lastMoveCellBorder, &GameBoard[NewCellX][NewCellY]);
-                TraceLog(LOG_DEBUG, "%d %d %d %d", CellX, CellY, NewCellX, NewCellY);
-                TraceLog(LOG_DEBUG, "Moved the selected piece to the new pos: %d %d", NewCellX, NewCellY);
-                selectedPiece.selected = false;
-                ResetValidation();
-                ResetPrimaryValidation();
-                selectedPiece = imaginaryCell;
-            }
+            MovePiece(CellX, CellY, NewCellX, NewCellY);
+            SetCellBorder(&lastMoveCellBorder, &GameBoard[NewCellX][NewCellY]);
+            TraceLog(LOG_DEBUG, "%d %d %d %d", CellX, CellY, NewCellX, NewCellY);
+            TraceLog(LOG_DEBUG, "Moved the selected piece to the new pos: %d %d", NewCellX, NewCellY);
+            selectedPiece.selected = false;
+            ResetValidation();
+            ResetPrimaryValidation();
+            selectedPiece = imaginaryCell;
         }
     }
 }
@@ -886,12 +892,12 @@ void HighlightValidMoves(bool selected)
     {
         int halfSquareLength = ComputeSquareLength() / 2;
         int validMoveCircleRadius = (int)round(halfSquareLength / (double)VALID_MOVE_CIRCLE_SQUARE_COEFFICIENT);
-        int innerRingRadius = halfSquareLength * (INNER_VALID_MOVE_RADIUS / (float)100);
-        int outerRingRadius = halfSquareLength * (OUTER_VALID_MOVE_RADIUS / (float)100);
+        int innerRingRadius = (int)((float)halfSquareLength * (INNER_VALID_MOVE_RADIUS / (float)FULL_VALID_MOVE_RADIUS));
+        int outerRingRadius = (int)((float)halfSquareLength * (OUTER_VALID_MOVE_RADIUS / (float)FULL_VALID_MOVE_RADIUS));
 
-        for (row = 0; row < BOARD_SIZE; row++)
+        for (int row = 0; row < BOARD_SIZE; row++)
         {
-            for (col = 0; col < BOARD_SIZE; col++)
+            for (int col = 0; col < BOARD_SIZE; col++)
             {
                 Cell thisCell = GameBoard[row][col];
                 if (thisCell.isvalid)

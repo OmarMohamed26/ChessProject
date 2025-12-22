@@ -7,8 +7,15 @@
 
 const Move EmptyMove = {0};
 
+static bool ExpandStack(MoveStack *stack, size_t size);
+
 MoveStack *InitializeStack(size_t initialMaximumCapacity)
 {
+
+    if (initialMaximumCapacity < 1)
+    {
+        initialMaximumCapacity = 1;
+    }
 
     MoveStack *stack = malloc(sizeof(MoveStack));
 
@@ -63,7 +70,7 @@ bool PushStack(MoveStack *stack, Move move)
     return true;
 }
 
-bool ExpandStack(MoveStack *stack, size_t size)
+static bool ExpandStack(MoveStack *stack, size_t size)
 {
     Move *temp = realloc(stack->data, sizeof(Move) * size);
 

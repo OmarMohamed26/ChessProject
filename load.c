@@ -56,9 +56,9 @@ void ReadFEN(const char *FENstring, size_t size)
 
     for (size_t i = 0; i < size && FENstring[i] != '\0'; i++)
     {
-        unsigned char ch = FENstring[i];
+        unsigned char chr = FENstring[i];
 
-        if (ch == '/')
+        if (chr == '/')
         {
             rank++;
             file = 0;
@@ -69,9 +69,9 @@ void ReadFEN(const char *FENstring, size_t size)
             continue;
         }
 
-        if (isdigit((unsigned char)ch))
+        if (isdigit((unsigned char)chr))
         {
-            file += ch - '0';
+            file += chr - '0';
             if (file > BOARD_SIZE)
             {
                 file = BOARD_SIZE;
@@ -79,13 +79,13 @@ void ReadFEN(const char *FENstring, size_t size)
             continue;
         }
 
-        if (!isalpha((unsigned char)ch))
+        if (!isalpha((unsigned char)chr))
         {
             continue;
         }
 
-        Team color = islower((unsigned char)ch) ? TEAM_BLACK : TEAM_WHITE;
-        unsigned char piece = tolower(ch);
+        Team color = islower((unsigned char)chr) ? TEAM_BLACK : TEAM_WHITE;
+        unsigned char piece = tolower(chr);
 
         row = rank;
         col = file;

@@ -26,11 +26,6 @@
 
 GameState state;
 
-bool KingSide = false;
-bool QueenSide = false;
-bool PrimaryKingSide = false;
-bool PrimaryQueenSide = false;
-
 int main(void)
 {
     state.deadWhiteCounter = 0;
@@ -40,6 +35,7 @@ int main(void)
     state.turn = TEAM_WHITE;
     state.isCheckmate = false;
     state.isStalemate = false;
+    InitCastlingRights();
 
     // Initialize the game window
     SetConfigFlags(FLAG_WINDOW_RESIZABLE);
@@ -65,14 +61,14 @@ int main(void)
     {
         for (int j = 0; j < BOARD_SIZE; j++)
         {
-            printf("%d ", GameBoard[i][j].piece.type);
+            printf("%d ", state.board[i][j].piece.type);
         }
         printf("\n");
     }
 
     for (int i = 0; i < 2 * BOARD_SIZE; i++)
     {
-        printf("%d ", DeadWhitePieces[i].piece.type);
+        printf("%d ", state.DeadWhitePieces[i].piece.type);
     }
 #endif
 
@@ -82,6 +78,7 @@ int main(void)
 
     while (!WindowShouldClose())
     {
+        // Keyboard responses
         if (IsKeyPressed(KEY_F5))
         {
             showFps = !showFps;

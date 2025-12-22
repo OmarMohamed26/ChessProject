@@ -20,8 +20,6 @@ void ClearStack(MoveStack *stack);
 
 bool PushStack(MoveStack *stack, Move move);
 
-bool ExpandStack(MoveStack *stack, size_t size);
-
 bool PopStack(MoveStack *stack, Move *out);
 
 Move PeekStack(MoveStack *stack);
