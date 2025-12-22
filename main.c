@@ -27,24 +27,17 @@
 
 GameState state;
 
-// Cell DeadWhitePieces[2 * BOARD_SIZE];
-// Cell DeadBlackPieces[2 * BOARD_SIZE];
-// Cell GameBoard[BOARD_SIZE][BOARD_SIZE];
-
-Player Player1, Player2;
 Team Turn = TEAM_WHITE;
 bool Checkmate = false;
 bool Stalemate = false;
-// int deadWhiteCounter = 0;
-// int deadBlackCounter = 0;
 
 int main(void)
 {
     state.deadWhiteCounter = 0;
     state.deadBlackCounter = 0;
+    state.whitePlayer.team = TEAM_WHITE;
+    state.blackPlayer.team = TEAM_BLACK;
 
-    Player1.team = TEAM_WHITE;
-    Player2.team = TEAM_BLACK;
     // Initialize the game window
     SetConfigFlags(FLAG_WINDOW_RESIZABLE);
 #ifdef DEBUG
@@ -103,11 +96,11 @@ int main(void)
 
         DrawBoard(theme, showFileRank);
         HighlightHover(theme);
-        if (Player1.Checked)
+        if (state.whitePlayer.Checked)
         {
             DrawText("WHITE IS CHECKED!", 20, 20, 30, BLACK);
         }
-        if (Player2.Checked)
+        if (state.blackPlayer.Checked)
         {
             DrawText("BLACK IS CHECKED!", GetRenderWidth() - 340, 20, 30, BLACK);
         }

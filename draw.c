@@ -50,13 +50,6 @@
 #include <stdio.h>
 #include <string.h>
 
-// access the GameBoard from the main.c file
-// extern GameState state;
-
-// extern Cell GameBoard[BOARD_SIZE][BOARD_SIZE];
-// extern Cell DeadWhitePieces[2 * BOARD_SIZE];
-// extern Cell DeadBlackPieces[2 * BOARD_SIZE];
-
 // Local Prototypes
 static int Min2(int num1, int num2);
 static void LoadHelper(char *pieceNameBuffer, int bufferSize, const char *pieceName, Team team, int row, int col, PieceType type, LoadPlace place);

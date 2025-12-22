@@ -169,6 +169,8 @@ extern GameState state;
 #define DeadBlackPieces (state.DeadBlackPieces)
 #define deadWhiteCounter (state.deadWhiteCounter)
 #define deadBlackCounter (state.deadBlackCounter)
+#define Player1 (state.whitePlayer)
+#define Player2 (state.blackPlayer)
 #endif
 
 extern int pointer;
