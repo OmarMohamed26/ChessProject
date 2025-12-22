@@ -60,13 +60,6 @@ typedef enum
     THEME_COUNT
 } ColorTheme;
 
-static const ColorPair PALETTE[THEME_COUNT] = {
-    {BROWN_WHITE, BROWN_BLACK},   /* THEME_BROWN  */
-    {GREEN_WHITE, GREEN_BLACK},   /* THEME_GREEN  */
-    {ORANGE_WHITE, ORANGE_BLACK}, /* THEME_ORANGE */
-    {PURPLE_WHITE, PURPLE_BLACK}, /* THEME_PURPLE */
-    {RED_WHITE, RED_BLACK},       /* THEME_RED    */
-    {SKY_WHITE, SKY_BLACK}        /* THEME_SKY    */
-};
+extern const ColorPair PALETTE[THEME_COUNT];
 
 #endif
