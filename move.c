@@ -83,16 +83,16 @@ void MovePiece(int initialRow, int initialCol, int finalRow, int finalCol)
     {
         if (GameBoard[finalRow][finalCol].piece.team == TEAM_WHITE)
         {
-            if (finalRow == 7 && finalCol == 0)
+            if (finalRow == WHITE_BACK_RANK && finalCol == ROOK_QS_COL)
                 state.whiteQueenSide = false;
-            if (finalRow == 7 && finalCol == 7)
+            if (finalRow == WHITE_BACK_RANK && finalCol == ROOK_KS_COL)
                 state.whiteKingSide = false;
         }
         else if (GameBoard[finalRow][finalCol].piece.team == TEAM_BLACK)
         {
-            if (finalRow == 0 && finalCol == 0)
+            if (finalRow == BLACK_BACK_RANK && finalCol == ROOK_QS_COL)
                 state.blackQueenSide = false;
-            if (finalRow == 0 && finalCol == 7)
+            if (finalRow == BLACK_BACK_RANK && finalCol == ROOK_KS_COL)
                 state.blackKingSide = false;
         }
     }
@@ -115,7 +115,6 @@ void MovePiece(int initialRow, int initialCol, int finalRow, int finalCol)
 
     // --- CHANGED: Castling Logic ---
     // We now detect castling by checking if the King moved 2 squares horizontally.
-    // This removes the dependency on the confusing global 'KingSide'/'QueenSide' flags.
 
     PieceType movingPieceType = GameBoard[initialRow][initialCol].piece.type;
 
@@ -123,24 +122,24 @@ void MovePiece(int initialRow, int initialCol, int finalRow, int finalCol)
     {
         if (Turn == TEAM_WHITE)
         {
-            if (finalRow == 7 && finalCol == 6) // White King Side (g1)
+            if (finalRow == WHITE_BACK_RANK && finalCol == CASTLE_KS_KING_COL) // White King Side (g1)
             {
-                LoadPiece(7, 6, PIECE_KING, Turn, GAME_BOARD);
-                SetEmptyCell(&GameBoard[7][4]);
-                LoadPiece(7, 5, PIECE_ROOK, Turn, GAME_BOARD);
-                SetEmptyCell(&GameBoard[7][7]);
+                LoadPiece(WHITE_BACK_RANK, CASTLE_KS_KING_COL, PIECE_KING, Turn, GAME_BOARD);
+                SetEmptyCell(&GameBoard[WHITE_BACK_RANK][KING_START_COL]);
+                LoadPiece(WHITE_BACK_RANK, CASTLE_KS_ROOK_COL, PIECE_ROOK, Turn, GAME_BOARD);
+                SetEmptyCell(&GameBoard[WHITE_BACK_RANK][ROOK_KS_COL]);
 
                 state.whiteKingSide = false;
                 state.whiteQueenSide = false;
                 ResetsAndValidations();
                 return;
             }
-            if (finalRow == 7 && finalCol == 2) // White Queen Side (c1)
+            if (finalRow == WHITE_BACK_RANK && finalCol == CASTLE_QS_KING_COL) // White Queen Side (c1)
             {
-                LoadPiece(7, 2, PIECE_KING, Turn, GAME_BOARD);
-                SetEmptyCell(&GameBoard[7][4]);
-                LoadPiece(7, 3, PIECE_ROOK, Turn, GAME_BOARD);
-                SetEmptyCell(&GameBoard[7][0]);
+                LoadPiece(WHITE_BACK_RANK, CASTLE_QS_KING_COL, PIECE_KING, Turn, GAME_BOARD);
+                SetEmptyCell(&GameBoard[WHITE_BACK_RANK][KING_START_COL]);
+                LoadPiece(WHITE_BACK_RANK, CASTLE_QS_ROOK_COL, PIECE_ROOK, Turn, GAME_BOARD);
+                SetEmptyCell(&GameBoard[WHITE_BACK_RANK][ROOK_QS_COL]);
 
                 state.whiteKingSide = false;
                 state.whiteQueenSide = false;
@@ -150,24 +149,24 @@ void MovePiece(int initialRow, int initialCol, int finalRow, int finalCol)
         }
         else if (Turn == TEAM_BLACK)
         {
-            if (finalRow == 0 && finalCol == 6) // Black King Side (g8)
+            if (finalRow == BLACK_BACK_RANK && finalCol == CASTLE_KS_KING_COL) // Black King Side (g8)
             {
-                LoadPiece(0, 6, PIECE_KING, Turn, GAME_BOARD);
-                SetEmptyCell(&GameBoard[0][4]);
-                LoadPiece(0, 5, PIECE_ROOK, Turn, GAME_BOARD);
-                SetEmptyCell(&GameBoard[0][7]);
+                LoadPiece(BLACK_BACK_RANK, CASTLE_KS_KING_COL, PIECE_KING, Turn, GAME_BOARD);
+                SetEmptyCell(&GameBoard[BLACK_BACK_RANK][KING_START_COL]);
+                LoadPiece(BLACK_BACK_RANK, CASTLE_KS_ROOK_COL, PIECE_ROOK, Turn, GAME_BOARD);
+                SetEmptyCell(&GameBoard[BLACK_BACK_RANK][ROOK_KS_COL]);
 
                 state.blackKingSide = false;
                 state.blackQueenSide = false;
                 ResetsAndValidations();
                 return;
             }
-            if (finalRow == 0 && finalCol == 2) // Black Queen Side (c8)
+            if (finalRow == BLACK_BACK_RANK && finalCol == CASTLE_QS_KING_COL) // Black Queen Side (c8)
             {
-                LoadPiece(0, 2, PIECE_KING, Turn, GAME_BOARD);
-                SetEmptyCell(&GameBoard[0][4]);
-                LoadPiece(0, 3, PIECE_ROOK, Turn, GAME_BOARD);
-                SetEmptyCell(&GameBoard[0][0]);
+                LoadPiece(BLACK_BACK_RANK, CASTLE_QS_KING_COL, PIECE_KING, Turn, GAME_BOARD);
+                SetEmptyCell(&GameBoard[BLACK_BACK_RANK][KING_START_COL]);
+                LoadPiece(BLACK_BACK_RANK, CASTLE_QS_ROOK_COL, PIECE_ROOK, Turn, GAME_BOARD);
+                SetEmptyCell(&GameBoard[BLACK_BACK_RANK][ROOK_QS_COL]);
 
                 state.blackKingSide = false;
                 state.blackQueenSide = false;
@@ -196,16 +195,16 @@ void MovePiece(int initialRow, int initialCol, int finalRow, int finalCol)
     {
         if (Turn == TEAM_WHITE)
         {
-            if (initialRow == 7 && initialCol == 0)
+            if (initialRow == WHITE_BACK_RANK && initialCol == ROOK_QS_COL)
                 state.whiteQueenSide = false;
-            if (initialRow == 7 && initialCol == 7)
+            if (initialRow == WHITE_BACK_RANK && initialCol == ROOK_KS_COL)
                 state.whiteKingSide = false;
         }
         else
         {
-            if (initialRow == 0 && initialCol == 0)
+            if (initialRow == BLACK_BACK_RANK && initialCol == ROOK_QS_COL)
                 state.blackQueenSide = false;
-            if (initialRow == 0 && initialCol == 7)
+            if (initialRow == BLACK_BACK_RANK && initialCol == ROOK_KS_COL)
                 state.blackKingSide = false;
         }
     }
@@ -1198,27 +1197,24 @@ void ResetsAndValidations()
 
 void PrimaryCastlingValidation()
 {
-    // We use the GameState flags (whiteKingSide, etc.) which are persistent.
-    // This fixes the bug where moving a rook away and back would reset its 'hasMoved' status.
-
     if (Turn == TEAM_WHITE)
     {
         // Check King is present and not in check
-        if (GameBoard[7][4].piece.type == PIECE_KING && !Player1.Checked)
+        if (GameBoard[WHITE_BACK_RANK][KING_START_COL].piece.type == PIECE_KING && !Player1.Checked)
         {
             // Queen Side (Long Castling)
             if (state.whiteQueenSide)
             {
                 // Must be empty: b1, c1, d1
-                if (GameBoard[7][1].piece.type == PIECE_NONE &&
-                    GameBoard[7][2].piece.type == PIECE_NONE &&
-                    GameBoard[7][3].piece.type == PIECE_NONE)
+                if (GameBoard[WHITE_BACK_RANK][1].piece.type == PIECE_NONE &&
+                    GameBoard[WHITE_BACK_RANK][CASTLE_QS_KING_COL].piece.type == PIECE_NONE &&
+                    GameBoard[WHITE_BACK_RANK][CASTLE_QS_ROOK_COL].piece.type == PIECE_NONE)
                 {
                     // King moves from e1 to c1. Passes d1.
-                    // Standard rules: King cannot pass through check (d1) or land in check (c1).
-                    if (!GameBoard[7][2].vulnerable && !GameBoard[7][3].vulnerable)
+                    if (!GameBoard[WHITE_BACK_RANK][CASTLE_QS_KING_COL].vulnerable &&
+                        !GameBoard[WHITE_BACK_RANK][CASTLE_QS_ROOK_COL].vulnerable)
                     {
-                        GameBoard[7][2].primaryValid = true;
+                        GameBoard[WHITE_BACK_RANK][CASTLE_QS_KING_COL].primaryValid = true;
                     }
                 }
             }
@@ -1227,13 +1223,14 @@ void PrimaryCastlingValidation()
             if (state.whiteKingSide)
             {
                 // Must be empty: f1, g1
-                if (GameBoard[7][5].piece.type == PIECE_NONE &&
-                    GameBoard[7][6].piece.type == PIECE_NONE)
+                if (GameBoard[WHITE_BACK_RANK][CASTLE_KS_ROOK_COL].piece.type == PIECE_NONE &&
+                    GameBoard[WHITE_BACK_RANK][CASTLE_KS_KING_COL].piece.type == PIECE_NONE)
                 {
                     // King passes through f1, lands on g1.
-                    if (!GameBoard[7][5].vulnerable && !GameBoard[7][6].vulnerable)
+                    if (!GameBoard[WHITE_BACK_RANK][CASTLE_KS_ROOK_COL].vulnerable &&
+                        !GameBoard[WHITE_BACK_RANK][CASTLE_KS_KING_COL].vulnerable)
                     {
-                        GameBoard[7][6].primaryValid = true;
+                        GameBoard[WHITE_BACK_RANK][CASTLE_KS_KING_COL].primaryValid = true;
                     }
                 }
             }
@@ -1241,19 +1238,20 @@ void PrimaryCastlingValidation()
     }
     else // BLACK TEAM
     {
-        if (GameBoard[0][4].piece.type == PIECE_KING && !Player2.Checked)
+        if (GameBoard[BLACK_BACK_RANK][KING_START_COL].piece.type == PIECE_KING && !Player2.Checked)
         {
             // Queen Side
             if (state.blackQueenSide)
             {
                 // Must be empty: b8, c8, d8
-                if (GameBoard[0][1].piece.type == PIECE_NONE &&
-                    GameBoard[0][2].piece.type == PIECE_NONE &&
-                    GameBoard[0][3].piece.type == PIECE_NONE)
+                if (GameBoard[BLACK_BACK_RANK][1].piece.type == PIECE_NONE &&
+                    GameBoard[BLACK_BACK_RANK][CASTLE_QS_KING_COL].piece.type == PIECE_NONE &&
+                    GameBoard[BLACK_BACK_RANK][CASTLE_QS_ROOK_COL].piece.type == PIECE_NONE)
                 {
-                    if (!GameBoard[0][2].vulnerable && !GameBoard[0][3].vulnerable)
+                    if (!GameBoard[BLACK_BACK_RANK][CASTLE_QS_KING_COL].vulnerable &&
+                        !GameBoard[BLACK_BACK_RANK][CASTLE_QS_ROOK_COL].vulnerable)
                     {
-                        GameBoard[0][2].primaryValid = true;
+                        GameBoard[BLACK_BACK_RANK][CASTLE_QS_KING_COL].primaryValid = true;
                     }
                 }
             }
@@ -1262,12 +1260,13 @@ void PrimaryCastlingValidation()
             if (state.blackKingSide)
             {
                 // Must be empty: f8, g8
-                if (GameBoard[0][5].piece.type == PIECE_NONE &&
-                    GameBoard[0][6].piece.type == PIECE_NONE)
+                if (GameBoard[BLACK_BACK_RANK][CASTLE_KS_ROOK_COL].piece.type == PIECE_NONE &&
+                    GameBoard[BLACK_BACK_RANK][CASTLE_KS_KING_COL].piece.type == PIECE_NONE)
                 {
-                    if (!GameBoard[0][5].vulnerable && !GameBoard[0][6].vulnerable)
+                    if (!GameBoard[BLACK_BACK_RANK][CASTLE_KS_ROOK_COL].vulnerable &&
+                        !GameBoard[BLACK_BACK_RANK][CASTLE_KS_KING_COL].vulnerable)
                     {
-                        GameBoard[0][6].primaryValid = true;
+                        GameBoard[BLACK_BACK_RANK][CASTLE_KS_KING_COL].primaryValid = true;
                     }
                 }
             }
