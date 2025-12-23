@@ -121,14 +121,22 @@ void MovePiece(int initialRow, int initialCol, int finalRow, int finalCol)
     {
         if (GameBoard[finalRow][finalCol].piece.type != PIECE_NONE && GameBoard[finalRow][finalCol].piece.team == TEAM_BLACK)
         {
-            LoadPiece(deadBlackCounter++, 1 /*This is not important*/, GameBoard[finalRow][finalCol].piece.type, TEAM_BLACK, DEAD_BLACK_PIECES);
+            // FIX: Prevent array overflow
+            if (deadBlackCounter < (BOARD_SIZE * 2))
+            {
+                LoadPiece(deadBlackCounter++, 1, GameBoard[finalRow][finalCol].piece.type, TEAM_BLACK, DEAD_BLACK_PIECES);
+            }
         }
     }
     else
     {
         if (GameBoard[finalRow][finalCol].piece.type != PIECE_NONE && GameBoard[finalRow][finalCol].piece.team == TEAM_WHITE)
         {
-            LoadPiece(deadWhiteCounter++, 1 /*This is not important*/, GameBoard[finalRow][finalCol].piece.type, TEAM_WHITE, DEAD_WHITE_PIECES);
+            // FIX: Prevent array overflow
+            if (deadWhiteCounter < (BOARD_SIZE * 2))
+            {
+                LoadPiece(deadWhiteCounter++, 1, GameBoard[finalRow][finalCol].piece.type, TEAM_WHITE, DEAD_WHITE_PIECES);
+            }
         }
     }
 
@@ -136,6 +144,8 @@ void MovePiece(int initialRow, int initialCol, int finalRow, int finalCol)
     // We now detect castling by checking if the King moved 2 squares horizontally.
 
     PieceType movingPieceType = GameBoard[initialRow][initialCol].piece.type;
+    ResetJustMoved();
+    GameBoard[finalRow][finalCol].JustMoved = true;
 
     if (movingPieceType == PIECE_KING && abs(finalCol - initialCol) == 2)
     {
@@ -195,6 +205,40 @@ void MovePiece(int initialRow, int initialCol, int finalRow, int finalCol)
         }
     }
 
+    if (state.enPassantCol != -1)
+    {
+        if (Turn == TEAM_WHITE)
+        {
+            if (movingPieceType == PIECE_PAWN && finalRow == 2 && finalCol == initialCol - 1)
+            {
+                LoadPiece(finalRow, finalCol, PIECE_PAWN, Turn, GAME_BOARD);
+                SetEmptyCell(&GameBoard[initialRow][initialCol]);
+                SetEmptyCell(&GameBoard[initialRow][initialCol - 1]);
+            }
+            if (movingPieceType == PIECE_PAWN && finalRow == 2 && finalCol == initialCol + 1)
+            {
+                LoadPiece(finalRow, finalCol, PIECE_PAWN, Turn, GAME_BOARD);
+                SetEmptyCell(&GameBoard[initialRow][initialCol]);
+                SetEmptyCell(&GameBoard[initialRow][initialCol + 1]);
+            }
+        }
+        else
+        {
+            if (movingPieceType == PIECE_PAWN && finalRow == 5 && finalCol == initialCol - 1)
+            {
+                LoadPiece(finalRow, finalCol, PIECE_PAWN, Turn, GAME_BOARD);
+                SetEmptyCell(&GameBoard[initialRow][initialCol]);
+                SetEmptyCell(&GameBoard[initialRow][initialCol - 1]);
+            }
+            if (movingPieceType == PIECE_PAWN && finalRow == 5 && finalCol == initialCol + 1)
+            {
+                LoadPiece(finalRow, finalCol, PIECE_PAWN, Turn, GAME_BOARD);
+                SetEmptyCell(&GameBoard[initialRow][initialCol]);
+                SetEmptyCell(&GameBoard[initialRow][initialCol + 1]);
+            }
+        }
+    }
+
     // --- Update Castling Rights Flags ---
     // If King or Rook moves normally, we lose castling rights.
     if (movingPieceType == PIECE_KING)
@@ -234,6 +278,11 @@ void MovePiece(int initialRow, int initialCol, int finalRow, int finalCol)
                 state.blackKingSide = false;
             }
         }
+    }
+    // Update implementing pawnmovedtwoflag
+    if (GameBoard[initialRow][initialCol].piece.type == PIECE_PAWN && abs(finalRow - initialRow) == 2)
+    {
+        GameBoard[finalRow][finalCol].PawnMovedTwo = true;
     }
 
     // 1. Move the piece
@@ -522,6 +571,17 @@ void ResetMovedStatus()
     }
 }
 
+void ResetJustMoved()
+{
+    for (int row = 0; row < BOARD_SIZE; row++)
+    {
+        for (int col = 0; col < BOARD_SIZE; col++)
+        {
+            GameBoard[row][col].JustMoved = false;
+        }
+    }
+}
+
 /**
  * PrimaryValidation
  *
@@ -564,6 +624,11 @@ void PrimaryValidation(PieceType Piece, int CellX, int CellY, bool selected)
         break;
     case PIECE_PAWN:
         MoveValidation(CellX, CellY, PIECE_PAWN, team, moved);
+        if (selected)
+        {
+            PrimaryEnpassantValidation(CellX, CellY);
+        }
+
         break;
     case PIECE_NONE:
         break;
@@ -1017,6 +1082,28 @@ void FinalValidation(int CellX, int CellY, bool selected)
                 }
             }
         }
+        if (Turn == TEAM_WHITE)
+        {
+            if (piece1 == PIECE_PAWN && GameBoard[CellX - 1][CellY - 1].isvalid && GameBoard[CellX - 1][CellY - 1].piece.type == PIECE_NONE)
+            {
+                state.enPassantCol = CellY - 1;
+            }
+            else if (piece1 == PIECE_PAWN && GameBoard[CellX - 1][CellY + 1].isvalid && GameBoard[CellX - 1][CellY + 1].piece.type == PIECE_NONE)
+            {
+                state.enPassantCol = CellY + 1;
+            }
+        }
+        else
+        {
+            if (piece1 == PIECE_PAWN && GameBoard[CellX + 1][CellY - 1].isvalid && GameBoard[CellX + 1][CellY - 1].piece.type == PIECE_NONE)
+            {
+                state.enPassantCol = CellY - 1;
+            }
+            else if (piece1 == PIECE_PAWN && GameBoard[CellX + 1][CellY + 1].isvalid && GameBoard[CellX + 1][CellY + 1].piece.type == PIECE_NONE)
+            {
+                state.enPassantCol = CellY + 1;
+            }
+        }
     }
 }
 
@@ -1368,6 +1455,52 @@ void PrimaryCastlingValidation()
                         GameBoard[BLACK_BACK_RANK][CASTLE_KS_KING_COL].primaryValid = true;
                     }
                 }
+            }
+        }
+    }
+}
+
+void PrimaryEnpassantValidation(int row, int col)
+{
+    if (Turn == TEAM_WHITE)
+    {
+        if (GameBoard[row][col].piece.type == PIECE_PAWN && row == 3)
+        {
+            // Check Right: Ensure col + 1 is within bounds
+            if (col + 1 < BOARD_SIZE &&
+                GameBoard[row][col + 1].JustMoved &&
+                GameBoard[row][col + 1].PawnMovedTwo)
+            {
+                GameBoard[row - 1][col + 1].primaryValid = true;
+            }
+
+            // Check Left: Ensure col - 1 is within bounds
+            if (col - 1 >= 0 &&
+                GameBoard[row][col - 1].JustMoved &&
+                GameBoard[row][col - 1].PawnMovedTwo)
+            {
+                GameBoard[row - 1][col - 1].primaryValid = true;
+            }
+        }
+    }
+    else
+    {
+        if (GameBoard[row][col].piece.type == PIECE_PAWN && row == 4)
+        {
+            // Check Right: Ensure col + 1 is within bounds
+            if (col + 1 < BOARD_SIZE &&
+                GameBoard[row][col + 1].JustMoved &&
+                GameBoard[row][col + 1].PawnMovedTwo)
+            {
+                GameBoard[row + 1][col + 1].primaryValid = true;
+            }
+
+            // Check Left: Ensure col - 1 is within bounds
+            if (col - 1 >= 0 &&
+                GameBoard[row][col - 1].JustMoved &&
+                GameBoard[row][col - 1].PawnMovedTwo)
+            {
+                GameBoard[row + 1][col - 1].primaryValid = true;
             }
         }
     }
