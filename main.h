@@ -157,6 +157,10 @@ typedef struct
     bool isCheckmate;
     bool isStalemate;
 
+    bool isPromoting;
+    int promotionRow;
+    int promotionCol;
+
     int deadWhiteCounter;
     int deadBlackCounter;
 

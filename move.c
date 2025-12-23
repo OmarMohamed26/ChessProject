@@ -215,9 +215,27 @@ void MovePiece(int initialRow, int initialCol, int finalRow, int finalCol)
         }
     }
 
+    // 1. Move the piece
     LoadPiece(finalRow, finalCol, GameBoard[initialRow][initialCol].piece.type, GameBoard[initialRow][initialCol].piece.team, GAME_BOARD);
     GameBoard[finalRow][finalCol].piece.hasMoved = 1;
     SetEmptyCell(&GameBoard[initialRow][initialCol]);
+
+    // --- NEW: Check for Promotion ---
+    if (GameBoard[finalRow][finalCol].piece.type == PIECE_PAWN)
+    {
+        // White reaches row 0, Black reaches row 7 (assuming 0 is top)
+        if ((GameBoard[finalRow][finalCol].piece.team == TEAM_WHITE && finalRow == 0) ||
+            (GameBoard[finalRow][finalCol].piece.team == TEAM_BLACK && finalRow == BOARD_SIZE - 1))
+        {
+            state.isPromoting = true;
+            state.promotionRow = finalRow;
+            state.promotionCol = finalCol;
+
+            // RETURN EARLY: Pause the game, wait for input
+            return;
+        }
+    }
+
     ResetsAndValidations();
 }
 
@@ -1199,6 +1217,28 @@ void ResetsAndValidations()
             CheckmateValidation();
         }
     }
+}
+
+void PromotePawn(PieceType selectedType)
+{
+    int row = state.promotionRow;
+    int col = state.promotionCol;
+
+    if (row == -1 || col == -1)
+        return;
+
+    Team team = GameBoard[row][col].piece.team;
+
+    // 1. Replace pawn with new piece
+    LoadPiece(row, col, selectedType, team, GAME_BOARD);
+
+    // 2. Clear the promotion state
+    state.isPromoting = false;
+    state.promotionRow = -1;
+    state.promotionCol = -1;
+
+    // 3. Resume game
+    ResetsAndValidations();
 }
 
 void PrimaryCastlingValidation()

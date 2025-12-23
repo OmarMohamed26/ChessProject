@@ -71,6 +71,8 @@ static void ResetCellBorder(SmartBorder *border);
 static void ResizeCellBorder(SmartBorder *border);
 static void ResetSelection();
 static int Clamp(int num, int max);
+static void HandlePromotionInput(void);
+static void DrawPromotionMenu(void); // <--- ADD THIS PROTOTYPE
 
 // This constant determines How much space is left for the text in terms of squareLength
 #define SPACE_TEXT 0.75f
@@ -178,6 +180,12 @@ void DrawBoard(int ColorTheme, bool showFileRank)
     }
 
     displayPieces();
+
+    // <--- ADD THIS BLOCK AT THE END OF DrawBoard
+    if (state.isPromoting)
+    {
+        DrawPromotionMenu();
+    }
 }
 
 /**
@@ -680,6 +688,13 @@ void HighlightHover(int ColorTheme)
  */
 static void DecideDestination(Vector2 topLeft)
 {
+    // NEW: Intercept input if promoting
+    if (state.isPromoting)
+    {
+        HandlePromotionInput();
+        return; // Stop here, do not run normal logic
+    }
+
     bool TurnValidation = false;
 
     ResetSelection(); // this is to set all the selection values to false
@@ -919,4 +934,77 @@ void HighlightValidMoves(bool selected)
             }
         }
     }
+}
+
+static void DrawPromotionMenu(void)
+{
+    if (!state.isPromoting)
+    {
+        return;
+    }
+
+    int row = state.promotionRow;
+    int col = state.promotionCol;
+    int squareSize = ComputeSquareLength();
+    int startX = GameBoard[row][col].pos.x;
+    int startY = GameBoard[row][col].pos.y;
+
+    // Direction: White (row 0) draws down, Black (row 7) draws up
+    int direction = (row == 0) ? 1 : -1;
+
+    // Draw Background
+    int menuHeight = squareSize * 4;
+    int menuY = (direction == 1) ? startY : (startY - (squareSize * 3));
+
+    DrawRectangle(startX, menuY, squareSize, menuHeight, Fade(LIGHTGRAY, 0.9f));
+    DrawRectangleLines(startX, menuY, squareSize, menuHeight, DARKGRAY);
+
+    // Draw Options (Placeholder Text for now, replace with Textures later)
+    const char *names[] = {"Q", "R", "B", "N"};
+
+    for (int i = 0; i < 4; i++)
+    {
+        int yPos = startY + (direction * squareSize * i);
+        Rectangle btn = {startX, yPos, squareSize, squareSize};
+
+        // Hover effect
+        if (CheckCollisionPointRec(GetMousePosition(), btn))
+        {
+            DrawRectangleRec(btn, Fade(WHITE, 0.5f));
+        }
+
+        // Centered Text
+        int fontSize = squareSize / 2;
+        int textWidth = MeasureText(names[i], fontSize);
+        DrawText(names[i], startX + (squareSize - textWidth) / 2, yPos + (squareSize - fontSize) / 2, fontSize, BLACK);
+    }
+}
+
+static void HandlePromotionInput(void)
+{
+    if (!IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
+        return;
+
+    int row = state.promotionRow;
+    int col = state.promotionCol;
+    int squareLength = ComputeSquareLength();
+    int startX = GameBoard[row][col].pos.x;
+    int startY = GameBoard[row][col].pos.y;
+    int direction = (row == 0) ? 1 : -1;
+
+    Rectangle queenRect = {startX, startY, (float)squareLength, (float)squareLength};
+    Rectangle rookRect = {startX, startY + (direction * squareLength * 1), (float)squareLength, (float)squareLength};
+    Rectangle bishopRect = {startX, startY + (direction * squareLength * 2), (float)squareLength, (float)squareLength};
+    Rectangle knightRect = {startX, startY + (direction * squareLength * 3), (float)squareLength, (float)squareLength};
+
+    Vector2 mouse = GetMousePosition();
+
+    if (CheckCollisionPointRec(mouse, queenRect))
+        PromotePawn(PIECE_QUEEN);
+    else if (CheckCollisionPointRec(mouse, rookRect))
+        PromotePawn(PIECE_ROOK);
+    else if (CheckCollisionPointRec(mouse, bishopRect))
+        PromotePawn(PIECE_BISHOP);
+    else if (CheckCollisionPointRec(mouse, knightRect))
+        PromotePawn(PIECE_KNIGHT);
 }

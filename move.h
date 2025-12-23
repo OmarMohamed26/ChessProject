@@ -28,6 +28,7 @@ void ScanFriendlyMoves();
 void ResetPrimaryValidation();
 void ResetsAndValidations();
 void ResetMovedStatus();
+void PromotePawn(PieceType selectedType);
 void PrimaryCastlingValidation();
 
 #endif
