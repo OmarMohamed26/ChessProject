@@ -711,26 +711,33 @@ void HandlePawnMove(int CellX, int CellY, Team team, bool moved)
             }
         }
 
-        if (GameBoard[CellX + 1][CellY + 1].piece.team != team)
+        if (CellY + 1 < BOARD_SIZE)
         {
-            if (Turn == team && GameBoard[CellX + 1][CellY + 1].piece.type != PIECE_NONE)
+            if (GameBoard[CellX + 1][CellY + 1].piece.team != team)
             {
-                GameBoard[CellX + 1][CellY + 1].primaryValid = true;
-            }
-            else if (Turn != team)
-            {
-                GameBoard[CellX + 1][CellY + 1].vulnerable = true;
+                if (Turn == team && GameBoard[CellX + 1][CellY + 1].piece.type != PIECE_NONE)
+                {
+                    GameBoard[CellX + 1][CellY + 1].primaryValid = true;
+                }
+                else if (Turn != team)
+                {
+                    GameBoard[CellX + 1][CellY + 1].vulnerable = true;
+                }
             }
         }
-        if (GameBoard[CellX + 1][CellY - 1].piece.team != team)
+
+        if (CellY - 1 >= 0)
         {
-            if (Turn == team && GameBoard[CellX + 1][CellY - 1].piece.type != PIECE_NONE)
+            if (GameBoard[CellX + 1][CellY - 1].piece.team != team)
             {
-                GameBoard[CellX + 1][CellY - 1].primaryValid = true;
-            }
-            else if (Turn != team)
-            {
-                GameBoard[CellX + 1][CellY - 1].vulnerable = true;
+                if (Turn == team && GameBoard[CellX + 1][CellY - 1].piece.type != PIECE_NONE)
+                {
+                    GameBoard[CellX + 1][CellY - 1].primaryValid = true;
+                }
+                else if (Turn != team)
+                {
+                    GameBoard[CellX + 1][CellY - 1].vulnerable = true;
+                }
             }
         }
     }
@@ -754,26 +761,33 @@ void HandlePawnMove(int CellX, int CellY, Team team, bool moved)
             }
         }
 
-        if (GameBoard[CellX - 1][CellY - 1].piece.team != team)
+        if (CellY - 1 >= 0)
         {
-            if (Turn == team && GameBoard[CellX - 1][CellY - 1].piece.type != PIECE_NONE)
+            if (GameBoard[CellX - 1][CellY - 1].piece.team != team)
             {
-                GameBoard[CellX - 1][CellY - 1].primaryValid = true;
-            }
-            else if (Turn != team)
-            {
-                GameBoard[CellX - 1][CellY - 1].vulnerable = true;
+                if (Turn == team && GameBoard[CellX - 1][CellY - 1].piece.type != PIECE_NONE)
+                {
+                    GameBoard[CellX - 1][CellY - 1].primaryValid = true;
+                }
+                else if (Turn != team)
+                {
+                    GameBoard[CellX - 1][CellY - 1].vulnerable = true;
+                }
             }
         }
-        if (GameBoard[CellX - 1][CellY + 1].piece.team != team)
+
+        if (CellY + 1 < BOARD_SIZE)
         {
-            if (Turn == team && GameBoard[CellX - 1][CellY + 1].piece.type != PIECE_NONE)
+            if (GameBoard[CellX - 1][CellY + 1].piece.team != team)
             {
-                GameBoard[CellX - 1][CellY + 1].primaryValid = true;
-            }
-            else if (Turn != team)
-            {
-                GameBoard[CellX - 1][CellY + 1].vulnerable = true;
+                if (Turn == team && GameBoard[CellX - 1][CellY + 1].piece.type != PIECE_NONE)
+                {
+                    GameBoard[CellX - 1][CellY + 1].primaryValid = true;
+                }
+                else if (Turn != team)
+                {
+                    GameBoard[CellX - 1][CellY + 1].vulnerable = true;
+                }
             }
         }
     }
