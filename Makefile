@@ -13,8 +13,11 @@ endif
 
 # Conditional CFLAGS based on the mode
 ifeq ($(BUILD_MODE), Debug)
-CFLAGS += -g -O0 -DDEBUG
-$(info Building in DEBUG mode (-g -O0, C17)...)
+# Add -fsanitize=address,undefined for memory error and UB detection
+CFLAGS += -g -O0 -DDEBUG -fsanitize=address,undefined
+# Also need to link with ASan and UBSan
+LDFLAGS += -fsanitize=address,undefined
+$(info Building in DEBUG mode (-g -O0, C17, ASan, UBSan)...)
 else
 CFLAGS += -O3 -s
 $(info Building in RELEASE mode (-O2, C17)...)
@@ -22,7 +25,7 @@ endif
 
 # Source and Generated Files
 # Add all your .c files here
-SRC := main.c draw.c load.c save.c move.c colors.c
+SRC := main.c draw.c load.c save.c move.c colors.c hash.c
 OBJ := $(addprefix $(BUILD_DIR)/$(BUILD_MODE)/, $(SRC:.c=.o))
 DEP := $(addprefix $(BUILD_DIR)/$(BUILD_MODE)/, $(SRC:.c=.d))
 EXECUTABLE = $(BUILD_DIR)/$(TARGET)
@@ -50,7 +53,7 @@ CFLAGS += $(addprefix -I,$(INCLUDE_DIRS))
 endif
 
 # Build LDFLAGS and add rpath entries when LIB_DIRS is set so the runtime can find .so there
-LDFLAGS := $(addprefix -L,$(LIB_DIRS)) $(addprefix -l,$(LIBS))
+LDFLAGS += $(addprefix -L,$(LIB_DIRS)) $(addprefix -l,$(LIBS))
 ifneq ($(strip $(LIB_DIRS)),)
 # Add rpath entries for each LIB_DIR so the runtime loader can find shared libs there.
 # Use foreach to produce one "-Wl,-rpath=DIR" token per directory (avoids addprefix comma parsing issues).
