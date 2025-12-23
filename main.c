@@ -124,6 +124,11 @@ int main(void)
         {
             DrawText("DRAW (REPETITION)", GetRenderWidth() / 2 - 160, 70, 30, BLUE);
         }
+        // NEW: Draw UI
+        else if (state.isInsufficientMaterial)
+        {
+            DrawText("DRAW (INSUFFICIENT MATERIAL)", GetRenderWidth() / 2 - 220, 70, 30, BLUE);
+        }
         else if (state.halfMoveClock >= 100)
         {
             DrawText("DRAW (50 MOVES)", GetRenderWidth() / 2 - 160, 70, 30, BLUE);

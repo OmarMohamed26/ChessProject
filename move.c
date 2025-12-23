@@ -26,6 +26,7 @@ bool checked = false, flag = false;
 /* Add prototypes near the top of the file (below includes) */
 static void RaycastRook(int CellX, int CellY, Team team);
 static void RaycastBishop(int CellX, int CellY, Team team);
+void CheckInsufficientMaterial(void);
 
 /**
  * MovePiece
@@ -1354,6 +1355,8 @@ void ResetsAndValidations()
             CheckmateValidation();
         }
     }
+
+    CheckInsufficientMaterial();
 }
 
 void PromotePawn(PieceType selectedType)
@@ -1504,4 +1507,92 @@ void PrimaryEnpassantValidation(int row, int col)
             }
         }
     }
+}
+
+void CheckInsufficientMaterial(void)
+{
+    int whiteMinorPieces = 0;
+    int blackMinorPieces = 0;
+
+    // Track bishops specifically for the K+B vs K+B scenario
+    int whiteBishops = 0;
+    int blackBishops = 0;
+    int whiteBishopSquareColor = -1; // 0 for light, 1 for dark
+    int blackBishopSquareColor = -1;
+
+    // Scan the board
+    for (int i = 0; i < BOARD_SIZE; i++)
+    {
+        for (int j = 0; j < BOARD_SIZE; j++)
+        {
+            PieceType type = GameBoard[i][j].piece.type;
+            Team team = GameBoard[i][j].piece.team;
+
+            if (type == PIECE_NONE)
+            {
+                continue;
+            }
+
+            // If there is a Queen, Rook, or Pawn, checkmate is possible.
+            if (type == PIECE_QUEEN || type == PIECE_ROOK || type == PIECE_PAWN)
+            {
+                state.isInsufficientMaterial = false;
+                return;
+            }
+
+            if (type == PIECE_KNIGHT || type == PIECE_BISHOP)
+            {
+                if (team == TEAM_WHITE)
+                {
+                    whiteMinorPieces++;
+                    if (type == PIECE_BISHOP)
+                    {
+                        whiteBishops++;
+                        // Determine square color: (row + col) % 2
+                        whiteBishopSquareColor = (i + j) % 2;
+                    }
+                }
+                else
+                {
+                    blackMinorPieces++;
+                    if (type == PIECE_BISHOP)
+                    {
+                        blackBishops++;
+                        blackBishopSquareColor = (i + j) % 2;
+                    }
+                }
+            }
+        }
+    }
+
+    // SCENARIO 1: King vs King (No minor pieces)
+    if (whiteMinorPieces == 0 && blackMinorPieces == 0)
+    {
+        state.isInsufficientMaterial = true;
+        return;
+    }
+
+    // SCENARIO 2: King + Minor vs King (One side has 1 minor, other has 0)
+    if ((whiteMinorPieces == 1 && blackMinorPieces == 0) ||
+        (whiteMinorPieces == 0 && blackMinorPieces == 1))
+    {
+        state.isInsufficientMaterial = true;
+        return;
+    }
+
+    // SCENARIO 3: King + Bishop vs King + Bishop (Same color)
+    // Conditions:
+    // 1. Each side has exactly 1 minor piece.
+    // 2. That minor piece is a Bishop.
+    // 3. Both bishops are on the same square color.
+    if (whiteMinorPieces == 1 && blackMinorPieces == 1 &&
+        whiteBishops == 1 && blackBishops) // filepath: /home/omar/Project/chess/move.c
+    {
+        if (whiteBishopSquareColor == blackBishopSquareColor)
+        {
+            state.isInsufficientMaterial = true;
+            return;
+        }
+    }
+    state.isInsufficientMaterial = false;
 }
