@@ -110,7 +110,8 @@ int main(void)
         {
             DrawText("BLACK IS CHECKED!", GetRenderWidth() - 340, 20, 30, BLACK);
         }
-        else if (state.isCheckmate)
+
+        if (state.isCheckmate)
         {
             DrawText("CHECKMATE", GetRenderWidth() / 2 - 140, 30, 30, RED);
         }
