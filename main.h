@@ -77,6 +77,7 @@ typedef struct Cell
     bool vulnerable : 1;           // what pieces are under attack on my team this will help in EASY_MODE
     bool hasMoved : 1;
     bool PawnMovedTwo : 1;
+    bool JustMoved : 1;  
     // Saved 8 bytes with these bitfields and it will also help us debug errors
 } Cell;
 
