@@ -119,14 +119,22 @@ void MovePiece(int initialRow, int initialCol, int finalRow, int finalCol)
     {
         if (GameBoard[finalRow][finalCol].piece.type != PIECE_NONE && GameBoard[finalRow][finalCol].piece.team == TEAM_BLACK)
         {
-            LoadPiece(deadBlackCounter++, 1 /*This is not important*/, GameBoard[finalRow][finalCol].piece.type, TEAM_BLACK, DEAD_BLACK_PIECES);
+            // FIX: Prevent array overflow
+            if (deadBlackCounter < (BOARD_SIZE * 2))
+            {
+                LoadPiece(deadBlackCounter++, 1, GameBoard[finalRow][finalCol].piece.type, TEAM_BLACK, DEAD_BLACK_PIECES);
+            }
         }
     }
     else
     {
         if (GameBoard[finalRow][finalCol].piece.type != PIECE_NONE && GameBoard[finalRow][finalCol].piece.team == TEAM_WHITE)
         {
-            LoadPiece(deadWhiteCounter++, 1 /*This is not important*/, GameBoard[finalRow][finalCol].piece.type, TEAM_WHITE, DEAD_WHITE_PIECES);
+            // FIX: Prevent array overflow
+            if (deadWhiteCounter < (BOARD_SIZE * 2))
+            {
+                LoadPiece(deadWhiteCounter++, 1, GameBoard[finalRow][finalCol].piece.type, TEAM_WHITE, DEAD_WHITE_PIECES);
+            }
         }
     }
 
@@ -1427,12 +1435,18 @@ void PrimaryEnpassantValidation(int row, int col)
     {
         if (GameBoard[row][col].piece.type == PIECE_PAWN && row == 3)
         {
-            if (GameBoard[row][col + 1].JustMoved && GameBoard[row][col + 1].PawnMovedTwo)
+            // Check Right: Ensure col + 1 is within bounds
+            if (col + 1 < BOARD_SIZE &&
+                GameBoard[row][col + 1].JustMoved &&
+                GameBoard[row][col + 1].PawnMovedTwo)
             {
                 GameBoard[row - 1][col + 1].primaryValid = true;
             }
 
-            if (GameBoard[row][col - 1].JustMoved && GameBoard[row][col - 1].PawnMovedTwo)
+            // Check Left: Ensure col - 1 is within bounds
+            if (col - 1 >= 0 &&
+                GameBoard[row][col - 1].JustMoved &&
+                GameBoard[row][col - 1].PawnMovedTwo)
             {
                 GameBoard[row - 1][col - 1].primaryValid = true;
             }
@@ -1440,15 +1454,20 @@ void PrimaryEnpassantValidation(int row, int col)
     }
     else
     {
-
         if (GameBoard[row][col].piece.type == PIECE_PAWN && row == 4)
         {
-            if (GameBoard[row][col + 1].JustMoved && GameBoard[row][col + 1].PawnMovedTwo)
+            // Check Right: Ensure col + 1 is within bounds
+            if (col + 1 < BOARD_SIZE &&
+                GameBoard[row][col + 1].JustMoved &&
+                GameBoard[row][col + 1].PawnMovedTwo)
             {
                 GameBoard[row + 1][col + 1].primaryValid = true;
             }
 
-            if (GameBoard[row][col - 1].JustMoved && GameBoard[row][col - 1].PawnMovedTwo)
+            // Check Left: Ensure col - 1 is within bounds
+            if (col - 1 >= 0 &&
+                GameBoard[row][col - 1].JustMoved &&
+                GameBoard[row][col - 1].PawnMovedTwo)
             {
                 GameBoard[row + 1][col - 1].primaryValid = true;
             }
