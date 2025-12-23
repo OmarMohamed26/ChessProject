@@ -99,17 +99,21 @@ int main(void)
         {
             DrawText("WHITE IS CHECKED!", 20, 20, 30, BLACK);
         }
-        if (state.blackPlayer.Checked)
+        else if (state.blackPlayer.Checked)
         {
             DrawText("BLACK IS CHECKED!", GetRenderWidth() - 340, 20, 30, BLACK);
         }
-        if (state.isCheckmate)
+        else if (state.isCheckmate)
         {
             DrawText("CHECKMATE", GetRenderWidth() / 2 - 140, 30, 30, RED);
         }
-        if (state.isStalemate)
+        else if (state.isStalemate)
         {
             DrawText("STALEMATE", GetRenderWidth() / 2 - 140, 20, 30, GRAY);
+        }
+        else if (state.halfMoveClock >= 100)
+        {
+            DrawText("DRAW (50 MOVES)", GetRenderWidth() / 2 - 160, 70, 30, BLUE);
         }
 
         if (showFps)
