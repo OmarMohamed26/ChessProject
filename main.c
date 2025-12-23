@@ -14,6 +14,7 @@
 #endif
 #include "colors.h"
 #include "draw.h"
+#include "hash.h"
 #include "load.h"
 #include "main.h"
 #include "raylib.h"
@@ -33,6 +34,10 @@ int main(void)
     state.blackPlayer.team = TEAM_BLACK;
     state.isCheckmate = false;
     state.isStalemate = false;
+    state.isPromoting = false;
+    state.promotionRow = -1;
+    state.promotionCol = -1;
+    state.isRepeated3times = false;
 
     // Initialize the game window
     SetConfigFlags(FLAG_WINDOW_RESIZABLE);
@@ -46,6 +51,8 @@ int main(void)
     SetTargetFPS(FPS);
     InitializeBoard();
     InitializeDeadPieces();
+
+    state.DHA = InitializeDHA(INITIAL_DYNAMIC_HASH_ARRAY_SIZE);
 
     char standard_game[] = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
     // it should look like this rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
@@ -111,6 +118,11 @@ int main(void)
         {
             DrawText("STALEMATE", GetRenderWidth() / 2 - 140, 20, 30, GRAY);
         }
+        // NEW: Check the flag you set in move.c
+        else if (state.isRepeated3times)
+        {
+            DrawText("DRAW (REPETITION)", GetRenderWidth() / 2 - 160, 70, 30, BLUE);
+        }
         else if (state.halfMoveClock >= 100)
         {
             DrawText("DRAW (50 MOVES)", GetRenderWidth() / 2 - 160, 70, 30, BLUE);
@@ -124,6 +136,7 @@ int main(void)
     }
 
     UnloadBoard();
+    FreeDHA(state.DHA);
     UnloadDeadPieces();
     UnloadImage(icon);
     CloseWindow();

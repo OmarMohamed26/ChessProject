@@ -33,10 +33,10 @@ critical changes:
 14) 📝  TODO if a piece is selected and you click else where on the board it gets unselected ✅  Done
 15) 📝  TODO add the undo/redo logic with buttons on the game and ctrl+z ctrl+y 🟡  In Progress
 16) 📝  TODO add castling en-passant promotion 🟡  In Progress
-17) 📝  TODO add stalemate by repetition logic ⚪ Pending
+17) 📝  TODO add stalemate by repetition logic ✅  Done
 18) 📝  TODO add eaten pieces from each side ✅  Done
 19) 📝  TODO add move sound when a move happens 🟡  In Progress AbdElRahman should put the correct sounds (don't forget to unload the sounds before we exit the game)
-20) 📝  TODO add stalemate by Threefold Repetition: The game doesn't track if the same position has occurred three times. / add stalemate by Insufficient Material: If only two Kings are left, the game will likely continue indefinitely instead of declaring a draw / Fifty moves have been made by each player without a capture or pawn movement. ⚪ Pending
+20) 📝  TODO add stalemate by Threefold Repetition: The game doesn't track if the same position has occurred three times. / add stalemate by Insufficient Material: If only two Kings are left, the game will likely continue indefinitely instead of declaring a draw / Fifty moves have been made by each player without a capture or pawn movement. 🟡  In Progress
 21) 📝  TODO load all textures once at the start and use a pointer to it or something so you don't have to load/unload for every move you make ❌  Cancelled
 22) 📝  TODO add  Rule specific fields to GameState ✅  Done
 23) 📝  TODO use LoadDirectoryFiles in raylib to load the saved games in a specific folder that we make / before saving a file see if it already exists and if so prompt the use for another name 

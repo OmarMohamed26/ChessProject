@@ -44,6 +44,7 @@ enum settings
      START_SCREEN_HEIGHT = 720,
      MIN_SCREEN_WIDTH = 480,
      FPS = 60,
+     INITIAL_DYNAMIC_HASH_ARRAY_SIZE = 32,
 
 };
 

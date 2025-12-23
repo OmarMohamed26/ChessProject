@@ -12,6 +12,7 @@
 #ifndef MAIN_H
 #define MAIN_H
 
+#include "hash.h"
 #include "raylib.h"
 #include "settings.h"
 
@@ -160,6 +161,9 @@ typedef struct
     bool isPromoting;
     int promotionRow;
     int promotionCol;
+
+    DynamicHashArray *DHA;
+    bool isRepeated3times;
 
     int deadWhiteCounter;
     int deadBlackCounter;

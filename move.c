@@ -14,6 +14,7 @@
 
 #include "move.h"
 #include "draw.h"
+#include "hash.h"
 #include "main.h"
 #include "settings.h"
 #include <raylib.h>
@@ -78,6 +79,7 @@ void MovePiece(int initialRow, int initialCol, int finalRow, int finalCol)
         GameBoard[finalRow][finalCol].piece.type != PIECE_NONE)
     {
         state.halfMoveClock = 0;
+        ClearDHA(state.DHA);
     }
     else
     {
@@ -256,6 +258,21 @@ void MovePiece(int initialRow, int initialCol, int finalRow, int finalCol)
     }
 
     ResetsAndValidations();
+
+    // --- HISTORY HANDLING ---
+    Hash currentHash = CurrentGameStateHash();
+
+    // 1. Check for Draw (only if reversible move)
+    if (state.halfMoveClock > 0)
+    {
+        if (IsRepeated3times(state.DHA, currentHash))
+        {
+            state.isRepeated3times = true;
+        }
+    }
+
+    // 2. Record the move
+    PushDHA(state.DHA, currentHash);
 }
 
 /**

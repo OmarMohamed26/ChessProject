@@ -16,6 +16,7 @@
  */
 
 #include "draw.h"
+#include "hash.h"
 #include "main.h"
 #include "settings.h"
 #include <ctype.h>
@@ -282,6 +283,16 @@ bool ReadFEN(const char *FENstring, size_t size, bool testInputStringOnly) // It
         state.fullMoveNumber = fullMove;
     }
 
+    if (!testInputStringOnly)
+    {
+        if (state.DHA != NULL)
+        {
+            ClearDHA(state.DHA);
+        }
+
+        // Push the starting position
+        PushDHA(state.DHA, CurrentGameStateHash());
+    }
     return true;
 }
 
