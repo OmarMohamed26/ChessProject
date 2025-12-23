@@ -65,6 +65,25 @@ void MovePiece(int initialRow, int initialCol, int finalRow, int finalCol)
     {
         return;
     }
+
+    // --- UPDATE CLOCKS ---
+    // Fullmove number increments after Black's move
+    if (Turn == TEAM_BLACK)
+    {
+        state.fullMoveNumber++;
+    }
+
+    // Halfmove clock resets on Pawn move or Capture
+    if (GameBoard[initialRow][initialCol].piece.type == PIECE_PAWN ||
+        GameBoard[finalRow][finalCol].piece.type != PIECE_NONE)
+    {
+        state.halfMoveClock = 0;
+    }
+    else
+    {
+        state.halfMoveClock++;
+    }
+
     // before loading piece save the move in struct Move
 
     // --- ADDED: Update Castling Rights on Rook Capture ---
