@@ -1085,22 +1085,34 @@ void FinalValidation(int CellX, int CellY, bool selected)
         }
         if (Turn == TEAM_WHITE)
         {
-            if (piece1 == PIECE_PAWN && GameBoard[CellX - 1][CellY - 1].isvalid && GameBoard[CellX - 1][CellY - 1].piece.type == PIECE_NONE)
+            // FIX: Check CellY - 1 >= 0
+            if (piece1 == PIECE_PAWN && CellY - 1 >= 0 &&
+                GameBoard[CellX - 1][CellY - 1].isvalid &&
+                GameBoard[CellX - 1][CellY - 1].piece.type == PIECE_NONE)
             {
                 state.enPassantCol = CellY - 1;
             }
-            else if (piece1 == PIECE_PAWN && GameBoard[CellX - 1][CellY + 1].isvalid && GameBoard[CellX - 1][CellY + 1].piece.type == PIECE_NONE)
+            // FIX: Check CellY + 1 < BOARD_SIZE
+            else if (piece1 == PIECE_PAWN && CellY + 1 < BOARD_SIZE &&
+                     GameBoard[CellX - 1][CellY + 1].isvalid &&
+                     GameBoard[CellX - 1][CellY + 1].piece.type == PIECE_NONE)
             {
                 state.enPassantCol = CellY + 1;
             }
         }
         else
         {
-            if (piece1 == PIECE_PAWN && GameBoard[CellX + 1][CellY - 1].isvalid && GameBoard[CellX + 1][CellY - 1].piece.type == PIECE_NONE)
+            // FIX: Check CellY - 1 >= 0
+            if (piece1 == PIECE_PAWN && CellY - 1 >= 0 &&
+                GameBoard[CellX + 1][CellY - 1].isvalid &&
+                GameBoard[CellX + 1][CellY - 1].piece.type == PIECE_NONE)
             {
                 state.enPassantCol = CellY - 1;
             }
-            else if (piece1 == PIECE_PAWN && GameBoard[CellX + 1][CellY + 1].isvalid && GameBoard[CellX + 1][CellY + 1].piece.type == PIECE_NONE)
+            // FIX: Check CellY + 1 < BOARD_SIZE
+            else if (piece1 == PIECE_PAWN && CellY + 1 < BOARD_SIZE &&
+                     GameBoard[CellX + 1][CellY + 1].isvalid &&
+                     GameBoard[CellX + 1][CellY + 1].piece.type == PIECE_NONE)
             {
                 state.enPassantCol = CellY + 1;
             }
