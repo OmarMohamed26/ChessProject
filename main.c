@@ -188,6 +188,15 @@ int main(void)
                     // this is kind of simillar to the standard <string.h> way
                     TextCopy(saveFileName, ""); // Clear previous input
                 }
+                else if (IsKeyPressed(KEY_C))
+                {
+                    unsigned char *currentFen = SaveFEN();
+                    if (currentFen)
+                    {
+                        SetClipboardText((const char *)currentFen);
+                        free(currentFen);
+                    }
+                }
             }
 
             BeginDrawing();
@@ -425,13 +434,34 @@ void HandleGui(void)
         TextCopy(fenInputBuffer, ""); // Clear buffer
     }
 
-    // --- SPINNER: THEME SELECTION ---
-    // We place it at index 4.
-    // We pass NULL for text to avoid overlapping with the previous button.
-    // Range is 0 to 5 (assuming 6 themes defined in colors.h/settings.h)
+    // --- SPINNER: THEME SELECTION (Index 4) ---
     if (GuiSpinner(GetTopButtonRect(4), NULL, &currentThemeIndex, 0, 5, themeEditMode))
     {
         themeEditMode = !themeEditMode;
+    }
+
+    // --- BUTTON 5: UNDO MOVE ---
+    // We check if the stack has items to visually indicate availability (optional logic)
+    if (GuiButton(GetTopButtonRect(5), GuiIconText(ICON_UNDO, NULL)))
+    {
+        UndoMove();
+    }
+
+    // --- BUTTON 6: REDO MOVE ---
+    if (GuiButton(GetTopButtonRect(6), GuiIconText(ICON_REDO, NULL)))
+    {
+        RedoMove();
+    }
+
+    // --- BUTTON 7: COPY FEN TO CLIPBOARD ---
+    if (GuiButton(GetTopButtonRect(7), GuiIconText(ICON_FILE_COPY, "Copy")))
+    {
+        unsigned char *currentFen = SaveFEN();
+        if (currentFen)
+        {
+            SetClipboardText((const char *)currentFen);
+            free(currentFen);
+        }
     }
 
     // --- POPUP 1: TEXT INPUT (Filename) ---
