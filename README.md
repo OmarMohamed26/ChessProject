@@ -33,12 +33,30 @@ This project goes beyond simple rendering, implementing a complete chess engine 
 ## 🛠️ Build & Installation
 
 ### Requirements
-- **OS:** Linux (Tested on Ubuntu/Debian)
+- **OS:** Linux (Tested on Ubuntu/Debian) (it should also work for mac and windows)
 - **Compiler:** GCC (C17 standard)
-- **Library:** [raylib](https://github.com/raysan5/raylib) (4.0+)
-- **Tool:** Make
+- **Tools:** Make, CMake (3.14+)
 
-### Installing Raylib (Debian/Ubuntu)
+### Option 1: Automatic Build (Recommended)
+This method uses CMake to automatically download, compile, and link **Raylib** locally for this project. No system-wide installation is required.
+
+```bash
+# 1. Create build directory
+mkdir build && cd build
+
+# 2. Configure (downloads Raylib)
+cmake .. -DCMAKE_BUILD_TYPE=Release
+
+# 3. Build
+make
+
+# 4. Run
+./chess
+```
+
+### Option 2: Manual Build (Advanced)
+For manual installation of Raylib system-wide:
+
 ```bash
 git clone https://github.com/raysan5/raylib.git
 cd raylib
