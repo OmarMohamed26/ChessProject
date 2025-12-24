@@ -42,6 +42,8 @@
 
 #define VALID_MOVE_COLOR CLITERAL(Color){100, 100, 100, 100}
 
+#define DEBUG_TEXT_COLOR WHITE
+
 typedef struct ColorPair
 {
     Color white;

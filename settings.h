@@ -20,6 +20,9 @@ enum settings
      INNER_VALID_MOVE_RADIUS = 80, // this is out of FULL_VALID_MOVE_RADIUS
      OUTER_VALID_MOVE_RADIUS = 90, // this is out of FULL_VALID_MOVE_RADIUS
      FULL_CIRCLE_ANGLE = 360,      // this shouldn't be changed at all
+     DEBUG_MENU_FONT_SIZE = 20,
+     SPACE_BETWEEN_DEBUG_LINES = 2,
+     SPACE_BETWEEN_DEBUG_SECTIONS = 5,
 
      // move.c
      // Castling

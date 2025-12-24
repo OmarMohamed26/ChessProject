@@ -56,13 +56,14 @@ int main(void)
 
     state.DHA = InitializeDHA(INITIAL_DYNAMIC_HASH_ARRAY_SIZE);
     state.undoStack = InitializeStack(INITAL_UNDO_REDO_STACK_SIZE);
+    state.redoStack = InitializeStack(INITAL_UNDO_REDO_STACK_SIZE);
 
     char standard_game[] = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
     // it should look like this rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
     // Pieces Turn CastlingRights(or -) EnPassant(could look like e3) halfMoveClock fullMoveClock(after black moves)
     ReadFEN(standard_game, strlen(standard_game), false);
 
-    bool showFps = false;
+    bool showDebugMenu = false;
     bool showFileRank = true;
 
 #ifdef DEBUG
@@ -88,9 +89,10 @@ int main(void)
     while (!WindowShouldClose())
     {
         // Keyboard responses
+
         if (IsKeyPressed(KEY_F5))
         {
-            showFps = !showFps;
+            showDebugMenu = !showDebugMenu;
         }
 
         if (IsKeyPressed(KEY_R))
@@ -149,16 +151,18 @@ int main(void)
             DrawText("DRAW (50 MOVES)", GetRenderWidth() / 2 - 160, 70, 30, BLUE);
         }
 
-        if (showFps)
+        if (showDebugMenu)
         {
-            DrawFPS(0, 0);
+            DrawDebugInfo();
         }
+
         EndDrawing();
     }
 
     UnloadBoard();
     FreeDHA(state.DHA);
     FreeStack(state.undoStack);
+    FreeStack(state.redoStack);
     UnloadDeadPieces();
     UnloadImage(icon);
     CloseWindow();

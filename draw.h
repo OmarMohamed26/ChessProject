@@ -53,4 +53,6 @@ void HighlightValidMoves(bool selected);
 
 void UpdateLastMoveHighlight(int row, int col);
 
+void DrawDebugInfo(void);
+
 #endif /* DRAW_H */

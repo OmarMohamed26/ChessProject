@@ -1014,3 +1014,101 @@ void UpdateLastMoveHighlight(int row, int col)
     }
 }
 
+void DrawDebugInfo(void)
+{
+    int x = 10;
+    int y = 10;
+    int fontSize = DEBUG_MENU_FONT_SIZE;
+    int step = DEBUG_MENU_FONT_SIZE + SPACE_BETWEEN_DEBUG_LINES;
+    Color textColor = DEBUG_TEXT_COLOR;
+
+    // Background
+    DrawRectangle(0, 0, 300, 470, Fade(BLACK, 0.8f));
+
+    DrawFPS(x, y);
+    y += step;
+
+    DrawText("--- GAME STATE ---", x, y, fontSize, GREEN);
+    y += step;
+
+    DrawText(TextFormat("Turn: %s", state.turn == TEAM_WHITE ? "WHITE" : "BLACK"), x, y, fontSize, textColor);
+    y += step;
+
+    DrawText(TextFormat("Full Moves: %d", state.fullMoveNumber), x, y, fontSize, textColor);
+    y += step;
+
+    DrawText(TextFormat("Half Move Clock: %d", state.halfMoveClock), x, y, fontSize, textColor);
+    y += step;
+
+    // En Passant
+    unsigned char epTarget[3] = "-";
+    if (state.enPassantCol != -1)
+    {
+        epTarget[0] = 'a' + state.enPassantCol;
+        epTarget[1] = (state.turn == TEAM_WHITE) ? '6' : '3'; // If it's White's turn, target is rank 6, else 3
+        epTarget[2] = '\0';
+    }
+    DrawText(TextFormat("En Passant Target: %s", epTarget), x, y, fontSize, textColor);
+    y += step;
+
+    // Castling Rights
+    char castling[5] = "-";
+    if (state.whiteKingSide)
+    {
+        castling[0] = 'K';
+    }
+    if (state.whiteQueenSide)
+    {
+        castling[1] = 'Q';
+    }
+    if (state.blackKingSide)
+    {
+        castling[2] = 'k';
+    }
+    if (state.blackQueenSide)
+    {
+        castling[3] = 'q';
+    }
+    DrawText(TextFormat("Castling: %s", castling), x, y, fontSize, textColor);
+    y += step;
+
+    y += SPACE_BETWEEN_DEBUG_SECTIONS; // Spacer
+    DrawText("--- FLAGS ---", x, y, fontSize, GREEN);
+    y += step;
+
+    DrawText(TextFormat("White Checked: %s", state.whitePlayer.Checked ? "YES" : "NO"), x, y, fontSize, state.whitePlayer.Checked ? RED : GRAY);
+    y += step;
+
+    DrawText(TextFormat("Black Checked: %s", state.blackPlayer.Checked ? "YES" : "NO"), x, y, fontSize, state.blackPlayer.Checked ? RED : GRAY);
+    y += step;
+
+    DrawText(TextFormat("Checkmate: %s", state.isCheckmate ? "YES" : "NO"), x, y, fontSize, state.isCheckmate ? RED : textColor);
+    y += step;
+
+    DrawText(TextFormat("Stalemate: %s", state.isStalemate ? "YES" : "NO"), x, y, fontSize, state.isStalemate ? ORANGE : textColor);
+    y += step;
+
+    DrawText(TextFormat("3-Fold Rep: %s", state.isRepeated3times ? "YES" : "NO"), x, y, fontSize, state.isRepeated3times ? ORANGE : textColor);
+    y += step;
+
+    DrawText(TextFormat("Insufficient. Mat: %s", state.isInsufficientMaterial ? "YES" : "NO"), x, y, fontSize, state.isInsufficientMaterial ? ORANGE : textColor);
+    y += step;
+
+    y += SPACE_BETWEEN_DEBUG_SECTIONS; // Spacer
+    DrawText("--- MEMORY ---", x, y, fontSize, GREEN);
+    y += step;
+
+    DrawText(TextFormat("Undo Stack: %zu", state.undoStack->size), x, y, fontSize, textColor);
+    y += step;
+
+    DrawText(TextFormat("Redo Stack: %zu", state.redoStack->size), x, y, fontSize, textColor);
+    y += step;
+
+    DrawText(TextFormat("History (DHA): %zu", state.DHA->size), x, y, fontSize, textColor);
+    y += step;
+
+    DrawText(TextFormat("Dead White: %d", deadWhiteCounter), x, y, fontSize, textColor);
+    y += step;
+
+    DrawText(TextFormat("Dead Black: %d", deadBlackCounter), x, y, fontSize, textColor);
+}
