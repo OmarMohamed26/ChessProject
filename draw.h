@@ -58,4 +58,8 @@ void DrawDebugInfo(void);
 /* NEW: Draws the game status (Check, Mate, Draw, etc.) */
 void DrawGameStatus(void);
 
+Rectangle GetTopButtonRect(int index);
+
+void ResetSelectedPiece(void);
+
 #endif /* DRAW_H */

@@ -16,9 +16,9 @@
 #include "draw.h"
 #include "hash.h"
 #include "main.h"
+#include "raylib.h"
 #include "settings.h"
 #include "stack.h"
-#include <raylib.h>
 #include <stdbool.h>
 #include <stdlib.h>
 

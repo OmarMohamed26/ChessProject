@@ -9,6 +9,8 @@
  */
 
 #define MAIN_C
+#define RAYGUI_IMPLEMENTATION
+
 #ifdef DEBUG
 #include <stdio.h>
 #endif
@@ -18,13 +20,17 @@
 #include "load.h"
 #include "main.h"
 #include "move.h"
+#include "raygui.h"
 #include "raylib.h"
 #include "save.h"
 #include "settings.h"
 #include "stack.h"
+#include "utils.h"
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
+
+void HandleGui(void);
 
 GameState state;
 
@@ -63,7 +69,7 @@ int main(void)
     state.undoStack = InitializeStack(INITAL_UNDO_REDO_STACK_SIZE);
     state.redoStack = InitializeStack(INITAL_UNDO_REDO_STACK_SIZE);
 
-    char standard_game[] = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+    char standard_game[] = STARTING_FEN;
     // it should look like this rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
     // Pieces Turn CastlingRights(or -) EnPassant(could look like e3) halfMoveClock fullMoveClock(after black moves)
     ReadFEN(standard_game, strlen(standard_game), false);
@@ -136,6 +142,9 @@ int main(void)
         DrawGameStatus();
         // ---------------------------------------
 
+        // NEW: Draw GUI Buttons
+        HandleGui();
+
         if (showDebugMenu)
         {
             DrawDebugInfo();
@@ -167,4 +176,14 @@ int main(void)
     CloseWindow();
 
     return 0;
+}
+
+void HandleGui(void)
+{
+    // Button 0: Restart Game
+    // We use GetTopButtonRect(0) to place it above the first file (Column A)
+    if (GuiButton(GetTopButtonRect(0), GuiIconText(ICON_RESTART, "Restart")))
+    {
+        RestartGame();
+    }
 }

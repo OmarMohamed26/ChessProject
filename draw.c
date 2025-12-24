@@ -1231,3 +1231,51 @@ void DrawGameStatus(void)
         DrawText(message, rectX + padding, rectY + padding, fontSize, textColor);
     }
 }
+
+/**
+ * GetTopButtonRect
+ *
+ * Returns the Rectangle for one of the 8 buttons located above the board
+ * and above the status menu.
+ *
+ * Parameters:
+ *  - index: 0 to 7 (corresponding to files 'a' through 'h')
+ */
+Rectangle GetTopButtonRect(int index)
+{
+    if (index < 0 || index >= BOARD_SIZE)
+    {
+        return (Rectangle){0, 0, 0, 0};
+    }
+
+    float squareCount = BOARD_SIZE + SPACE_TEXT;
+    int squareLength = ComputeSquareLength();
+
+    // Horizontal Centering (Same logic as DrawBoard)
+    int extraX = (int)((float)GetRenderWidth() - (squareCount * (float)squareLength)) / 2;
+
+    // Vertical Centering (Same logic as DrawBoard)
+    float verticalSquares = BOARD_SIZE + SPACE_TEXT + TOP_SECTION_SQUARES;
+    int extraY = (int)((float)GetRenderHeight() - (verticalSquares * (float)squareLength)) / 2;
+    if (extraY < 0)
+        extraY = 0;
+
+    // Calculate Position
+    // X: Aligned with the board columns
+    // Matches the logic in InitializeCellsPos for GameBoard[0][index].pos.x
+    float startX = (float)extraX + ((float)squareLength * SPACE_TEXT / 2);
+    float x = startX + (index * (float)squareLength);
+
+    // Y: Top row of the reserved section (Row 0)
+    // The board starts at Row 2 (TOP_SECTION_SQUARES = 2)
+    // The Status Menu is at Row 1
+    // These buttons are at Row 0 (The very top of the content area)
+    float y = (float)extraY;
+
+    return (Rectangle){x, y, (float)squareLength, (float)squareLength / 2.0f};
+}
+
+void ResetSelectedPiece(void)
+{
+    ResetCellBorder(&selectedCellBorder);
+}
