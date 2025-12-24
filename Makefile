@@ -24,10 +24,12 @@ $(info Building in RELEASE mode (-O2, C17)...)
 endif
 
 # Source and Generated Files
+SRC_DIR := src
 # Add all your .c files here
-SRC := main.c draw.c load.c save.c move.c colors.c hash.c stack.c utils.c
-OBJ := $(addprefix $(BUILD_DIR)/$(BUILD_MODE)/, $(SRC:.c=.o))
-DEP := $(addprefix $(BUILD_DIR)/$(BUILD_MODE)/, $(SRC:.c=.d))
+SRC_FILES := main.c draw.c load.c save.c move.c colors.c hash.c stack.c utils.c
+SRC := $(addprefix $(SRC_DIR)/, $(SRC_FILES))
+OBJ := $(addprefix $(BUILD_DIR)/$(BUILD_MODE)/, $(SRC_FILES:.c=.o))
+DEP := $(addprefix $(BUILD_DIR)/$(BUILD_MODE)/, $(SRC_FILES:.c=.d))
 EXECUTABLE = $(BUILD_DIR)/$(TARGET)
 
 # --- Compiler Flags ---
@@ -37,7 +39,7 @@ EXECUTABLE = $(BUILD_DIR)/$(TARGET)
 # -std=c17: Modern C standard
 # -MMD: Auto-generate dependency files
 # Note: Removed -I. because system headers (raylib.h) are found automatically
-CFLAGS += -Wall -Wextra -std=c17 -MMD
+CFLAGS += -Wall -Wextra -std=c17 -MMD -I$(SRC_DIR)
 
 # --- Library / Include directory support ---
 # Add custom library dirs and include dirs when needed:
@@ -84,7 +86,7 @@ $(EXECUTABLE): $(OBJ)
 	$(CC) $(OBJ) -o $@ $(LDFLAGS)
 
 # Compiling .c to .o
-$(BUILD_DIR)/$(BUILD_MODE)/%.o: %.c | $(BUILD_DIR)/$(BUILD_MODE)
+$(BUILD_DIR)/$(BUILD_MODE)/%.o: $(SRC_DIR)/%.c | $(BUILD_DIR)/$(BUILD_MODE)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 # Include auto-generated dependency files
