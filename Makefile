@@ -63,7 +63,7 @@ LDFLAGS += $(foreach d,$(LIB_DIRS),-Wl,-rpath=$(d))
 endif
 # --- Targets ---
 
-.PHONY: all debug run clean
+.PHONY: all debug run clean report
 
 # Default Target: 'make' builds the optimized RELEASE version
 all: $(BUILD_DIR)/$(BUILD_MODE) $(EXECUTABLE)
@@ -71,6 +71,9 @@ all: $(BUILD_DIR)/$(BUILD_MODE) $(EXECUTABLE)
 # Debug Target: 'make debug' builds the DEBUG version (target-specific vars)
 debug: BUILD_MODE=Debug TARGET=debugChess
 debug: all
+
+report:
+	pandoc REPORT.md -o REPORT.pdf
 
 # Create the build directory if it doesn't exist
 $(BUILD_DIR):
