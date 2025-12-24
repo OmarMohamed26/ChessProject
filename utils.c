@@ -6,11 +6,12 @@
 #include "settings.h"
 #include "stack.h"
 #include <stdbool.h>
+#include <stdlib.h> // For malloc/free
 #include <string.h>
 
-void RestartGame(void)
+void LoadGameFromFEN(const char *fen)
 {
-    // 1. Reset Meta-Game Flags (Win/Loss/Draw conditions)
+    // 1. Reset Meta-Game Flags
     state.isCheckmate = false;
     state.isStalemate = false;
     state.isRepeated3times = false;
@@ -29,29 +30,47 @@ void RestartGame(void)
     state.blackPlayer.Checkmated = false;
     state.blackPlayer.SimChecked = false;
 
-    state.turn = TEAM_BLACK;
-
     // 2. Clear History Stacks
     ClearStack(state.undoStack);
     ClearStack(state.redoStack);
-    // clear DHA will be done in ReadFEN
 
-    // 3. Reset Dead Pieces (use globals as in project)
+    // 3. Reset Dead Pieces
     deadWhiteCounter = 0;
     deadBlackCounter = 0;
-    InitializeDeadPieces(); // Clears the visual arrays
+    InitializeDeadPieces();
 
     // 4. Reset Visuals
     ResetJustMoved();
     UpdateLastMoveHighlight(-1, -1);
     ResetSelectedPiece();
 
-    // 5. Reload Board & Game Rules via FEN
-    // ReadFEN will initialize pieces, turn, castling, en passant, clocks and DHA as needed.
     UnloadBoard();
-    const char startFen[] = STARTING_FEN;
-    ReadFEN(startFen, (int)strlen(startFen), false);
 
-    // 6. Initial Validation: compute legal moves for the starting position
+    // 5. Reload Board
+    // We make a copy because ReadFEN might modify the string or expects char*
+    if (fen)
+    {
+        int len = strlen(fen);
+        char *fenCopy = (char *)malloc(len + 1);
+        if (fenCopy)
+        {
+            strcpy(fenCopy, fen);
+            ReadFEN(fenCopy, len, false);
+            free(fenCopy);
+
+            // Adjust Turn because ResetsAndValidations flips it.
+            // We want ResetsAndValidations to calculate moves for the CURRENT turn in FEN.
+            // Since it flips the turn at the start, we must set it to the OPPONENT first.
+            Turn = (Turn == TEAM_WHITE) ? TEAM_BLACK : TEAM_WHITE;
+            state.turn = Turn;
+        }
+    }
+
+    // 6. Initial Validation
     ResetsAndValidations();
+}
+
+void RestartGame(void)
+{
+    LoadGameFromFEN(STARTING_FEN);
 }

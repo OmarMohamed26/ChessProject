@@ -715,6 +715,12 @@ void HighlightHover(int ColorTheme)
  */
 static void DecideDestination(Vector2 topLeft)
 {
+    // NEW: Freeze interaction if a menu is open
+    if (state.isInputLocked)
+    {
+        return;
+    }
+
     // NEW: Intercept input if promoting
     if (state.isPromoting)
     {
@@ -1272,7 +1278,7 @@ Rectangle GetTopButtonRect(int index)
     // These buttons are at Row 0 (The very top of the content area)
     float y = (float)extraY;
 
-    return (Rectangle){x, y, (float)squareLength, (float)squareLength / 2.0f};
+    return (Rectangle){x, y, (float)squareLength * 0.95f, (float)squareLength / 2.0f};
 }
 
 void ResetSelectedPiece(void)

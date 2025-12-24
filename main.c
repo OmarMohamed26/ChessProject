@@ -27,16 +27,28 @@
 #include "stack.h"
 #include "utils.h"
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
 
-void HandleGui(void);
+// Local state for the Save Game UI
+static bool showSaveTextInput = false;
+static bool showOverwriteDialog = false;
+static char saveFileName[MAX_FILE_NAME_LENGTH] = {0};
 
+// NEW: Local state for Load Game UI
+static bool showLoadFileDialog = false;
+static int loadFileScrollIndex = 0;
+static int loadFileActiveIndex = -1;
+// TODO add infinite string buffer
+static char loadFileListBuffer[MAX_LOAD_FILES_TOTAL_LENGTH] = {0}; // Buffer to hold "file1.fen;file2.fen;..."
+static FilePathList loadFilePaths = {0};                           // Raylib struct to hold directory info
+
+// State initialization
 GameState state;
 
 int main(void)
 {
-
     // State initialization
     state.deadWhiteCounter = 0;
     state.deadBlackCounter = 0;
@@ -48,6 +60,7 @@ int main(void)
     state.promotionRow = -1;
     state.promotionCol = -1;
     state.isRepeated3times = false;
+    state.isInputLocked = false; // Initialize the lock
 
     // Initialize the game window
     SetConfigFlags(FLAG_WINDOW_RESIZABLE);
@@ -180,10 +193,216 @@ int main(void)
 
 void HandleGui(void)
 {
-    // Button 0: Restart Game
-    // We use GetTopButtonRect(0) to place it above the first file (Column A)
+    // --- BUTTON 0: RESTART ---
     if (GuiButton(GetTopButtonRect(0), GuiIconText(ICON_RESTART, "Restart")))
     {
         RestartGame();
+    }
+
+    // --- BUTTON 1: SAVE GAME ---
+    if (GuiButton(GetTopButtonRect(1), GuiIconText(ICON_FILE_SAVE, "Save")))
+    {
+        showSaveTextInput = true;
+        state.isInputLocked = true; // Freeze board
+        // this is kind of simillar to the standard <string.h> way
+        TextCopy(saveFileName, ""); // Clear previous input
+    }
+
+    // --- BUTTON 2: LOAD GAME ---
+    if (GuiButton(GetTopButtonRect(2), GuiIconText(ICON_FILE_OPEN, "Load")))
+    {
+        showLoadFileDialog = true;
+        state.isInputLocked = true;
+        loadFileActiveIndex = -1;
+        loadFileScrollIndex = 0;
+
+        // 1. Load files from "saves/" directory
+        if (DirectoryExists("saves"))
+        {
+            // Reload the folder
+            if (loadFilePaths.count > 0)
+            {
+                UnloadDirectoryFiles(loadFilePaths);
+            }
+            loadFilePaths = LoadDirectoryFiles("saves");
+
+            // 2. Format string for GuiListView (items separated by semicolons)
+            // e.g., "game1.fen;game2.fen;cool_save.fen"
+            memset(loadFileListBuffer, 0, sizeof(loadFileListBuffer));
+
+            for (size_t i = 0; i < loadFilePaths.count; i++)
+            {
+                // Only show .fen files
+                if (IsFileExtension(loadFilePaths.paths[i], ".fen"))
+                {
+                    const char *fileName = GetFileName(loadFilePaths.paths[i]);
+                    strcat(loadFileListBuffer, fileName);
+
+                    /* Add a semicolon separator between file names for GuiListView
+                       (GuiListView expects items separated by ';'), but avoid adding
+                       a trailing semicolon after the last item. */
+                    if (i < loadFilePaths.count - 1)
+                    {
+                        strcat(loadFileListBuffer, ";");
+                    }
+                }
+            }
+        }
+        else
+        {
+            TextCopy(loadFileListBuffer, "No saves directory found");
+        }
+    }
+
+    // --- POPUP 1: TEXT INPUT (Filename) ---
+    if (showSaveTextInput)
+    {
+        GuiUnlock(); // Ensure we can interact with the popup
+
+        // A little fade effect that applies to the hole screen to make it clear that we are in pop up mode
+        DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), Fade(BLACK, 0.5f));
+
+        // result  1 means that the Save button was pressed , 0 means cancel and 2 means close
+        int result = GuiTextInputBox(
+            (Rectangle){
+                (float)GetScreenWidth() / 2 - (POPUP_INPUT_WIDTH / 2),
+                (float)GetScreenHeight() / 2 - (POPUP_INPUT_HEIGHT / 2),
+                POPUP_INPUT_WIDTH,
+                POPUP_INPUT_HEIGHT},
+            GuiIconText(ICON_FILE_SAVE, "Save Game"),
+            "Enter file name (without .fen):",
+            "Save;Cancel",
+            saveFileName,
+            MAX_FILE_NAME_LENGTH,
+            NULL);
+
+        if (result == 1) // Save clicked
+        {
+            // Check if file exists
+            char fullPath[MAX_FILE_NAME_LENGTH + 6 /*for the saves part of the of the path*/];
+            TextCopy(fullPath, TextFormat("saves/%s.fen", saveFileName));
+
+            if (FileExists(fullPath))
+            {
+                // File exists, switch to overwrite dialog
+                showSaveTextInput = false;
+                showOverwriteDialog = true;
+            }
+            else
+            {
+                // File doesn't exist, save immediately
+                unsigned char *fenString = SaveFEN();
+                SaveFileText(fullPath, (char *)fenString);
+                free(fenString);
+
+                showSaveTextInput = false;
+                state.isInputLocked = false; // Unfreeze
+            }
+        }
+        else if (result == 0 || result == 2) // Cancel or Close
+        {
+            showSaveTextInput = false;
+            state.isInputLocked = false; // Unfreeze
+        }
+    }
+
+    // --- POPUP 2: OVERWRITE CONFIRMATION ---
+    if (showOverwriteDialog)
+    {
+        GuiUnlock();
+        // A little fade effect that applies to the hole screen to make it clear that we are in pop up mode
+        DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), Fade(BLACK, 0.5f));
+
+        int result = GuiMessageBox(
+            (Rectangle){
+                (float)GetScreenWidth() / 2 - (POPUP_OVERWRITE_WIDTH / 2),
+                (float)GetScreenHeight() / 2 - (POPUP_OVERWRITE_HEIGHT / 2),
+                POPUP_OVERWRITE_WIDTH,
+                POPUP_OVERWRITE_HEIGHT},
+            GuiIconText(ICON_WARNING, "File Exists"),
+            "File already exists. Overwrite?",
+            "Yes;No");
+
+        if (result == 1) // Yes
+        {
+            char fullPath[MAX_FILE_NAME_LENGTH + 6];
+            TextCopy(fullPath, TextFormat("saves/%s.fen", saveFileName));
+
+            unsigned char *fenString = SaveFEN();
+            SaveFileText(fullPath, (char *)fenString);
+            free(fenString);
+
+            showOverwriteDialog = false;
+            state.isInputLocked = false; // Unfreeze
+        }
+        else if (result == 0) // No
+        {
+            showOverwriteDialog = false;
+            state.isInputLocked = false;
+        }
+    }
+
+    // --- POPUP 3: LOAD GAME DIALOG ---
+    if (showLoadFileDialog)
+    {
+        GuiUnlock();
+        // A little fade effect that applies to the hole screen to make it clear that we are in pop up mode
+        DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), Fade(BLACK, 0.5f));
+
+        // Calculate centered position
+        Rectangle winRect = {
+            (float)GetScreenWidth() / 2 - (POPUP_LOAD_WIDTH / 2),
+            (float)GetScreenHeight() / 2 - (POPUP_LOAD_HEIGHT / 2),
+            POPUP_LOAD_WIDTH,
+            POPUP_LOAD_HEIGHT};
+
+        // Window Box
+        if (GuiWindowBox(winRect, "Load Game"))
+        {
+            showLoadFileDialog = false;
+            state.isInputLocked = false;
+        }
+
+        // File List View
+        Rectangle listRect = {winRect.x + 10, winRect.y + 30, winRect.width - 20, winRect.height - 80};
+        GuiListView(listRect, loadFileListBuffer, &loadFileScrollIndex, &loadFileActiveIndex);
+
+        // Load Button
+        if (GuiButton((Rectangle){winRect.x + 10, winRect.y + winRect.height - 40, 80, 30}, GuiIconText(ICON_FILE_OPEN, "Load")))
+        {
+            if (loadFileActiveIndex >= 0 && loadFileActiveIndex < (int)loadFilePaths.count)
+            {
+                // 1. Construct full path
+                // Note: GuiListView index matches the filtered list.
+                // For simplicity here assuming all files in folder are .fen or list matches index.
+                // A safer way is to rebuild the path from the selected text, but using the array is faster.
+                const char *selectedPath = loadFilePaths.paths[loadFileActiveIndex];
+
+                if (FileExists(selectedPath))
+                {
+                    // 2. Read FEN from file
+                    char *loadedFen = LoadFileText(selectedPath);
+
+                    if (loadedFen != NULL)
+                    {
+                        // 3. Reset & Load using the shared helper
+                        LoadGameFromFEN(loadedFen);
+
+                        UnloadFileText(loadedFen);
+
+                        // Close Popup
+                        showLoadFileDialog = false;
+                        state.isInputLocked = false;
+                    }
+                }
+            }
+        }
+
+        // Cancel Button for load
+        if (GuiButton((Rectangle){winRect.x + winRect.width - 90, winRect.y + winRect.height - 40, 80, 30}, "Cancel"))
+        {
+            showLoadFileDialog = false;
+            state.isInputLocked = false;
+        }
     }
 }

@@ -5,3 +5,4 @@ example.fen
 .vscode/compile_commands.json
 test.c
 test
+saves/

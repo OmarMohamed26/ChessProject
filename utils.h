@@ -3,4 +3,7 @@
 
 void RestartGame(void);
 
+// NEW: Helper to reset state and load a specific FEN
+void LoadGameFromFEN(const char *fen);
+
 #endif

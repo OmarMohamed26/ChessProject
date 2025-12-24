@@ -191,6 +191,9 @@ typedef struct
     int deadWhiteCounter;
     int deadBlackCounter;
 
+    // NEW: Flag to freeze board interaction when a popup is open
+    bool isInputLocked;
+
 } GameState;
 
 #ifndef MAIN_C
