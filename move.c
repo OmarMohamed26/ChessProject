@@ -167,6 +167,7 @@ void MovePiece(int initialRow, int initialCol, int finalRow, int finalCol)
             if (finalRow == WHITE_BACK_RANK && finalCol == CASTLE_KS_KING_COL) // White King Side (g1)
             {
                 PushStack(state.undoStack, currentMove);
+                ClearStack(state.redoStack);
                 state.whiteKingSide = false;
                 state.whiteQueenSide = false;
                 LoadPiece(WHITE_BACK_RANK, CASTLE_KS_KING_COL, PIECE_KING, Turn, GAME_BOARD);
@@ -179,6 +180,7 @@ void MovePiece(int initialRow, int initialCol, int finalRow, int finalCol)
             if (finalRow == WHITE_BACK_RANK && finalCol == CASTLE_QS_KING_COL) // White Queen Side (c1)
             {
                 PushStack(state.undoStack, currentMove);
+                ClearStack(state.redoStack);
                 state.whiteKingSide = false;
                 state.whiteQueenSide = false;
                 LoadPiece(WHITE_BACK_RANK, CASTLE_QS_KING_COL, PIECE_KING, Turn, GAME_BOARD);
@@ -195,6 +197,7 @@ void MovePiece(int initialRow, int initialCol, int finalRow, int finalCol)
             if (finalRow == BLACK_BACK_RANK && finalCol == CASTLE_KS_KING_COL) // Black King Side (g8)
             {
                 PushStack(state.undoStack, currentMove);
+                ClearStack(state.redoStack);
                 state.blackKingSide = false;
                 state.blackQueenSide = false;
                 LoadPiece(BLACK_BACK_RANK, CASTLE_KS_KING_COL, PIECE_KING, Turn, GAME_BOARD);
@@ -207,6 +210,7 @@ void MovePiece(int initialRow, int initialCol, int finalRow, int finalCol)
             if (finalRow == BLACK_BACK_RANK && finalCol == CASTLE_QS_KING_COL) // Black Queen Side (c8)
             {
                 PushStack(state.undoStack, currentMove);
+                ClearStack(state.redoStack);
                 state.blackKingSide = false;
                 state.blackQueenSide = false;
                 LoadPiece(BLACK_BACK_RANK, CASTLE_QS_KING_COL, PIECE_KING, Turn, GAME_BOARD);
@@ -332,6 +336,7 @@ void MovePiece(int initialRow, int initialCol, int finalRow, int finalCol)
 
     state.promotionType = PIECE_NONE;
     PushStack(state.undoStack, currentMove);
+    ClearStack(state.redoStack);
 
     ResetsAndValidations();
 
@@ -1422,6 +1427,7 @@ void PromotePawn(PieceType selectedType)
     // 3. FINALIZE RECORDING THE MOVE
     pendingMove.promotionType = selectedType;
     PushStack(state.undoStack, pendingMove);
+    ClearStack(state.redoStack);
 
     // 4. Resume game
     ResetsAndValidations();
@@ -1689,4 +1695,318 @@ Move RecordMove(int initialRow, int initialCol, int finalRow, int finalCol)
     move.halfMove = state.halfMoveClock;
 
     return move;
+}
+
+void UndoMove(void)
+{
+    Move move;
+
+    if (!PopStack(state.undoStack, &move))
+    {
+        // The stack is empty so you can't undo
+        return;
+    }
+
+    // 1. Restore Global State Flags
+    // Note: We do NOT flip the Turn here manually, because ResetsAndValidations()
+    // at the end will flip it for us.
+
+    state.halfMoveClock = move.halfMove;
+
+    // If we are undoing a move that transitioned to Black, we decrement full moves
+    if (Turn == TEAM_BLACK)
+    {
+        state.fullMoveNumber--;
+    }
+
+    state.enPassantCol = move.previousEnPassantCol;
+
+    state.whiteKingSide = move.whiteKingSide;
+    state.whiteQueenSide = move.whiteQueenSide;
+    state.blackKingSide = move.blackKingSide;
+    state.blackQueenSide = move.blackQueenSide;
+
+    // Clear flags that might have been set by the "future" state
+    state.isStalemate = false;
+    state.isRepeated3times = false;
+    state.isInsufficientMaterial = false;
+    Checkmate = false;
+    Player1.Checkmated = false;
+    Player2.Checkmated = false;
+
+    // 2. Move the piece back
+    // This handles Un-Promotion automatically because move.pieceMovedType
+    // stores the original piece (PAWN), not the promoted one.
+    LoadPiece(move.initialRow, move.initialCol, move.pieceMovedType, move.pieceMovedTeam, GAME_BOARD);
+
+    // Clear the destination square (unless it was a capture, which we handle next)
+    SetEmptyCell(&GameBoard[move.finalRow][move.finalCol]);
+
+    // 3. Restore Captured Piece
+    if (move.pieceCapturedType != PIECE_NONE)
+    {
+        Team capturedTeam = (move.pieceMovedTeam == TEAM_WHITE) ? TEAM_BLACK : TEAM_WHITE;
+
+        if (move.wasEnPassant)
+        {
+            // En Passant Special Case:
+            // The captured pawn was NOT at the destination (finalRow, finalCol).
+            // ! It was at (initialRow, finalCol).
+            LoadPiece(move.initialRow, move.finalCol, move.pieceCapturedType, capturedTeam, GAME_BOARD);
+        }
+        else
+        {
+            // Normal Capture:
+            // Put the captured piece back at the destination square.
+            LoadPiece(move.finalRow, move.finalCol, move.pieceCapturedType, capturedTeam, GAME_BOARD);
+        }
+
+        if (capturedTeam == TEAM_WHITE && deadWhiteCounter > 0)
+        {
+            deadWhiteCounter--;
+        }
+        if (capturedTeam == TEAM_BLACK && deadBlackCounter > 0)
+        {
+            deadBlackCounter--;
+        }
+    }
+
+    // 4. Restore Castling (Move the Rook back) the king was by section 2 Move the piece back
+    if (move.wasCastling)
+    {
+        // White King Side
+        if (move.finalRow == WHITE_BACK_RANK && move.finalCol == CASTLE_KS_KING_COL)
+        {
+            // Move Rook from f1 back to h1
+            LoadPiece(WHITE_BACK_RANK, ROOK_KS_COL, PIECE_ROOK, TEAM_WHITE, GAME_BOARD);
+            SetEmptyCell(&GameBoard[WHITE_BACK_RANK][CASTLE_KS_ROOK_COL]);
+        }
+        // White Queen Side
+        else if (move.finalRow == WHITE_BACK_RANK && move.finalCol == CASTLE_QS_KING_COL)
+        {
+            // Move Rook from d1 back to a1
+            LoadPiece(WHITE_BACK_RANK, ROOK_QS_COL, PIECE_ROOK, TEAM_WHITE, GAME_BOARD);
+            SetEmptyCell(&GameBoard[WHITE_BACK_RANK][CASTLE_QS_ROOK_COL]);
+        }
+        // Black King Side
+        else if (move.finalRow == BLACK_BACK_RANK && move.finalCol == CASTLE_KS_KING_COL)
+        {
+            // Move Rook from f8 back to h8
+            LoadPiece(BLACK_BACK_RANK, ROOK_KS_COL, PIECE_ROOK, TEAM_BLACK, GAME_BOARD);
+            SetEmptyCell(&GameBoard[BLACK_BACK_RANK][CASTLE_KS_ROOK_COL]);
+        }
+        // Black Queen Side
+        else if (move.finalRow == BLACK_BACK_RANK && move.finalCol == CASTLE_QS_KING_COL)
+        {
+            // Move Rook from d8 back to a8
+            LoadPiece(BLACK_BACK_RANK, ROOK_QS_COL, PIECE_ROOK, TEAM_BLACK, GAME_BOARD);
+            SetEmptyCell(&GameBoard[BLACK_BACK_RANK][CASTLE_QS_ROOK_COL]);
+        }
+    }
+
+    PopDHA(state.DHA); // It's safe to call this function even if the DHA is empty. anyways an empty DHA shouldn't be reachable here it should be caught at the beginning of the code if PopStack fails.
+
+    // 6. Push the move we have just undone to the Redo stack
+
+    PushStack(state.redoStack, move);
+
+    // 7. Recalculate Valid Moves for the restored state
+    // This function flips the turn, scans enemy moves, and checks for check/mate.
+    ResetsAndValidations();
+
+    // 8. Restore SmartBorders (Visuals)
+    // We need to highlight the move that is NOW at the top of the stack (the one before the undo).
+    if (state.undoStack->size > 0)
+    {
+        // Peek at the previous move without popping it
+        Move previousMove = state.undoStack->data[state.undoStack->size - 1];
+
+        // Update the visual border to point to that move's destination
+        UpdateLastMoveHighlight(previousMove.finalRow, previousMove.finalCol);
+    }
+    else
+    {
+        // No moves left in history, clear the border
+        UpdateLastMoveHighlight(-1, -1);
+    }
+}
+
+void RedoMove(void)
+{
+    Move move;
+
+    if (!PopStack(state.redoStack, &move))
+    {
+        return;
+    }
+
+    // 1. Push to Undo Stack
+    PushStack(state.undoStack, move);
+
+    // 2. Update Clocks
+    if (move.pieceMovedTeam == TEAM_BLACK)
+    {
+        state.fullMoveNumber++;
+    }
+
+    if (move.pieceMovedType == PIECE_PAWN || move.pieceCapturedType != PIECE_NONE)
+    {
+        state.halfMoveClock = 0;
+        ClearDHA(state.DHA);
+    }
+    else
+    {
+        state.halfMoveClock++;
+    }
+
+    // 3. Execute Move on Board
+    // If promotionType is set, use it. Otherwise use the original piece type.
+    PieceType typeToPlace = (move.promotionType != PIECE_NONE) ? move.promotionType : move.pieceMovedType;
+
+    LoadPiece(move.finalRow, move.finalCol, typeToPlace, move.pieceMovedTeam, GAME_BOARD);
+    GameBoard[move.finalRow][move.finalCol].piece.hasMoved = 1;
+    SetEmptyCell(&GameBoard[move.initialRow][move.initialCol]);
+
+    // 4. Handle Special Moves
+
+    // En Passant Capture
+    if (move.wasEnPassant)
+    {
+        SetEmptyCell(&GameBoard[move.initialRow][move.finalCol]); // ! see a note in this weird thing in UndoMove
+    }
+
+    // Castling (Move the Rook)  the king was handled by section 3
+    if (move.wasCastling)
+    {
+        if (move.pieceMovedTeam == TEAM_WHITE)
+        {
+            if (move.finalCol == CASTLE_KS_KING_COL) // KS
+            {
+                LoadPiece(WHITE_BACK_RANK, CASTLE_KS_ROOK_COL, PIECE_ROOK, TEAM_WHITE, GAME_BOARD);
+                SetEmptyCell(&GameBoard[WHITE_BACK_RANK][ROOK_KS_COL]);
+            }
+            else // QS
+            {
+                LoadPiece(WHITE_BACK_RANK, CASTLE_QS_ROOK_COL, PIECE_ROOK, TEAM_WHITE, GAME_BOARD);
+                SetEmptyCell(&GameBoard[WHITE_BACK_RANK][ROOK_QS_COL]);
+            }
+        }
+        else
+        {
+            if (move.finalCol == CASTLE_KS_KING_COL) // KS
+            {
+                LoadPiece(BLACK_BACK_RANK, CASTLE_KS_ROOK_COL, PIECE_ROOK, TEAM_BLACK, GAME_BOARD);
+                SetEmptyCell(&GameBoard[BLACK_BACK_RANK][ROOK_KS_COL]);
+            }
+            else // QS
+            {
+                LoadPiece(BLACK_BACK_RANK, CASTLE_QS_ROOK_COL, PIECE_ROOK, TEAM_BLACK, GAME_BOARD);
+                SetEmptyCell(&GameBoard[BLACK_BACK_RANK][ROOK_QS_COL]);
+            }
+        }
+    }
+
+    // 5. Update Castling Rights
+    // If King moved
+    if (move.pieceMovedType == PIECE_KING)
+    {
+        if (move.pieceMovedTeam == TEAM_WHITE)
+        {
+            state.whiteKingSide = false;
+            state.whiteQueenSide = false;
+        }
+        else
+        {
+            state.blackKingSide = false;
+            state.blackQueenSide = false;
+        }
+    }
+    // If Rook moved
+    if (move.pieceMovedType == PIECE_ROOK)
+    {
+        if (move.pieceMovedTeam == TEAM_WHITE)
+        {
+            if (move.initialRow == WHITE_BACK_RANK && move.initialCol == ROOK_QS_COL)
+                state.whiteQueenSide = false;
+            if (move.initialRow == WHITE_BACK_RANK && move.initialCol == ROOK_KS_COL)
+                state.whiteKingSide = false;
+        }
+        else
+        {
+            if (move.initialRow == BLACK_BACK_RANK && move.initialCol == ROOK_QS_COL)
+                state.blackQueenSide = false;
+            if (move.initialRow == BLACK_BACK_RANK && move.initialCol == ROOK_KS_COL)
+                state.blackKingSide = false;
+        }
+    }
+    // If Rook captured
+    if (move.pieceCapturedType == PIECE_ROOK)
+    {
+        if (move.pieceMovedTeam == TEAM_WHITE) // White captured Black Rook
+        {
+            if (move.finalRow == BLACK_BACK_RANK && move.finalCol == ROOK_QS_COL)
+            {
+                state.blackQueenSide = false;
+            }
+            if (move.finalRow == BLACK_BACK_RANK && move.finalCol == ROOK_KS_COL)
+            {
+                state.blackKingSide = false;
+            }
+        }
+        else // Black captured White Rook
+        {
+            if (move.finalRow == WHITE_BACK_RANK && move.finalCol == ROOK_QS_COL)
+            {
+                state.whiteQueenSide = false;
+            }
+            if (move.finalRow == WHITE_BACK_RANK && move.finalCol == ROOK_KS_COL)
+            {
+                state.whiteKingSide = false;
+            }
+        }
+    }
+
+    // 6. Update En Passant Flag
+    state.enPassantCol = -1;
+    if (move.pieceMovedType == PIECE_PAWN && abs(move.finalRow - move.initialRow) == 2)
+    {
+        state.enPassantCol = move.finalCol;
+        GameBoard[move.finalRow][move.finalCol].PawnMovedTwo = true;
+    }
+
+    // 7. Dead Pieces
+    if (move.pieceCapturedType != PIECE_NONE)
+    {
+        if (move.pieceMovedTeam == TEAM_WHITE)
+        {
+            if (deadBlackCounter < (BOARD_SIZE * 2))
+            {
+                LoadPiece(deadBlackCounter++, 1, move.pieceCapturedType, TEAM_BLACK, DEAD_BLACK_PIECES);
+            }
+        }
+        else
+        {
+            if (deadWhiteCounter < (BOARD_SIZE * 2))
+            {
+                LoadPiece(deadWhiteCounter++, 1, move.pieceCapturedType, TEAM_WHITE, DEAD_WHITE_PIECES);
+            }
+        }
+    }
+
+    // 8. History & Validation
+    ResetsAndValidations();
+
+    Hash currentHash = CurrentGameStateHash();
+    if (state.halfMoveClock > 0)
+    {
+        if (IsRepeated3times(state.DHA, currentHash))
+        {
+            state.isRepeated3times = true;
+        }
+    }
+
+    PushDHA(state.DHA, currentHash);
+
+    // 9. Visuals
+    UpdateLastMoveHighlight(move.finalRow, move.finalCol);
 }

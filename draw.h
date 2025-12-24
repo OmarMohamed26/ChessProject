@@ -51,4 +51,6 @@ int ComputeSquareLength(void);
 /* Highlight valid moves for the selected piece */
 void HighlightValidMoves(bool selected);
 
-#endif
+void UpdateLastMoveHighlight(int row, int col);
+
+#endif /* DRAW_H */

@@ -17,6 +17,7 @@
 #include "hash.h"
 #include "load.h"
 #include "main.h"
+#include "move.h"
 #include "raylib.h"
 #include "save.h"
 #include "settings.h"
@@ -95,6 +96,18 @@ int main(void)
         if (IsKeyPressed(KEY_R))
         {
             showFileRank = !showFileRank;
+        }
+
+        if (IsKeyDown(KEY_LEFT_CONTROL))
+        {
+            if (IsKeyDown(KEY_LEFT_SHIFT) && IsKeyPressed(KEY_Z))
+            {
+                RedoMove();
+            }
+            else if (IsKeyPressed(KEY_Z))
+            {
+                UndoMove();
+            }
         }
 
         BeginDrawing();

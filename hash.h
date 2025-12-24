@@ -27,6 +27,8 @@ bool IsRepeated3times(DynamicHashArray *DHA, Hash currentHash);
 
 bool PushDHA(DynamicHashArray *DHA, Hash hash);
 
+Hash PopDHA(DynamicHashArray *DHA);
+
 Hash CurrentGameStateHash(void);
 
 #endif

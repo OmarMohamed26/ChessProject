@@ -30,7 +30,9 @@ void ResetsAndValidations();
 void ResetMovedStatus();
 void PromotePawn(PieceType selectedType);
 void PrimaryCastlingValidation();
-void PrimaryEnpassantValidation(int row , int col);
+void PrimaryEnpassantValidation(int row, int col);
 void ResetJustMoved();
+void UndoMove(void);
+void RedoMove(void);
 
 #endif

@@ -68,6 +68,16 @@ bool PushDHA(DynamicHashArray *DHA, Hash hash)
     return true;
 }
 
+Hash PopDHA(DynamicHashArray *DHA)
+{
+    if (DHA->size == 0)
+    {
+        return (Hash){0};
+    }
+
+    return DHA->hashArray[DHA->size--];
+}
+
 static bool ExpandDHA(DynamicHashArray *DHA, size_t expandFactor)
 {
     Hash *temp = realloc(DHA->hashArray, sizeof(Hash) * DHA->capacity * expandFactor);

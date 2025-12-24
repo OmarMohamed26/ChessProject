@@ -43,6 +43,7 @@
 #include "move.h"
 #include "raylib.h"
 #include "settings.h"
+#include "stack.h"
 #include <ctype.h>
 #include <math.h>
 #include <stdbool.h>
@@ -345,28 +346,20 @@ static void displayPieces(void) // and DeadPieces
     }
 
     // Display Dead White Pieces
-    for (int row = 0; row < 2 * BOARD_SIZE; row++)
+    for (int row = 0; row < deadWhiteCounter; row++)
     {
         if (DeadWhitePieces[row].piece.type != PIECE_NONE)
         {
             DrawTextureEx(DeadWhitePieces[row].piece.texture, DeadWhitePieces[row].pos, 0, (float)ComputeSquareLength() / (4 * (float)DeadWhitePieces[row].piece.texture.width), WHITE);
         }
-        else
-        {
-            break;
-        }
     }
 
     // Display Dead Black Pieces
-    for (int row = 0; row < 2 * BOARD_SIZE; row++)
+    for (int row = 0; row < deadBlackCounter; row++)
     {
         if (DeadBlackPieces[row].piece.type != PIECE_NONE)
         {
             DrawTextureEx(DeadBlackPieces[row].piece.texture, DeadBlackPieces[row].pos, 0, (float)ComputeSquareLength() / (4 * (float)DeadBlackPieces[row].piece.texture.width), WHITE);
-        }
-        else
-        {
-            break;
         }
     }
 }
@@ -1008,3 +1001,16 @@ static void HandlePromotionInput(void)
     else if (CheckCollisionPointRec(mouse, knightRect))
         PromotePawn(PIECE_KNIGHT);
 }
+
+void UpdateLastMoveHighlight(int row, int col)
+{
+    if (row < 0 || col < 0)
+    {
+        ResetCellBorder(&lastMoveCellBorder);
+    }
+    else
+    {
+        SetCellBorder(&lastMoveCellBorder, &GameBoard[row][col]);
+    }
+}
+
