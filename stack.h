@@ -4,7 +4,7 @@
 #include "main.h"
 #include <stddef.h>
 
-typedef struct
+typedef struct MoveStack
 {
     Move *data;
     size_t size;

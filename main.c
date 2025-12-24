@@ -20,6 +20,7 @@
 #include "raylib.h"
 #include "save.h"
 #include "settings.h"
+#include "stack.h"
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
@@ -53,6 +54,7 @@ int main(void)
     InitializeDeadPieces();
 
     state.DHA = InitializeDHA(INITIAL_DYNAMIC_HASH_ARRAY_SIZE);
+    state.undoStack = InitializeStack(INITAL_UNDO_REDO_STACK_SIZE);
 
     char standard_game[] = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
     // it should look like this rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
@@ -143,6 +145,7 @@ int main(void)
 
     UnloadBoard();
     FreeDHA(state.DHA);
+    FreeStack(state.undoStack);
     UnloadDeadPieces();
     UnloadImage(icon);
     CloseWindow();

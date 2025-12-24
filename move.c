@@ -17,16 +17,21 @@
 #include "hash.h"
 #include "main.h"
 #include "settings.h"
+#include "stack.h"
 #include <raylib.h>
 #include <stdbool.h>
 #include <stdlib.h>
 
 bool checked = false, flag = false;
 
+// NEW: Temporary storage for the move while waiting for promotion selection
+static Move pendingMove;
+
 /* Add prototypes near the top of the file (below includes) */
 static void RaycastRook(int CellX, int CellY, Team team);
 static void RaycastBishop(int CellX, int CellY, Team team);
 void CheckInsufficientMaterial(void);
+Move RecordMove(int initialRow, int initialCol, int finalRow, int finalCol);
 
 /**
  * MovePiece
@@ -117,6 +122,13 @@ void MovePiece(int initialRow, int initialCol, int finalRow, int finalCol)
         }
     }
 
+    // 1. CAPTURE MOVE DETAILS BEFORE BOARD CHANGES
+    // We must do this here because LoadPiece will overwrite the captured piece
+    // and SetEmptyCell will clear the source piece.
+    Move currentMove = RecordMove(initialRow, initialCol, finalRow, finalCol);
+
+    state.enPassantCol = -1;
+
     // DeadPiece Handling
     if (Turn == TEAM_WHITE)
     {
@@ -154,25 +166,26 @@ void MovePiece(int initialRow, int initialCol, int finalRow, int finalCol)
         {
             if (finalRow == WHITE_BACK_RANK && finalCol == CASTLE_KS_KING_COL) // White King Side (g1)
             {
+                PushStack(state.undoStack, currentMove);
+                state.whiteKingSide = false;
+                state.whiteQueenSide = false;
                 LoadPiece(WHITE_BACK_RANK, CASTLE_KS_KING_COL, PIECE_KING, Turn, GAME_BOARD);
                 SetEmptyCell(&GameBoard[WHITE_BACK_RANK][KING_START_COL]);
                 LoadPiece(WHITE_BACK_RANK, CASTLE_KS_ROOK_COL, PIECE_ROOK, Turn, GAME_BOARD);
                 SetEmptyCell(&GameBoard[WHITE_BACK_RANK][ROOK_KS_COL]);
-
-                state.whiteKingSide = false;
-                state.whiteQueenSide = false;
                 ResetsAndValidations();
                 return;
             }
             if (finalRow == WHITE_BACK_RANK && finalCol == CASTLE_QS_KING_COL) // White Queen Side (c1)
             {
+                PushStack(state.undoStack, currentMove);
+                state.whiteKingSide = false;
+                state.whiteQueenSide = false;
                 LoadPiece(WHITE_BACK_RANK, CASTLE_QS_KING_COL, PIECE_KING, Turn, GAME_BOARD);
                 SetEmptyCell(&GameBoard[WHITE_BACK_RANK][KING_START_COL]);
                 LoadPiece(WHITE_BACK_RANK, CASTLE_QS_ROOK_COL, PIECE_ROOK, Turn, GAME_BOARD);
                 SetEmptyCell(&GameBoard[WHITE_BACK_RANK][ROOK_QS_COL]);
 
-                state.whiteKingSide = false;
-                state.whiteQueenSide = false;
                 ResetsAndValidations();
                 return;
             }
@@ -181,25 +194,25 @@ void MovePiece(int initialRow, int initialCol, int finalRow, int finalCol)
         {
             if (finalRow == BLACK_BACK_RANK && finalCol == CASTLE_KS_KING_COL) // Black King Side (g8)
             {
+                PushStack(state.undoStack, currentMove);
+                state.blackKingSide = false;
+                state.blackQueenSide = false;
                 LoadPiece(BLACK_BACK_RANK, CASTLE_KS_KING_COL, PIECE_KING, Turn, GAME_BOARD);
                 SetEmptyCell(&GameBoard[BLACK_BACK_RANK][KING_START_COL]);
                 LoadPiece(BLACK_BACK_RANK, CASTLE_KS_ROOK_COL, PIECE_ROOK, Turn, GAME_BOARD);
                 SetEmptyCell(&GameBoard[BLACK_BACK_RANK][ROOK_KS_COL]);
-
-                state.blackKingSide = false;
-                state.blackQueenSide = false;
                 ResetsAndValidations();
                 return;
             }
             if (finalRow == BLACK_BACK_RANK && finalCol == CASTLE_QS_KING_COL) // Black Queen Side (c8)
             {
+                PushStack(state.undoStack, currentMove);
+                state.blackKingSide = false;
+                state.blackQueenSide = false;
                 LoadPiece(BLACK_BACK_RANK, CASTLE_QS_KING_COL, PIECE_KING, Turn, GAME_BOARD);
                 SetEmptyCell(&GameBoard[BLACK_BACK_RANK][KING_START_COL]);
                 LoadPiece(BLACK_BACK_RANK, CASTLE_QS_ROOK_COL, PIECE_ROOK, Turn, GAME_BOARD);
                 SetEmptyCell(&GameBoard[BLACK_BACK_RANK][ROOK_QS_COL]);
-
-                state.blackKingSide = false;
-                state.blackQueenSide = false;
                 ResetsAndValidations();
                 return;
             }
@@ -280,7 +293,7 @@ void MovePiece(int initialRow, int initialCol, int finalRow, int finalCol)
             }
         }
     }
-    // Update implementing pawnmovedtwoflag
+    // Update implementing PawnMovedTwoFlag
     if (GameBoard[initialRow][initialCol].piece.type == PIECE_PAWN && abs(finalRow - initialRow) == 2)
     {
         GameBoard[finalRow][finalCol].PawnMovedTwo = true;
@@ -292,20 +305,33 @@ void MovePiece(int initialRow, int initialCol, int finalRow, int finalCol)
     SetEmptyCell(&GameBoard[initialRow][initialCol]);
 
     // --- NEW: Check for Promotion ---
+    bool isPromoting = false;
+
     if (GameBoard[finalRow][finalCol].piece.type == PIECE_PAWN)
     {
         // White reaches row 0, Black reaches row 7 (assuming 0 is top)
         if ((GameBoard[finalRow][finalCol].piece.team == TEAM_WHITE && finalRow == 0) ||
             (GameBoard[finalRow][finalCol].piece.team == TEAM_BLACK && finalRow == BOARD_SIZE - 1))
         {
-            state.isPromoting = true;
-            state.promotionRow = finalRow;
-            state.promotionCol = finalCol;
-
-            // RETURN EARLY: Pause the game, wait for input
-            return;
+            isPromoting = true;
         }
     }
+
+    if (isPromoting)
+    {
+        state.isPromoting = true;
+        state.promotionRow = finalRow;
+        state.promotionCol = finalCol;
+
+        // SAVE THE MOVE FOR LATER
+        pendingMove = currentMove;
+
+        // RETURN EARLY: Pause the game, wait for input
+        return;
+    }
+
+    state.promotionType = PIECE_NONE;
+    PushStack(state.undoStack, currentMove);
 
     ResetsAndValidations();
 
@@ -1377,7 +1403,9 @@ void PromotePawn(PieceType selectedType)
     int col = state.promotionCol;
 
     if (row == -1 || col == -1)
+    {
         return;
+    }
 
     Team team = GameBoard[row][col].piece.team;
 
@@ -1389,7 +1417,13 @@ void PromotePawn(PieceType selectedType)
     state.promotionRow = -1;
     state.promotionCol = -1;
 
-    // 3. Resume game
+    state.promotionType = selectedType;
+
+    // 3. FINALIZE RECORDING THE MOVE
+    pendingMove.promotionType = selectedType;
+    PushStack(state.undoStack, pendingMove);
+
+    // 4. Resume game
     ResetsAndValidations();
 }
 
@@ -1598,7 +1632,7 @@ void CheckInsufficientMaterial(void)
     // 2. That minor piece is a Bishop.
     // 3. Both bishops are on the same square color.
     if (whiteMinorPieces == 1 && blackMinorPieces == 1 &&
-        whiteBishops == 1 && blackBishops) // filepath: /home/omar/Project/chess/move.c
+        whiteBishops == 1 && blackBishops == 1) // <--- FIX: Added "== 1"
     {
         if (whiteBishopSquareColor == blackBishopSquareColor)
         {
@@ -1607,4 +1641,52 @@ void CheckInsufficientMaterial(void)
         }
     }
     state.isInsufficientMaterial = false;
+}
+
+Move RecordMove(int initialRow, int initialCol, int finalRow, int finalCol)
+{
+    Move move;
+    move.initialRow = initialRow;
+    move.initialCol = initialCol;
+    move.finalRow = finalRow;
+    move.finalCol = finalCol;
+
+    move.pieceMovedType = state.board[initialRow][initialCol].piece.type;
+    move.pieceMovedTeam = state.board[initialRow][initialCol].piece.team;
+
+    move.pieceCapturedType = state.board[finalRow][finalCol].piece.type;
+
+    // The promotion piece type will be recorded in another place in the program
+    move.promotionType = PIECE_NONE;
+
+    if (move.pieceMovedType == PIECE_PAWN &&
+        initialCol != finalCol &&
+        GameBoard[finalRow][finalCol].piece.type == PIECE_NONE)
+    {
+        move.wasEnPassant = true;
+    }
+    else
+    {
+        move.wasEnPassant = false;
+    }
+
+    move.previousEnPassantCol = state.enPassantCol;
+
+    if (state.board[initialRow][initialCol].piece.type == PIECE_KING && abs(finalCol - initialCol) == 2)
+    {
+        move.wasCastling = true;
+    }
+    else
+    {
+        move.wasCastling = false;
+    }
+
+    move.whiteKingSide = state.whiteKingSide;
+    move.whiteQueenSide = state.whiteQueenSide;
+    move.blackKingSide = state.blackKingSide;
+    move.blackQueenSide = state.blackQueenSide;
+
+    move.halfMove = state.halfMoveClock;
+
+    return move;
 }

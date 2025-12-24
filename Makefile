@@ -5,8 +5,8 @@ BUILD_DIR := build
 # Default build mode is Release (Optimized)
 BUILD_MODE ?= Release
 
-# If the user requested the 'debug' goal, set Debug mode early (affects parsing)
-ifneq (,$(filter debug,$(MAKECMDGOALS)))
+# If the user requested the 'debug' goal OR 'run-debug', set Debug mode early (affects parsing)
+ifneq (,$(filter debug run-debug,$(MAKECMDGOALS)))
 BUILD_MODE := Debug
 TARGET := debugChess
 endif
@@ -25,7 +25,7 @@ endif
 
 # Source and Generated Files
 # Add all your .c files here
-SRC := main.c draw.c load.c save.c move.c colors.c hash.c
+SRC := main.c draw.c load.c save.c move.c colors.c hash.c stack.c
 OBJ := $(addprefix $(BUILD_DIR)/$(BUILD_MODE)/, $(SRC:.c=.o))
 DEP := $(addprefix $(BUILD_DIR)/$(BUILD_MODE)/, $(SRC:.c=.d))
 EXECUTABLE = $(BUILD_DIR)/$(TARGET)
@@ -97,9 +97,11 @@ run: $(EXECUTABLE)
 
 # Build the debug version and run it
 .PHONY: run-debug
+# Apply Debug variables so $(EXECUTABLE) expands to 'build/debugChess'
+run-debug: BUILD_MODE=Debug TARGET=debugChess
 run-debug: debug
-	@echo "Running debug build $(BUILD_DIR)/debugChess..."
-	./$(BUILD_DIR)/debugChess
+	@echo "Running debug build $(EXECUTABLE)..."
+	./$(EXECUTABLE)
 
 # Clean Target
 clean:

@@ -16,6 +16,8 @@
 #include "raylib.h"
 #include "settings.h"
 
+typedef struct MoveStack MoveStack;
+
 /* PieceType
  * - PIECE_NONE == 0 so zero-initialized memory means "empty cell".
  */
@@ -113,7 +115,7 @@ typedef struct __attribute__((packed))
 
     // En-Passant
     unsigned int wasEnPassant : 1;
-    unsigned int previousEnPassantCol : 3;
+    signed int previousEnPassantCol : 4;
     // This is why we don't need the previousEnPassantRow
     // if (sideToMove == WHITE)
     //     enPassantRow = 2;
@@ -160,16 +162,21 @@ typedef struct
     bool isStalemate;
 
     bool isRepeated3times;
-    
+
     // NEW: Insufficient Material Flag
     bool isInsufficientMaterial;
 
     // Promotion State
     bool isPromoting;
+    PieceType promotionType;
     int promotionRow;
     int promotionCol;
 
+    // this is used for detecting threefold repetition
     DynamicHashArray *DHA;
+
+    MoveStack *undoStack;
+    MoveStack *redoStack;
 
     int deadWhiteCounter;
     int deadBlackCounter;

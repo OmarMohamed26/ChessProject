@@ -45,6 +45,7 @@ enum settings
      MIN_SCREEN_WIDTH = 480,
      FPS = 60,
      INITIAL_DYNAMIC_HASH_ARRAY_SIZE = 32,
+     INITAL_UNDO_REDO_STACK_SIZE = 32,
 
 };
 

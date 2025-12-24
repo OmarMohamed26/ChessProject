@@ -82,6 +82,7 @@ static bool ExpandStack(MoveStack *stack, size_t size)
 
     stack->data = temp;
     stack->capacity = size;
+    TraceLog(LOG_DEBUG, "Expanded the the stack to new capacity:%zu", stack->capacity);
     return true;
 }
 
