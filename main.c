@@ -20,12 +20,25 @@
 #include "load.h"
 #include "main.h"
 #include "move.h"
+
+// --- IGNORE RAYGUI WARNINGS ---
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-function"
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+#pragma GCC diagnostic ignored "-Wunused-variable"
+#pragma GCC diagnostic ignored "-Wunused-result"
+#pragma GCC diagnostic ignored "-Wenum-compare"
+#pragma GCC diagnostic ignored "-Wmissing-braces"
 #include "raygui.h"
+#pragma GCC diagnostic pop
+// ------------------------------
+
 #include "raylib.h"
 #include "save.h"
 #include "settings.h"
 #include "stack.h"
 #include "utils.h"
+#include <setjmp.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdlib.h>
@@ -48,6 +61,18 @@ static FilePathList loadFilePaths = {0};                           // Raylib str
 static bool showFenInputPopup = false;
 static bool showFenErrorPopup = false;
 static char fenInputBuffer[MAX_FEN_BUFFER_SIZE] = {0};
+
+// NEW: Exit Confirmation State
+static bool showExitConfirmation = false;
+
+// NEW: Theme Selection State
+static int currentThemeIndex = 0;
+static bool themeEditMode = false;
+
+// NEW: Global jump buffer for clean exit
+static jmp_buf exit_env;
+
+void HandleGui(void);
 
 // State initialization
 GameState state;
@@ -73,6 +98,10 @@ int main(void)
     SetTraceLogLevel(LOG_DEBUG);
 #endif
     InitWindow(START_SCREEN_WIDTH, START_SCREEN_HEIGHT, "Chess");
+
+    // NEW: Disable default ESC behavior so we can handle it manually
+    SetExitKey(KEY_NULL);
+
     SetWindowMinSize(MIN_SCREEN_WIDTH, MIN_SCREEN_WIDTH);
     Image icon = LoadImage("assets/icon.png");
     SetWindowIcon(icon);
@@ -122,82 +151,211 @@ int main(void)
     SaveFileText("example.fen", (const char *)savedGame);
     free(savedGame);
 
-    while (!WindowShouldClose())
+    // NEW: Setup jump point for exit
+    // If setjmp returns 0, it's the initial call -> Enter loop
+    // If setjmp returns 1 (from longjmp), it skips loop -> Cleanup
+    if (!setjmp(exit_env))
     {
-        // Keyboard responses
-
-        if (IsKeyPressed(KEY_F5))
+        while (!WindowShouldClose())
         {
-            showDebugMenu = !showDebugMenu;
-        }
+            // Keyboard responses
 
-        if (IsKeyPressed(KEY_R))
-        {
-            showFileRank = !showFileRank;
-        }
-
-        if (IsKeyDown(KEY_LEFT_CONTROL))
-        {
-            if (IsKeyDown(KEY_LEFT_SHIFT) && IsKeyPressed(KEY_Z))
+            if (IsKeyPressed(KEY_F5))
             {
-                RedoMove();
+                showDebugMenu = !showDebugMenu;
             }
-            else if (IsKeyPressed(KEY_Z))
+
+            if (IsKeyPressed(KEY_R))
             {
-                UndoMove();
+                showFileRank = !showFileRank;
             }
+
+            if (IsKeyDown(KEY_LEFT_CONTROL))
+            {
+                if (IsKeyDown(KEY_LEFT_SHIFT) && IsKeyPressed(KEY_Z))
+                {
+                    RedoMove();
+                }
+                else if (IsKeyPressed(KEY_Z))
+                {
+                    UndoMove();
+                }
+                else if (IsKeyPressed(KEY_S))
+                {
+                    // this code was copied from below from the save button
+                    showSaveTextInput = true;
+                    state.isInputLocked = true; // Freeze board
+                    // this is kind of simillar to the standard <string.h> way
+                    TextCopy(saveFileName, ""); // Clear previous input
+                }
+            }
+
+            BeginDrawing();
+            ClearBackground(BACKGROUND);
+
+            // CHANGED: Use the selected theme from the spinner
+            // We cast the int index to ColorTheme enum
+            if (currentThemeIndex > 5)
+            {
+                currentThemeIndex = 5;
+            }
+            DrawBoard((ColorTheme)currentThemeIndex, showFileRank);
+            HighlightHover((ColorTheme)currentThemeIndex);
+
+            // --- REPLACED OLD UI BLOCK WITH THIS ---
+            DrawGameStatus();
+            // ---------------------------------------
+
+            // NEW: Draw GUI Buttons
+            HandleGui();
+
+            if (showDebugMenu)
+            {
+                DrawDebugInfo();
+            }
+
+            EndDrawing();
         }
 
-        BeginDrawing();
-        ClearBackground(BACKGROUND);
+        // Deinitialize and Free Memory
 
-        ColorTheme theme = THEME_BROWN;
+        UnloadBoard();
 
-        DrawBoard(theme, showFileRank);
-        HighlightHover(theme);
+        FreeDHA(state.DHA);
 
-        // --- REPLACED OLD UI BLOCK WITH THIS ---
-        DrawGameStatus();
-        // ---------------------------------------
+        FreeStack(state.undoStack);
+        FreeStack(state.redoStack);
 
-        // NEW: Draw GUI Buttons
-        HandleGui();
+        UnloadDeadPieces();
 
-        if (showDebugMenu)
-        {
-            DrawDebugInfo();
-        }
+        UnloadImage(icon);
 
-        EndDrawing();
+        UnloadSound(state.sounds.capture);
+        UnloadSound(state.sounds.check);
+        UnloadSound(state.sounds.checkMate);
+        UnloadSound(state.sounds.move);
+
+        CloseAudioDevice();
+
+        CloseWindow();
+
+        return 0;
     }
-
-    // Deinitialize and Free Memory
-
-    UnloadBoard();
-
-    FreeDHA(state.DHA);
-
-    FreeStack(state.undoStack);
-    FreeStack(state.redoStack);
-
-    UnloadDeadPieces();
-
-    UnloadImage(icon);
-
-    UnloadSound(state.sounds.capture);
-    UnloadSound(state.sounds.check);
-    UnloadSound(state.sounds.checkMate);
-    UnloadSound(state.sounds.move);
-
-    CloseAudioDevice();
-
-    CloseWindow();
-
-    return 0;
 }
 
 void HandleGui(void)
 {
+    // --- CHECK FOR GAME OVER ---
+    bool isGameOver = state.isCheckmate ||
+                      state.isStalemate ||
+                      state.isRepeated3times ||
+                      state.isInsufficientMaterial ||
+                      (state.halfMoveClock >= 100);
+
+    if (isGameOver)
+    {
+        // Automatically lock input when game is over
+        state.isInputLocked = true;
+
+        GuiUnlock();
+        // A little fade effect that applies to the hole screen to make it clear that we are in pop up mode
+        DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), Fade(BLACK, 0.6f));
+
+        // Determine the message
+        const char *title = "Game Over";
+        const char *message = "Draw";
+
+        if (state.isCheckmate)
+        {
+            if (state.whitePlayer.Checked)
+                message = "Black Wins by Checkmate!";
+            else
+                message = "White Wins by Checkmate!";
+        }
+        else if (state.isStalemate)
+            message = "Draw by Stalemate";
+        else if (state.isRepeated3times)
+            message = "Draw by Repetition";
+        else if (state.isInsufficientMaterial)
+            message = "Draw by Insufficient Material";
+        else if (state.halfMoveClock >= 100)
+            message = "Draw by 50-Move Rule";
+
+        // Calculate centered position
+        Rectangle winRect = {
+            (float)GetScreenWidth() / 2 - (POPUP_GAMEOVER_WIDTH / 2),
+            (float)GetScreenHeight() / 2 - (POPUP_GAMEOVER_HEIGHT / 2),
+            POPUP_GAMEOVER_WIDTH,
+            POPUP_GAMEOVER_HEIGHT};
+
+        // Draw Window
+        GuiWindowBox(winRect, title);
+
+        // Draw Message
+        // Center text horizontally
+        int textWidth = MeasureText(message, GAMEOVER_FONT_SIZE);
+        DrawText(message, winRect.x + (winRect.width - textWidth) / 2, winRect.y + 45, 20, BLACK);
+
+        // New Game Button
+        if (GuiButton((Rectangle){winRect.x + 20, winRect.y + winRect.height - 50, 120, 30}, "New Game"))
+        {
+            RestartGame();
+            // RestartGame resets flags, so isGameOver becomes false next frame
+        }
+
+        // Exit Button (Close Window)
+        if (GuiButton((Rectangle){winRect.x + winRect.width - 140, winRect.y + winRect.height - 50, 120, 30}, "Exit Game"))
+        {
+            // CHANGED: Jump back to main to execute cleanup code instead of abrupt exit
+            longjmp(exit_env, 1);
+        }
+
+        // Return early so other buttons
+        return;
+    }
+
+    // NEW: Handle ESC Key
+    if (IsKeyPressed(KEY_ESCAPE))
+    {
+        // Priority 1: Close any open popup
+        if (showSaveTextInput)
+        {
+            showSaveTextInput = false;
+            state.isInputLocked = false;
+        }
+        else if (showOverwriteDialog)
+        {
+            showOverwriteDialog = false;
+            state.isInputLocked = false;
+        }
+        else if (showLoadFileDialog)
+        {
+            showLoadFileDialog = false;
+            state.isInputLocked = false;
+        }
+        else if (showFenInputPopup)
+        {
+            showFenInputPopup = false;
+            state.isInputLocked = false;
+        }
+        else if (showFenErrorPopup)
+        {
+            showFenErrorPopup = false;
+            state.isInputLocked = false;
+        }
+        else if (showExitConfirmation)
+        {
+            showExitConfirmation = false;
+            state.isInputLocked = false;
+        }
+        // Priority 2: If no popup is open, ask for exit confirmation
+        else
+        {
+            showExitConfirmation = true;
+            state.isInputLocked = true;
+        }
+    }
+
     // --- BUTTON 0: RESTART ---
     if (GuiButton(GetTopButtonRect(0), GuiIconText(ICON_RESTART, "Restart")))
     {
@@ -265,6 +423,15 @@ void HandleGui(void)
         showFenInputPopup = true;
         state.isInputLocked = true;
         TextCopy(fenInputBuffer, ""); // Clear buffer
+    }
+
+    // --- SPINNER: THEME SELECTION ---
+    // We place it at index 4.
+    // We pass NULL for text to avoid overlapping with the previous button.
+    // Range is 0 to 5 (assuming 6 themes defined in colors.h/settings.h)
+    if (GuiSpinner(GetTopButtonRect(4), NULL, &currentThemeIndex, 0, 5, themeEditMode))
+    {
+        themeEditMode = !themeEditMode;
     }
 
     // --- POPUP 1: TEXT INPUT (Filename) ---
@@ -479,5 +646,38 @@ void HandleGui(void)
             GuiIconText(ICON_WARNING, "Invalid FEN"),
             "The FEN string is invalid.",
             "Ok");
+
+        if (result == 0 || result == 1) // Ok or Close
+        {
+            showFenErrorPopup = false;
+            showFenInputPopup = true; // Go back to input
+        }
+    }
+
+    // NEW: POPUP 6: EXIT CONFIRMATION
+    if (showExitConfirmation)
+    {
+        GuiUnlock();
+        DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), Fade(BLACK, 0.5f));
+
+        int result = GuiMessageBox(
+            (Rectangle){
+                (float)GetScreenWidth() / 2 - (POPUP_OVERWRITE_WIDTH / 2),
+                (float)GetScreenHeight() / 2 - (POPUP_OVERWRITE_HEIGHT / 2),
+                POPUP_OVERWRITE_WIDTH,
+                POPUP_OVERWRITE_HEIGHT},
+            GuiIconText(ICON_EXIT, "Exit Game"),
+            "Are you sure you want to exit?",
+            "Yes;No");
+
+        if (result == 1) // Yes
+        {
+            longjmp(exit_env, 1);
+        }
+        else if (result == 0 || result == 2) // No or close
+        {
+            showExitConfirmation = false;
+            state.isInputLocked = false;
+        }
     }
 }
