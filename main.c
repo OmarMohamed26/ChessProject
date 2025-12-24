@@ -30,6 +30,10 @@
 #pragma GCC diagnostic ignored "-Wenum-compare"
 #pragma GCC diagnostic ignored "-Wmissing-braces"
 #include "raygui.h"
+
+// NEW: Include the Amber style
+#include "style_amber.h"
+
 #pragma GCC diagnostic pop
 // ------------------------------
 
@@ -99,6 +103,9 @@ int main(void)
 #endif
     InitWindow(START_SCREEN_WIDTH, START_SCREEN_HEIGHT, "Chess");
 
+    // NEW: Load the Amber GUI Style
+    GuiLoadStyleAmber();
+
     // NEW: Disable default ESC behavior so we can handle it manually
     SetExitKey(KEY_NULL);
 
@@ -165,11 +172,6 @@ int main(void)
                 showDebugMenu = !showDebugMenu;
             }
 
-            if (IsKeyPressed(KEY_R))
-            {
-                showFileRank = !showFileRank;
-            }
-
             if (IsKeyDown(KEY_LEFT_CONTROL))
             {
                 if (IsKeyDown(KEY_LEFT_SHIFT) && IsKeyPressed(KEY_Z))
@@ -197,10 +199,16 @@ int main(void)
                         free(currentFen);
                     }
                 }
+                else if (IsKeyPressed(KEY_R))
+                {
+                    showFileRank = !showFileRank;
+                }
             }
 
             BeginDrawing();
-            ClearBackground(BACKGROUND);
+
+            // CHANGED: Use the style's background color instead of custom BACKGROUND
+            ClearBackground(GetColor(GuiGetStyle(DEFAULT, BACKGROUND_COLOR)));
 
             // CHANGED: Use the selected theme from the spinner
             // We cast the int index to ColorTheme enum
