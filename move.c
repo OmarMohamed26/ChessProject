@@ -333,6 +333,14 @@ void MovePiece(int initialRow, int initialCol, int finalRow, int finalCol)
     GameBoard[finalRow][finalCol].piece.hasMoved = 1;
     SetEmptyCell(&GameBoard[initialRow][initialCol]);
 
+    // FIX: Execute En Passant Capture
+    // We must do this explicitly here because we reset state.enPassantCol to -1 earlier.
+    if (currentMove.wasEnPassant)
+    {
+        // The captured pawn is at [initialRow][finalCol]
+        SetEmptyCell(&GameBoard[initialRow][finalCol]);
+    }
+
     // --- NEW: Check for Promotion ---
     bool isPromoting = false;
 
@@ -1468,7 +1476,7 @@ void PromotePawn(PieceType selectedType)
     // 4. Resume game
     ResetsAndValidations();
 
-    // NEW: Play sound for promotion moves (using the pending move data)
+    // NEW: Play sound for promotion moves
     PlayGameSound(pendingMove);
 }
 
