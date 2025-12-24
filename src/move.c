@@ -1988,6 +1988,8 @@ void UndoMove(void)
         UpdateLastMoveHighlight(-1, -1);
     }
 
+    ResetSelectedPiece();
+
     // NEW: Play move sound on Undo
     PlayGameSound(move);
 }
