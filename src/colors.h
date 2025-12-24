@@ -1,9 +1,10 @@
 /*
  * colors.h
  *
- * Small header that centralizes color definitions and named color constants
- * used across the project. Keep this header minimal and include "raylib.h"
- * so consumers have the Color type available.
+ * Responsibilities:
+ * - Centralize color definitions and named color constants used across the project.
+ * - Define the ColorPair structure for board themes.
+ * - Define the ColorTheme enum for selecting themes.
  *
  * Conventions:
  * - Macros define Color literals; treat them as read-only values.
@@ -13,6 +14,9 @@
 #define COLORS_H
 
 #include "raylib.h"
+
+// --- Board Theme Colors ---
+// Each theme has a 'White' (light square) and 'Black' (dark square) definition.
 
 #define BROWN_WHITE CLITERAL(Color){242, 212, 174, 255}
 #define BROWN_BLACK CLITERAL(Color){192, 132, 98, 255}
@@ -32,27 +36,40 @@
 #define SKY_WHITE CLITERAL(Color){239, 241, 240, 255}
 #define SKY_BLACK CLITERAL(Color){190, 215, 227, 255}
 
-#define BACKGROUND CLITERAL(Color){48, 46, 43, 255}
+// --- UI & Highlight Colors ---
 
+#define BACKGROUND CLITERAL(Color){48, 46, 43, 255}
 #define FONT_COLOR RAYWHITE
 
+// Highlight for the currently selected piece's square
 #define SELECTED_BORDER_COLOR CLITERAL(Color){255, 203, 0, 150}
 
+// Highlight for the source and destination of the last move
 #define LAST_MOVE_BORDER_COLOR CLITERAL(Color){0, 228, 48, 150}
 
+// Indicator for valid move destinations (dots/circles)
 #define VALID_MOVE_COLOR CLITERAL(Color){100, 100, 100, 100}
 
 #define DEBUG_TEXT_COLOR WHITE
-
 #define STATUS_TEXT_COLOR WHITE
 
+/**
+ * ColorPair
+ *
+ * Represents the two colors used for the checkerboard pattern of a theme.
+ */
 typedef struct ColorPair
 {
-    Color white;
-    Color black;
+    Color white; // Color for light squares
+    Color black; // Color for dark squares
 } ColorPair;
 
-/* Palette enum + array of pairs */
+/**
+ * ColorTheme
+ *
+ * Enumeration of available board color themes.
+ * Used as an index into the global PALETTE array.
+ */
 typedef enum
 {
     THEME_BROWN,

@@ -1,3 +1,16 @@
+/**
+ * stack.c
+ *
+ * Responsibilities:
+ * - Implement a dynamic stack data structure for storing Move objects.
+ * - Handle memory allocation, resizing, and deallocation for the stack.
+ * - Provide standard stack operations (Push, Pop, Peek) with safety checks.
+ *
+ * Notes:
+ * - The stack grows automatically (doubles in capacity) when full.
+ * - Uses Raylib's TraceLog for error reporting.
+ */
+
 #include "stack.h"
 #include "main.h"
 #include "raylib.h"
@@ -9,6 +22,17 @@ const Move EmptyMove = {0};
 
 static bool ExpandStack(MoveStack *stack, size_t size);
 
+/**
+ * InitializeStack
+ *
+ * Creates a new MoveStack with a specified initial capacity.
+ *
+ * Parameters:
+ *  - initialMaximumCapacity: The starting size of the internal array.
+ *
+ * Returns:
+ *  - Pointer to the allocated MoveStack, or NULL if allocation fails.
+ */
 MoveStack *InitializeStack(size_t initialMaximumCapacity)
 {
 
@@ -40,6 +64,14 @@ MoveStack *InitializeStack(size_t initialMaximumCapacity)
     return stack;
 }
 
+/**
+ * FreeStack
+ *
+ * Releases all memory associated with the stack.
+ *
+ * Parameters:
+ *  - stack: Pointer to the stack to free. Safe to pass NULL.
+ */
 void FreeStack(MoveStack *stack)
 {
     if (stack == NULL)
@@ -51,11 +83,27 @@ void FreeStack(MoveStack *stack)
     free(stack);
 }
 
+/**
+ * ClearStack
+ *
+ * Logically clears the stack by resetting the size to 0.
+ * Does not free the internal memory buffer.
+ */
 void ClearStack(MoveStack *stack)
 {
     stack->size = 0;
 }
 
+/**
+ * PushStack
+ *
+ * Adds a Move to the top of the stack.
+ * Automatically resizes the stack if it is full.
+ *
+ * Returns:
+ *  - true if successful.
+ *  - false if memory reallocation failed.
+ */
 bool PushStack(MoveStack *stack, Move move)
 {
     if (stack->size >= stack->capacity)
@@ -70,6 +118,15 @@ bool PushStack(MoveStack *stack, Move move)
     return true;
 }
 
+/**
+ * ExpandStack
+ *
+ * Internal helper to resize the stack's data array.
+ *
+ * Returns:
+ *  - true if realloc succeeded.
+ *  - false if realloc failed.
+ */
 static bool ExpandStack(MoveStack *stack, size_t size)
 {
     Move *temp = realloc(stack->data, sizeof(Move) * size);
@@ -86,6 +143,15 @@ static bool ExpandStack(MoveStack *stack, size_t size)
     return true;
 }
 
+/**
+ * PopStack
+ *
+ * Removes the top Move from the stack and stores it in 'out'.
+ *
+ * Returns:
+ *  - true if a move was popped.
+ *  - false if the stack was empty.
+ */
 bool PopStack(MoveStack *stack, Move *out)
 {
     if (stack->size == 0)
@@ -100,6 +166,15 @@ bool PopStack(MoveStack *stack, Move *out)
     return true;
 }
 
+/**
+ * PeekStack
+ *
+ * Returns the top Move without removing it.
+ *
+ * Returns:
+ *  - The top Move.
+ *  - EmptyMove (zeroed struct) if the stack is empty.
+ */
 Move PeekStack(MoveStack *stack)
 {
     if (stack->size == 0)
@@ -111,16 +186,31 @@ Move PeekStack(MoveStack *stack)
     return stack->data[stack->size - 1];
 }
 
+/**
+ * IsStackEmpty
+ *
+ * Returns true if the stack contains no elements.
+ */
 bool IsStackEmpty(MoveStack *stack)
 {
     return stack->size == 0;
 }
 
+/**
+ * StackSize
+ *
+ * Returns the number of elements currently in the stack.
+ */
 size_t StackSize(MoveStack *stack)
 {
     return stack->size;
 }
 
+/**
+ * StackCapacity
+ *
+ * Returns the current allocated capacity of the stack.
+ */
 size_t StackCapacity(MoveStack *stack)
 {
     return stack->capacity;

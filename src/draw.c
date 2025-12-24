@@ -6,24 +6,30 @@
  * - Render the chess board and pieces, including rank/file annotations.
  * - Manage interactive selection state, highlight borders, and last-move feedback.
  * - Load piece images from disk, convert to Texture2D and assign them to GameBoard cells.
+ * - Render UI overlays for Game Status, Debug Info, and Promotion.
  *
  * Public functions (exported in draw.h):
- * - void DrawBoard(int ColorTheme);
+ * - void DrawBoard(int ColorTheme, bool showFileRank);
  *     Renders the board and all pieces. Should be called each frame inside
  *     BeginDrawing()/EndDrawing(). Computes layout for the current window size
  *     and calls display routines.
  *
- *  note that this function has been updated and this is no longer its signature
- * - void LoadPiece(int row, int col, PieceType type, Team team, int squareLength);
+ * - void LoadPiece(int row, int col, PieceType type, Team team, LoadPlace place);
  *     Loads a piece image from assets/ and assigns the resulting Texture2D to
  *     GameBoard[row][col].piece.texture. If a texture already exists in that
  *     cell it is UnloadTexture()'d before assignment. Caller must ensure row/col
- *     are in [0,7]. `squareLength` controls image resize dimensions.
+ *     are in [0,7].
  *
  * - int ComputeSquareLength(void);
  *     Returns the computed size (in pixels) of a single board square using the
  *     current render width/height. Useful to compute positions/resources from
  *     main after InitWindow() or after a resize event.
+ *
+ * - void DrawGameStatus(void);
+ *     Renders the game over / check status message.
+ *
+ * - void DrawDebugInfo(void);
+ *     Renders debug information overlay.
  *
  * Notes / conventions:
  * - Filenames are generated as "assets/<piece><W|B>.png" (example: assets/kingW.png).
@@ -102,6 +108,7 @@ SmartBorder lastMoveCellBorder = {.rect.x = -1, .rect.y = -1};
  *
  * Parameters:
  *  - ColorTheme: index into PALETTE (colors.h)
+ *  - showFileRank: if true, draws rank (1-8) and file (a-h) labels on the board.
  *
  * Behavior:
  *  - Calls ComputeSquareLength() to obtain square size (in pixels).
@@ -466,6 +473,12 @@ static int Min2(int num1, int num2)
     return num1 < num2 ? num1 : num2;
 }
 
+/**
+ * ResetSelection (static)
+ *
+ * Clears the 'selected' flag for all cells on the board.
+ * Used to reset state before processing a new selection.
+ */
 static void ResetSelection()
 {
     for (int i = 0; i < BOARD_SIZE; i++)
@@ -525,6 +538,12 @@ void InitializeBoard(void)
     }
 }
 
+/**
+ * InitializeDeadPieces
+ *
+ * Initialize the arrays used to track captured pieces (DeadWhitePieces/DeadBlackPieces).
+ * Sets all piece types to PIECE_NONE.
+ */
 void InitializeDeadPieces(void)
 {
     for (int row = 0; row < 2 * BOARD_SIZE; row++)
@@ -563,6 +582,12 @@ void UnloadBoard(void)
     }
 }
 
+/**
+ * UnloadDeadPieces
+ *
+ * Release textures associated with captured pieces to free GPU memory.
+ * Iterates through DeadWhitePieces and DeadBlackPieces arrays.
+ */
 void UnloadDeadPieces(void)
 {
     for (int row = 0; row < 2 * BOARD_SIZE; row++)
@@ -590,6 +615,16 @@ void UnloadDeadPieces(void)
     }
 }
 
+/**
+ * HighlightSquare
+ *
+ * Draw a colored rectangle over a specific board square to highlight it.
+ * Also redraws the piece on that square so it appears on top of the highlight.
+ *
+ * Parameters:
+ *  - row, col: Board coordinates of the square.
+ *  - ColorTheme: Index into the color palette.
+ */
 void HighlightSquare(int row, int col, int ColorTheme)
 { // This now fixes the select bug
     ColorPair theme = PALETTE[ColorTheme];
@@ -605,6 +640,15 @@ void HighlightSquare(int row, int col, int ColorTheme)
     }
 }
 
+/**
+ * Clamp (static)
+ *
+ * Helper to restrict an integer value to a maximum.
+ *
+ * Parameters:
+ *  - num: The number to clamp.
+ *  - max: The maximum allowed value.
+ */
 static int Clamp(int num, int max)
 {
     return (num <= max) ? num : max;
@@ -969,6 +1013,17 @@ void HighlightValidMoves(bool selected)
     }
 }
 
+/**
+ * DrawPromotionMenu (static)
+ *
+ * Renders the pawn promotion selection UI.
+ * Draws a menu with Queen, Rook, Bishop, and Knight options near the promotion square.
+ *
+ * Behavior:
+ *  - Checks state.isPromoting; if false, returns immediately.
+ *  - Calculates position based on state.promotionRow/Col.
+ *  - Draws a background and clickable options.
+ */
 static void DrawPromotionMenu(void)
 {
     if (!state.isPromoting)
@@ -1013,6 +1068,12 @@ static void DrawPromotionMenu(void)
     }
 }
 
+/**
+ * HandlePromotionInput (static)
+ *
+ * Processes mouse clicks when the promotion menu is active.
+ * Detects clicks on promotion options and calls PromotePawn().
+ */
 static void HandlePromotionInput(void)
 {
     if (!IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
@@ -1042,6 +1103,14 @@ static void HandlePromotionInput(void)
         PromotePawn(PIECE_KNIGHT);
 }
 
+/**
+ * UpdateLastMoveHighlight
+ *
+ * Updates the border highlight for the destination of the last move made.
+ *
+ * Parameters:
+ *  - row, col: Coordinates of the last move's destination. Pass -1, -1 to clear.
+ */
 void UpdateLastMoveHighlight(int row, int col)
 {
     if (row < 0 || col < 0)
@@ -1054,6 +1123,12 @@ void UpdateLastMoveHighlight(int row, int col)
     }
 }
 
+/**
+ * DrawDebugInfo
+ *
+ * Renders an overlay with debug information including game state flags,
+ * turn info, memory usage, and stack sizes.
+ */
 void DrawDebugInfo(void)
 {
     int x = 10;
@@ -1153,6 +1228,12 @@ void DrawDebugInfo(void)
     DrawText(TextFormat("Dead Black: %d", deadBlackCounter), x, y, fontSize, textColor);
 }
 
+/**
+ * DrawGameStatus
+ *
+ * Checks game state flags (Checkmate, Stalemate, Check, etc.) and renders
+ * a status message banner if necessary.
+ */
 void DrawGameStatus(void)
 {
     const char *message = NULL;
@@ -1281,6 +1362,11 @@ Rectangle GetTopButtonRect(int index)
     return (Rectangle){x, y, (float)squareLength * 0.95f, (float)squareLength / 2.0f};
 }
 
+/**
+ * ResetSelectedPiece
+ *
+ * Clears the visual selection border.
+ */
 void ResetSelectedPiece(void)
 {
     ResetCellBorder(&selectedCellBorder);

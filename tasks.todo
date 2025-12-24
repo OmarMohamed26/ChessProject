@@ -39,9 +39,9 @@ critical changes:
 20) 📝  TODO add stalemate by Threefold Repetition: The game doesn't track if the same position has occurred three times. / add stalemate by Insufficient Material: If only two Kings are left, the game will likely continue indefinitely instead of declaring a draw / Fifty moves have been made by each player without a capture or pawn movement. ✅  Done
 21) 📝  TODO load all textures once at the start and use a pointer to it or something so you don't have to load/unload for every move you make ❌  Cancelled
 22) 📝  TODO add  Rule specific fields to GameState ✅  Done
-23) 📝  TODO use LoadDirectoryFiles in raylib to load the saved games in a specific folder that we make / before saving a file see if it already exists and if so prompt the use for another name ⚪  Pending
-24) 📝  TODO add restart game button / add resign button / add change theme combobox / save file button / add load file button ⚪  Pending
-25) 📝  TODO make some checks on the game when you just load like is it a checkmate stalemate is it a draw ⚪  Pending
+23) 📝  TODO use LoadDirectoryFiles in raylib to load the saved games in a specific folder that we make / before saving a file see if it already exists and if so prompt the use for another name ✅  Done
+24) 📝  TODO add restart game button / add resign button / add change theme combobox / save file button / add load file button ✅  Done
+25) 📝  TODO make some checks on the game when you just load like is it a checkmate stalemate is it a draw ✅  Done
 
 big changes that we will probably don't do:
 1) ♻️	REFACTOR make the functions return more useful error logging on failure to help debug: void -> bool and TraceLog ⚪ Pending

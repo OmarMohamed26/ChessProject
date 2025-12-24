@@ -1,12 +1,13 @@
 /*
  * main.h
  *
- * Core game types used across the project.
- * Keep this header small and self-contained so other modules can include it.
-
- VERY IMPORTANT NOTE:
- ! I added an extra bit for the enums because wether its signed or unsigned is implementation defined an extra bit will make us guarantee that it works as intended
-
+ * Responsibilities:
+ * - Define core data structures used throughout the game (Piece, Cell, GameState).
+ * - Define the Move structure for history tracking.
+ * - Export the global `state` variable.
+ *
+ * VERY IMPORTANT NOTE:
+ * ! I added an extra bit for the enums because wether its signed or unsigned is implementation defined an extra bit will make us guarantee that it works as intended
  */
 
 #ifndef MAIN_H
@@ -84,6 +85,12 @@ typedef struct Cell
     // Saved 8 bytes with these bitfields and it will also help us debug errors
 } Cell;
 
+/**
+ * Player
+ *
+ * Tracks the status of a player (White or Black).
+ * Includes flags for Check, Checkmate, and Stalemate.
+ */
 typedef struct Player
 {
     Team team : 2;
@@ -96,6 +103,11 @@ typedef struct Player
 
 } Player;
 
+/**
+ * GameSounds
+ *
+ * Holds the Raylib Sound objects for game events.
+ */
 typedef struct
 {
     Sound move;
@@ -104,6 +116,14 @@ typedef struct
     Sound checkMate;
 } GameSounds;
 
+/**
+ * Move
+ *
+ * Represents a single move in the game history.
+ * Packed to minimize memory usage for the undo/redo stacks.
+ * Stores source/dest, captured pieces, promotion details, and previous board state flags
+ * (en passant, castling rights) to allow full state restoration.
+ */
 typedef struct __attribute__((packed))
 {
     // Done a very good job packing all this info in 6 bytes actually 44 bits
@@ -142,6 +162,13 @@ typedef struct __attribute__((packed))
 
 } Move;
 
+/**
+ * GameState
+ *
+ * The monolithic state object for the entire game.
+ * Contains the board, player info, rules state (castling, en passant),
+ * history stacks, and UI flags.
+ */
 typedef struct
 {
     // Physical board info

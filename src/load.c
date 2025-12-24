@@ -36,6 +36,7 @@ static bool charInSequence(unsigned char chr);
  * Parameters:
  *  - FENstring : pointer to a NUL-terminated or length-limited FEN substring.
  *  - size      : maximum number of characters to read from FENstring.
+ *  - testInputStringOnly: if true, validates the FEN string without modifying game state.
  *
  * Behavior:
  *  - Reads up to 'size' characters or until a NUL terminator is encountered.
@@ -49,10 +50,6 @@ static bool charInSequence(unsigned char chr);
  *  - If computed file index exceeds 8 it is clamped to 8 and parsing continues.
  *  - If computed row/col are outside [0,7], the character is skipped and parsing
  *    continues without writing to GameBoard.
- *
- * Notes:
- *  - This function only writes piece placement; it does not clear or reset other
- *    board state (call InitializeBoard/UnloadBoard as appropriate before use).
  */
 bool ReadFEN(const char *FENstring, size_t size, bool testInputStringOnly) // It returns true if this a valid or semi-valid FEN-string false otherwise
 {
@@ -296,6 +293,11 @@ bool ReadFEN(const char *FENstring, size_t size, bool testInputStringOnly) // It
     return true;
 }
 
+/**
+ * ZeroRights (static)
+ *
+ * Resets all castling rights flags in the global state to false.
+ */
 static void ZeroRights(void)
 {
     state.whiteKingSide = false;
@@ -304,6 +306,17 @@ static void ZeroRights(void)
     state.blackQueenSide = false;
 }
 
+/**
+ * charInSequence (static)
+ *
+ * Helper to validate if a character is a valid en passant target file or '-'.
+ *
+ * Parameters:
+ *  - chr: The character to check.
+ *
+ * Returns:
+ *  - true if chr is '-' or 'a'-'h' (case-insensitive).
+ */
 static bool charInSequence(unsigned char chr)
 {
     // '-' or file letter a-h/A-H

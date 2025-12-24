@@ -1,11 +1,16 @@
-/*
+/**
  * main.c
  *
- * Entry point: window setup, main loop, layout update and initial piece loading.
+ * Responsibilities:
+ * - Entry point of the application.
+ * - Initializes the window, audio, and game state.
+ * - Contains the main game loop (input processing, update, draw).
+ * - Manages high-level UI (menus, popups, theme selection).
+ * - Handles application cleanup and resource deallocation.
  *
  * Notes:
- * - Create the window (InitWindow) before calling ComputeSquareLength or loading
- * - GameBoard is the global board state (defined below) used by draw.c.
+ * - Uses a setjmp/longjmp pattern to handle clean exits from nested UI states.
+ * - Integrates Raygui for immediate-mode UI elements.
  */
 
 #define MAIN_C
@@ -81,6 +86,20 @@ void HandleGui(void);
 // State initialization
 GameState state;
 
+/**
+ * main
+ *
+ * The application entry point.
+ *
+ * Workflow:
+ * 1. Sets up Raylib window, audio, and GUI styles.
+ * 2. Initializes game subsystems (Board, DeadPieces, Hash, Stacks).
+ * 3. Loads the initial game state (FEN).
+ * 4. Enters the main loop:
+ *    - Polls keyboard input (shortcuts).
+ *    - Draws the board and UI.
+ * 5. Handles clean exit via setjmp/longjmp pattern to ensure resources are freed.
+ */
 int main(void)
 {
     // Initialize the game window
@@ -240,6 +259,22 @@ int main(void)
     }
 }
 
+/**
+ * HandleGui
+ *
+ * Renders and processes logic for the immediate-mode GUI elements.
+ *
+ * Responsibilities:
+ * - Checks for Game Over conditions and draws the end-game modal.
+ * - Handles the ESC key for closing popups or triggering exit confirmation.
+ * - Draws the top toolbar buttons (Restart, Save, Load, FEN, Theme, Undo, Redo, Copy).
+ * - Manages state and rendering for all modal popups:
+ *   - Save Game (Text Input)
+ *   - Overwrite Confirmation
+ *   - Load Game (File List)
+ *   - FEN Input
+ *   - Exit Confirmation
+ */
 void HandleGui(void)
 {
     // --- CHECK FOR GAME OVER ---

@@ -4,6 +4,9 @@
  * Responsibilities:
  * - Execute piece movement between cells on the GameBoard.
  * - Provide a helper to clear a cell's piece data and release associated texture.
+ * - Implement move validation logic (primary geometric checks and final legal checks).
+ * - Handle special moves: Castling, En Passant, Promotion.
+ * - Manage game history (Undo/Redo) and state updates (Turn, Check, Mate).
  *
  * Notes:
  * - These functions operate directly on the global GameBoard array (declared in main.c).
@@ -64,6 +67,10 @@ Move RecordMove(int initialRow, int initialCol, int finalRow, int finalCol);
  * - Marks the destination piece as having moved (hasMoved = 1).
  * - Clears the source cell by calling SetEmptyCell(), which also unloads any texture
  *   that remained on the source.
+ * - Updates game clocks (halfmove/fullmove).
+ * - Handles special moves (Castling, En Passant, Promotion).
+ * - Updates game history (Undo stack, DHA).
+ * - Plays appropriate sound effects.
  *
  * Parameters:
  *  - initialRow, initialCol : source coordinates (0..7)
@@ -628,6 +635,12 @@ void ResetPrimaryValidation()
     }
 }
 
+/**
+ * ResetMovedStatus
+ *
+ * Resets the 'hasMoved' flag for all pieces on the board.
+ * Used when loading a new game or resetting state.
+ */
 void ResetMovedStatus()
 {
     for (int row = 0; row < BOARD_SIZE; row++)
@@ -639,6 +652,12 @@ void ResetMovedStatus()
     }
 }
 
+/**
+ * ResetJustMoved
+ *
+ * Resets the 'JustMoved' flag for all pieces.
+ * This flag is used to track the last moved piece for En Passant logic.
+ */
 void ResetJustMoved()
 {
     for (int row = 0; row < BOARD_SIZE; row++)
@@ -658,6 +677,7 @@ void ResetJustMoved()
  * Parameters:
  *  - Piece : PieceType at the source square.
  *  - CellX, CellY : coordinates of the source piece.
+ *  - selected : true if the piece is currently selected (triggers special checks like castling).
  *
  * Behavior:
  *  - Looks up whether the piece has moved and its team, then delegates to MoveValidation.
@@ -1413,6 +1433,21 @@ void StalemateValidation()
     }
 }
 
+/**
+ * ResetsAndValidations
+ *
+ * The central update routine called after a move is made or undone.
+ *
+ * Responsibilities:
+ * 1. Flips the turn (White <-> Black).
+ * 2. Clears previous validation flags (isvalid, primaryValid).
+ * 3. Re-calculates board state:
+ *    - Resets vulnerability map.
+ *    - Scans enemy moves to update threats.
+ *    - Checks if the current player is in Check.
+ *    - Checks for Stalemate or Checkmate.
+ *    - Checks for Insufficient Material.
+ */
 void ResetsAndValidations()
 {
     Turn = (Turn == TEAM_WHITE) ? TEAM_BLACK : TEAM_WHITE; // Added turns
@@ -1446,6 +1481,20 @@ void ResetsAndValidations()
     CheckInsufficientMaterial();
 }
 
+/**
+ * PromotePawn
+ *
+ * Finalizes a pending pawn promotion.
+ *
+ * Parameters:
+ *  - selectedType: The piece type chosen by the user (Queen, Rook, Bishop, Knight).
+ *
+ * Behavior:
+ *  - Replaces the pawn at the promotion square with the new piece.
+ *  - Records the move in history with the correct promotion type.
+ *  - Resumes the game loop (calls ResetsAndValidations).
+ *  - Plays the promotion sound.
+ */
 void PromotePawn(PieceType selectedType)
 {
     int row = state.promotionRow;
@@ -1480,6 +1529,17 @@ void PromotePawn(PieceType selectedType)
     PlayGameSound(pendingMove);
 }
 
+/**
+ * PrimaryCastlingValidation
+ *
+ * Checks if castling moves are geometrically possible (path clear, not attacked).
+ *
+ * Behavior:
+ *  - Checks global castling rights flags (whiteKingSide, etc.).
+ *  - Verifies that squares between King and Rook are empty.
+ *  - Verifies that the King does not pass through or land on an attacked square.
+ *  - Sets primaryValid on the King's destination square if valid.
+ */
 void PrimaryCastlingValidation()
 {
     // We use the GameState flags (whiteKingSide, etc.) which are persistent.
@@ -1562,6 +1622,19 @@ void PrimaryCastlingValidation()
     }
 }
 
+/**
+ * PrimaryEnpassantValidation
+ *
+ * Checks if En Passant capture is possible.
+ *
+ * Parameters:
+ *  - row, col: Coordinates of the pawn attempting to capture.
+ *
+ * Behavior:
+ *  - Checks if the pawn is on the correct rank (3 for White, 4 for Black).
+ *  - Checks adjacent squares for an enemy pawn that just moved two squares.
+ *  - Sets primaryValid on the destination square (behind the captured pawn).
+ */
 void PrimaryEnpassantValidation(int row, int col)
 {
     if (Turn == TEAM_WHITE)
@@ -1608,6 +1681,19 @@ void PrimaryEnpassantValidation(int row, int col)
     }
 }
 
+/**
+ * CheckInsufficientMaterial
+ *
+ * Checks if the remaining pieces on the board are insufficient to force a checkmate.
+ *
+ * Scenarios detected:
+ * 1. King vs King.
+ * 2. King + Minor Piece (Bishop/Knight) vs King.
+ * 3. King + Bishop vs King + Bishop (where both bishops are on the same color square).
+ *
+ * Side effects:
+ *  - Sets state.isInsufficientMaterial to true if draw condition is met.
+ */
 void CheckInsufficientMaterial(void)
 {
     int whiteMinorPieces = 0;
@@ -1696,6 +1782,19 @@ void CheckInsufficientMaterial(void)
     state.isInsufficientMaterial = false;
 }
 
+/**
+ * RecordMove
+ *
+ * Creates a Move structure capturing all details of the current move.
+ * Used for history tracking (Undo/Redo).
+ *
+ * Parameters:
+ *  - initialRow, initialCol: Source coordinates.
+ *  - finalRow, finalCol: Destination coordinates.
+ *
+ * Returns:
+ *  - A populated Move structure.
+ */
 Move RecordMove(int initialRow, int initialCol, int finalRow, int finalCol)
 {
     Move move;
@@ -1744,6 +1843,18 @@ Move RecordMove(int initialRow, int initialCol, int finalRow, int finalCol)
     return move;
 }
 
+/**
+ * UndoMove
+ *
+ * Reverts the last move made in the game.
+ *
+ * Behavior:
+ * - Pops the last move from the Undo stack.
+ * - Restores board state (pieces, captured pieces, castling rights, en passant).
+ * - Pushes the undone move to the Redo stack.
+ * - Updates game history (DHA) and visuals.
+ * - Plays undo sound.
+ */
 void UndoMove(void)
 {
     Move move;
@@ -1881,6 +1992,18 @@ void UndoMove(void)
     PlayGameSound(move);
 }
 
+/**
+ * RedoMove
+ *
+ * Re-applies a move that was previously undone.
+ *
+ * Behavior:
+ * - Pops the move from the Redo stack.
+ * - Re-executes the move on the board (including captures, castling, promotion).
+ * - Pushes the move back to the Undo stack.
+ * - Updates game history and visuals.
+ * - Plays move sound.
+ */
 void RedoMove(void)
 {
     Move move;

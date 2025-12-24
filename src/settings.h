@@ -1,8 +1,26 @@
+/**
+ * settings.h
+ *
+ * Responsibilities:
+ * - Define compile-time constants and configuration settings for the game.
+ * - Group settings by module (draw, move, main) for better organization.
+ * - Provide constants for board dimensions, UI layout, and game rules.
+ *
+ * Notes:
+ * - These values are fixed at build time and cannot be changed at runtime.
+ * - Includes settings for visual customization (fonts, highlights), game logic (castling ranks),
+ *   and application defaults (screen size, FPS).
+ */
+
 #ifndef SETTINGS_H
 #define SETTINGS_H
-/*This file has some constants not all of them*/
 
-// These settings are at build time you can't change them after the game has been built
+/*
+ * Global Game Settings
+ *
+ * These enumerations define various constants used throughout the application.
+ * They are grouped loosely by the source file or subsystem they primarily affect.
+ */
 enum settings
 {
      // draw.c settings
@@ -23,35 +41,44 @@ enum settings
      DEBUG_MENU_FONT_SIZE = 20,
      SPACE_BETWEEN_DEBUG_LINES = 2,
      SPACE_BETWEEN_DEBUG_SECTIONS = 5,
+
+     /* Status bar settings */
      STATUS_MENU_FONT_SIZE = 30,
      STATUS_MENU_PADDING = 20,
 
-     // move.c
-     // Castling
+     // --- MOVE.C SETTINGS (Game Logic) ---
+
+     /* Castling Ranks (0-7) */
      WHITE_BACK_RANK = 7,
      BLACK_BACK_RANK = 0,
 
-     // source columns
+     /* Initial Piece Columns */
      KING_START_COL = 4,
      ROOK_QS_COL = 0, // Queen Side Rook Start (a-file)
      ROOK_KS_COL = 7, // Queen Side Rook Start (a-file)
 
-     // Destination columns for King after castling
+     /* Castling Destination Columns (King) */
      CASTLE_KS_KING_COL = 6, // g-file
      CASTLE_QS_KING_COL = 2, // c-file
 
-     // Destination columns for Rook after castling
+     /* Castling Destination Columns (Rook) */
      CASTLE_KS_ROOK_COL = 5, // f-file
      CASTLE_QS_ROOK_COL = 3, // d-file
 
-     // main.c
+     // --- MAIN.C SETTINGS (Application & UI) ---
+
+     /* Window defaults */
      START_SCREEN_WIDTH = 1280,
      START_SCREEN_HEIGHT = 720,
      MIN_SCREEN_WIDTH = 480,
      FPS = 60,
+
+     /* Memory allocation defaults */
      INITIAL_DYNAMIC_HASH_ARRAY_SIZE = 32,
      INITAL_UNDO_REDO_STACK_SIZE = 32,
-     MAX_FILE_NAME_LENGTH = 64, // including the null character
+     MAX_FILE_NAME_LENGTH = 64,
+
+     /* Popup UI Dimensions */
      POPUP_INPUT_WIDTH = 240,
      POPUP_INPUT_HEIGHT = 140,
      POPUP_OVERWRITE_WIDTH = 250,
@@ -66,9 +93,12 @@ enum settings
      POPUP_GAMEOVER_WIDTH = 300,
      POPUP_GAMEOVER_HEIGHT = 160,
      GAMEOVER_FONT_SIZE = 20,
-
 };
 
+/* Board Dimensions */
 #define BOARD_SIZE 8
+
+/* Standard Chess Starting Position (FEN) */
 #define STARTING_FEN "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
-#endif
+
+#endif /* SETTINGS_H */

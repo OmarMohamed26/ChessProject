@@ -51,15 +51,19 @@ int ComputeSquareLength(void);
 /* Highlight valid moves for the selected piece */
 void HighlightValidMoves(bool selected);
 
+/* Updates the border highlight for the destination of the last move made. */
 void UpdateLastMoveHighlight(int row, int col);
 
+/* Renders an overlay with debug information */
 void DrawDebugInfo(void);
 
 /* NEW: Draws the game status (Check, Mate, Draw, etc.) */
 void DrawGameStatus(void);
 
+/* Returns the Rectangle for one of the top buttons */
 Rectangle GetTopButtonRect(int index);
 
+/* Clears the visual selection border */
 void ResetSelectedPiece(void);
 
 #endif /* DRAW_H */
