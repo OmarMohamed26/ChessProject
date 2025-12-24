@@ -423,7 +423,13 @@ void HandleGui(void)
         loadFileActiveIndex = -1;
         loadFileScrollIndex = 0;
 
-        // 1. Load files from "saves/" directory
+        // 1. Ensure "saves/" directory exists
+        if (!DirectoryExists("saves"))
+        {
+            MakeDirectory("saves");
+        }
+
+        // 2. Load files from "saves/" directory
         if (DirectoryExists("saves"))
         {
             // Reload the folder
@@ -433,7 +439,7 @@ void HandleGui(void)
             }
             loadFilePaths = LoadDirectoryFiles("saves");
 
-            // 2. Format string for GuiListView (items separated by semicolons)
+            // 3. Format string for GuiListView (items separated by semicolons)
             // e.g., "game1.fen;game2.fen;cool_save.fen"
             memset(loadFileListBuffer, 0, sizeof(loadFileListBuffer));
 
@@ -523,6 +529,12 @@ void HandleGui(void)
 
         if (result == 1) // Save clicked
         {
+            // NEW: Ensure "saves/" directory exists before checking/writing
+            if (!DirectoryExists("saves"))
+            {
+                MakeDirectory("saves");
+            }
+
             // Check if file exists
             char fullPath[MAX_FILE_NAME_LENGTH + 6 /*for the saves part of the of the path*/];
             TextCopy(fullPath, TextFormat("saves/%s.fen", saveFileName));
