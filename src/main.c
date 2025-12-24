@@ -211,9 +211,9 @@ int main(void)
 
             // CHANGED: Use the selected theme from the spinner
             // We cast the int index to ColorTheme enum
-            if (currentThemeIndex > 5)
+            if (currentThemeIndex > THEME_COUNT - 1)
             {
-                currentThemeIndex = 5;
+                currentThemeIndex = THEME_COUNT - 1;
             }
             DrawBoard((ColorTheme)currentThemeIndex, showFileRank);
             HighlightHover((ColorTheme)currentThemeIndex);
@@ -291,7 +291,7 @@ void HandleGui(void)
 
         GuiUnlock();
         // A little fade effect that applies to the hole screen to make it clear that we are in pop up mode
-        DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), Fade(BLACK, 0.6f));
+        DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), Fade(BLACK, FADE_CONSTANT));
 
         // Determine the message
         const char *title = "Game Over";
@@ -300,23 +300,35 @@ void HandleGui(void)
         if (state.isCheckmate)
         {
             if (state.whitePlayer.Checked)
+            {
                 message = "Black Wins by Checkmate!";
+            }
             else
+            {
                 message = "White Wins by Checkmate!";
+            }
         }
         else if (state.isStalemate)
+        {
             message = "Draw by Stalemate";
+        }
         else if (state.isRepeated3times)
+        {
             message = "Draw by Repetition";
+        }
         else if (state.isInsufficientMaterial)
+        {
             message = "Draw by Insufficient Material";
+        }
         else if (state.halfMoveClock >= 100)
+        {
             message = "Draw by 50-Move Rule";
+        }
 
         // Calculate centered position
         Rectangle winRect = {
-            (float)GetScreenWidth() / 2 - (POPUP_GAMEOVER_WIDTH / 2),
-            (float)GetScreenHeight() / 2 - (POPUP_GAMEOVER_HEIGHT / 2),
+            ((float)GetScreenWidth() / 2) - (POPUP_GAMEOVER_WIDTH / 2.0F),
+            ((float)GetScreenHeight() / 2) - (POPUP_GAMEOVER_HEIGHT / 2.0F),
             POPUP_GAMEOVER_WIDTH,
             POPUP_GAMEOVER_HEIGHT};
 
@@ -326,7 +338,7 @@ void HandleGui(void)
         // Draw Message
         // Center text horizontally
         int textWidth = MeasureText(message, GAMEOVER_FONT_SIZE);
-        DrawText(message, winRect.x + (winRect.width - textWidth) / 2, winRect.y + 45, 20, BLACK);
+        DrawText(message, winRect.x + ((winRect.width - textWidth) / 2), winRect.y + 45, UI_FONT, BLACK);
 
         // New Game Button
         if (GuiButton((Rectangle){winRect.x + 20, winRect.y + winRect.height - 50, 120, 30}, "New Game"))
@@ -493,13 +505,13 @@ void HandleGui(void)
         GuiUnlock(); // Ensure we can interact with the popup
 
         // A little fade effect that applies to the hole screen to make it clear that we are in pop up mode
-        DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), Fade(BLACK, 0.5f));
+        DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), Fade(BLACK, FADE_CONSTANT));
 
         // result  1 means that the Save button was pressed , 0 means cancel and 2 means close
         int result = GuiTextInputBox(
             (Rectangle){
-                (float)GetScreenWidth() / 2 - (POPUP_INPUT_WIDTH / 2),
-                (float)GetScreenHeight() / 2 - (POPUP_INPUT_HEIGHT / 2),
+                ((float)GetScreenWidth() / 2) - (POPUP_INPUT_WIDTH / 2.0F),
+                ((float)GetScreenHeight() / 2) - (POPUP_INPUT_HEIGHT / 2.0F),
                 POPUP_INPUT_WIDTH,
                 POPUP_INPUT_HEIGHT},
             GuiIconText(ICON_FILE_SAVE, "Save Game"),
@@ -544,12 +556,12 @@ void HandleGui(void)
     {
         GuiUnlock();
         // A little fade effect that applies to the hole screen to make it clear that we are in pop up mode
-        DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), Fade(BLACK, 0.5f));
+        DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), Fade(BLACK, FADE_CONSTANT));
 
         int result = GuiMessageBox(
             (Rectangle){
-                (float)GetScreenWidth() / 2 - (POPUP_OVERWRITE_WIDTH / 2),
-                (float)GetScreenHeight() / 2 - (POPUP_OVERWRITE_HEIGHT / 2),
+                ((float)GetScreenWidth() / 2) - (POPUP_OVERWRITE_WIDTH / 2.0F),
+                ((float)GetScreenHeight() / 2) - (POPUP_OVERWRITE_HEIGHT / 2.0F),
                 POPUP_OVERWRITE_WIDTH,
                 POPUP_OVERWRITE_HEIGHT},
             GuiIconText(ICON_WARNING, "File Exists"),
@@ -580,12 +592,12 @@ void HandleGui(void)
     {
         GuiUnlock();
         // A little fade effect that applies to the hole screen to make it clear that we are in pop up mode
-        DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), Fade(BLACK, 0.5f));
+        DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), Fade(BLACK, FADE_CONSTANT));
 
         // Calculate centered position
         Rectangle winRect = {
-            (float)GetScreenWidth() / 2 - (POPUP_LOAD_WIDTH / 2),
-            (float)GetScreenHeight() / 2 - (POPUP_LOAD_HEIGHT / 2),
+            ((float)GetScreenWidth() / 2) - (POPUP_LOAD_WIDTH / 2.0F),
+            ((float)GetScreenHeight() / 2) - (POPUP_LOAD_HEIGHT / 2.0F),
             POPUP_LOAD_WIDTH,
             POPUP_LOAD_HEIGHT};
 
@@ -644,12 +656,12 @@ void HandleGui(void)
     {
         GuiUnlock();
         // A little fade effect that applies to the hole screen to make it clear that we are in pop up mode
-        DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), Fade(BLACK, 0.5f));
+        DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), Fade(BLACK, FADE_CONSTANT));
 
         int result = GuiTextInputBox(
             (Rectangle){
-                (float)GetScreenWidth() / 2 - (POPUP_FEN_WIDTH / 2),
-                (float)GetScreenHeight() / 2 - (POPUP_FEN_HEIGHT / 2),
+                ((float)GetScreenWidth() / 2) - (POPUP_FEN_WIDTH / 2.0F),
+                ((float)GetScreenHeight() / 2) - (POPUP_FEN_HEIGHT / 2.0F),
                 POPUP_FEN_WIDTH,
                 POPUP_FEN_HEIGHT},
             GuiIconText(ICON_TEXT_T, "Load from FEN"),
@@ -688,12 +700,12 @@ void HandleGui(void)
     if (showFenErrorPopup)
     {
         GuiUnlock();
-        DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), Fade(BLACK, 0.5f));
+        DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), Fade(BLACK, FADE_CONSTANT));
 
         int result = GuiMessageBox(
             (Rectangle){
-                (float)GetScreenWidth() / 2 - (POPUP_WRONG_FEN_WIDTH / 2),
-                (float)GetScreenHeight() / 2 - (POPUP_WRONG_FEN_HEIGHT / 2),
+                ((float)GetScreenWidth() / 2) - (POPUP_WRONG_FEN_WIDTH / 2.0F),
+                ((float)GetScreenHeight() / 2) - (POPUP_WRONG_FEN_HEIGHT / 2.0F),
                 POPUP_WRONG_FEN_WIDTH,
                 POPUP_WRONG_FEN_HEIGHT},
             GuiIconText(ICON_WARNING, "Invalid FEN"),
@@ -711,12 +723,12 @@ void HandleGui(void)
     if (showExitConfirmation)
     {
         GuiUnlock();
-        DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), Fade(BLACK, 0.5f));
+        DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), Fade(BLACK, FADE_CONSTANT));
 
         int result = GuiMessageBox(
             (Rectangle){
-                (float)GetScreenWidth() / 2 - (POPUP_OVERWRITE_WIDTH / 2),
-                (float)GetScreenHeight() / 2 - (POPUP_OVERWRITE_HEIGHT / 2),
+                ((float)GetScreenWidth() / 2) - (POPUP_OVERWRITE_WIDTH / 2.0F),
+                ((float)GetScreenHeight() / 2) - (POPUP_OVERWRITE_HEIGHT / 2.0F),
                 POPUP_OVERWRITE_WIDTH,
                 POPUP_OVERWRITE_HEIGHT},
             GuiIconText(ICON_EXIT, "Exit Game"),

@@ -16,6 +16,7 @@
 #include "settings.h"
 #include "stack.h"
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdlib.h> // For malloc/free
 #include <string.h>
 
@@ -82,7 +83,7 @@ void LoadGameFromFEN(const char *fen)
     // We make a copy because ReadFEN might modify the string or expects char*
     if (fen)
     {
-        int len = strlen(fen);
+        size_t len = strlen(fen);
         char *fenCopy = (char *)malloc(len + 1);
         if (fenCopy)
         {

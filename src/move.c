@@ -2102,16 +2102,24 @@ void RedoMove(void)
         if (move.pieceMovedTeam == TEAM_WHITE)
         {
             if (move.initialRow == WHITE_BACK_RANK && move.initialCol == ROOK_QS_COL)
+            {
                 state.whiteQueenSide = false;
+            }
             if (move.initialRow == WHITE_BACK_RANK && move.initialCol == ROOK_KS_COL)
+            {
                 state.whiteKingSide = false;
+            }
         }
         else
         {
             if (move.initialRow == BLACK_BACK_RANK && move.initialCol == ROOK_QS_COL)
+            {
                 state.blackQueenSide = false;
+            }
             if (move.initialRow == BLACK_BACK_RANK && move.initialCol == ROOK_KS_COL)
+            {
                 state.blackKingSide = false;
+            }
         }
     }
     // If Rook captured

@@ -81,7 +81,6 @@ static void ResetSelection();
 static int Clamp(int num, int max);
 static void HandlePromotionInput(void);
 static void DrawPromotionMenu(void); // <--- ADD THIS PROTOTYPE
-void DrawGameStatus(void);           // <--- ADD THIS PROTOTYPE
 
 // This constant determines How much space is left for the text in terms of squareLength
 #define SPACE_TEXT 0.75f
@@ -132,7 +131,9 @@ void DrawBoard(int ColorTheme, bool showFileRank)
 
     // Safety clamp
     if (extraY < 0)
+    {
         extraY = 0;
+    }
 
     // Pass both offsets to the initialization function
     InitializeCellsPos(extraX, extraY, squareLength, SPACE_TEXT);
@@ -1044,7 +1045,7 @@ static void DrawPromotionMenu(void)
     int menuHeight = squareSize * 4;
     int menuY = (direction == 1) ? startY : (startY - (squareSize * 3));
 
-    DrawRectangle(startX, menuY, squareSize, menuHeight, Fade(LIGHTGRAY, 0.9f));
+    DrawRectangle(startX, menuY, squareSize, menuHeight, Fade(LIGHTGRAY, FADE_CONSTANT));
     DrawRectangleLines(startX, menuY, squareSize, menuHeight, DARKGRAY);
 
     // Draw Options (Placeholder Text for now, replace with Textures later)
@@ -1053,18 +1054,18 @@ static void DrawPromotionMenu(void)
     for (int i = 0; i < 4; i++)
     {
         int yPos = startY + (direction * squareSize * i);
-        Rectangle btn = {startX, yPos, squareSize, squareSize};
+        Rectangle btn = {(float)startX, (float)yPos, (float)squareSize, (float)squareSize};
 
         // Hover effect
         if (CheckCollisionPointRec(GetMousePosition(), btn))
         {
-            DrawRectangleRec(btn, Fade(WHITE, 0.5f));
+            DrawRectangleRec(btn, Fade(WHITE, 0.5F));
         }
 
         // Centered Text
         int fontSize = squareSize / 2;
         int textWidth = MeasureText(names[i], fontSize);
-        DrawText(names[i], startX + (squareSize - textWidth) / 2, yPos + (squareSize - fontSize) / 2, fontSize, BLACK);
+        DrawText(names[i], startX + ((squareSize - textWidth) / 2), yPos + ((squareSize - fontSize) / 2), fontSize, BLACK);
     }
 }
 
@@ -1077,7 +1078,9 @@ static void DrawPromotionMenu(void)
 static void HandlePromotionInput(void)
 {
     if (!IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
+    {
         return;
+    }
 
     int row = state.promotionRow;
     int col = state.promotionCol;
@@ -1086,21 +1089,29 @@ static void HandlePromotionInput(void)
     int startY = GameBoard[row][col].pos.y;
     int direction = (row == 0) ? 1 : -1;
 
-    Rectangle queenRect = {startX, startY, (float)squareLength, (float)squareLength};
-    Rectangle rookRect = {startX, startY + (direction * squareLength * 1), (float)squareLength, (float)squareLength};
-    Rectangle bishopRect = {startX, startY + (direction * squareLength * 2), (float)squareLength, (float)squareLength};
-    Rectangle knightRect = {startX, startY + (direction * squareLength * 3), (float)squareLength, (float)squareLength};
+    Rectangle queenRect = {(float)startX, (float)startY, (float)squareLength, (float)squareLength};
+    Rectangle rookRect = {(float)startX, (float)startY + (float)(direction * squareLength * 1), (float)squareLength, (float)squareLength};
+    Rectangle bishopRect = {(float)startX, (float)startY + (float)(direction * squareLength * 2), (float)squareLength, (float)squareLength};
+    Rectangle knightRect = {(float)startX, (float)startY + (float)(direction * squareLength * 3), (float)squareLength, (float)squareLength};
 
     Vector2 mouse = GetMousePosition();
 
     if (CheckCollisionPointRec(mouse, queenRect))
+    {
         PromotePawn(PIECE_QUEEN);
+    }
     else if (CheckCollisionPointRec(mouse, rookRect))
+    {
         PromotePawn(PIECE_ROOK);
+    }
     else if (CheckCollisionPointRec(mouse, bishopRect))
+    {
         PromotePawn(PIECE_BISHOP);
+    }
     else if (CheckCollisionPointRec(mouse, knightRect))
+    {
         PromotePawn(PIECE_KNIGHT);
+    }
 }
 
 /**
@@ -1138,7 +1149,7 @@ void DrawDebugInfo(void)
     Color textColor = DEBUG_TEXT_COLOR;
 
     // Background
-    DrawRectangle(0, 0, 300, 470, Fade(BLACK, 0.8f));
+    DrawRectangle(0, 0, DEBUG_INFO_WINDOW_WIDTH, DEBUG_INFO_WINDOW_HEIGHT, Fade(BLACK, 0.8F));
 
     DrawFPS(x, y);
     y += step;
@@ -1300,19 +1311,21 @@ void DrawGameStatus(void)
         float verticalSquares = BOARD_SIZE + SPACE_TEXT + TOP_SECTION_SQUARES;
         int extraY = (int)((float)GetRenderHeight() - (verticalSquares * (float)squareLength)) / 2;
         if (extraY < 0)
+        {
             extraY = 0;
+        }
 
         // Place it 1 square down from the top of the board area
-        int rectY = extraY + squareLength + (squareLength - rectHeight) / 2;
+        int rectY = extraY + squareLength + ((squareLength - rectHeight) / 2);
 
         // Draw Shadow (cool effect)
-        DrawRectangle(rectX + 4, rectY + 4, rectWidth, rectHeight, Fade(BLACK, 0.3f));
+        DrawRectangle(rectX + 4, rectY + 4, rectWidth, rectHeight, Fade(BLACK, 0.3F));
 
         // Draw Background
-        DrawRectangle(rectX, rectY, rectWidth, rectHeight, Fade(bgColor, 0.9f));
+        DrawRectangle(rectX, rectY, rectWidth, rectHeight, Fade(bgColor, 0.9F));
 
         // Draw Border
-        DrawRectangleLinesEx((Rectangle){(float)rectX, (float)rectY, (float)rectWidth, (float)rectHeight}, 4.0f, Fade(WHITE, 0.5f));
+        DrawRectangleLinesEx((Rectangle){(float)rectX, (float)rectY, (float)rectWidth, (float)rectHeight}, 4.0F, Fade(WHITE, 0.5F));
 
         // Draw Text
         DrawText(message, rectX + padding, rectY + padding, fontSize, textColor);
@@ -1345,13 +1358,15 @@ Rectangle GetTopButtonRect(int index)
     float verticalSquares = BOARD_SIZE + SPACE_TEXT + TOP_SECTION_SQUARES;
     int extraY = (int)((float)GetRenderHeight() - (verticalSquares * (float)squareLength)) / 2;
     if (extraY < 0)
+    {
         extraY = 0;
+    }
 
     // Calculate Position
     // X: Aligned with the board columns
     // Matches the logic in InitializeCellsPos for GameBoard[0][index].pos.x
     float startX = (float)extraX + ((float)squareLength * SPACE_TEXT / 2);
-    float x = startX + (index * (float)squareLength);
+    float x = startX + ((float)index * (float)squareLength);
 
     // Y: Top row of the reserved section (Row 0)
     // The board starts at Row 2 (TOP_SECTION_SQUARES = 2)
@@ -1359,7 +1374,7 @@ Rectangle GetTopButtonRect(int index)
     // These buttons are at Row 0 (The very top of the content area)
     float y = (float)extraY;
 
-    return (Rectangle){x, y, (float)squareLength * 0.95f, (float)squareLength / 2.0f};
+    return (Rectangle){x, y, (float)squareLength * 0.95F, (float)squareLength / 2.0F};
 }
 
 /**

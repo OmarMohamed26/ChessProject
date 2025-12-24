@@ -41,10 +41,14 @@ enum settings
      DEBUG_MENU_FONT_SIZE = 20,
      SPACE_BETWEEN_DEBUG_LINES = 2,
      SPACE_BETWEEN_DEBUG_SECTIONS = 5,
+     DEBUG_INFO_WINDOW_WIDTH = 300,
+     DEBUG_INFO_WINDOW_HEIGHT = 470,
 
      /* Status bar settings */
      STATUS_MENU_FONT_SIZE = 30,
      STATUS_MENU_PADDING = 20,
+
+     UI_FONT = 20,
 
      // --- MOVE.C SETTINGS (Game Logic) ---
 
@@ -97,6 +101,8 @@ enum settings
 
 /* Board Dimensions */
 #define BOARD_SIZE 8
+
+#define FADE_CONSTANT 0.75f
 
 /* Standard Chess Starting Position (FEN) */
 #define STARTING_FEN "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
