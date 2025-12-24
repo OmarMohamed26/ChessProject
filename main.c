@@ -53,6 +53,7 @@ int main(void)
     Image icon = LoadImage("assets/icon.png");
     SetWindowIcon(icon);
     SetTargetFPS(FPS);
+    InitAudioDevice();
 
     // Initialize the Game
     InitializeBoard();
@@ -69,6 +70,13 @@ int main(void)
 
     bool showDebugMenu = false;
     bool showFileRank = true;
+
+    // sound effects
+    // CHANGED: Load sounds into state
+    state.sounds.capture = LoadSound("assets/sound/Capture.mp3");
+    state.sounds.check = LoadSound("assets/sound/Check.mp3");
+    state.sounds.checkMate = LoadSound("assets/sound/Checkmate.mp3");
+    state.sounds.move = LoadSound("assets/sound/Move.mp3");
 
 #ifdef DEBUG
     for (int i = 0; i < BOARD_SIZE; i++)
@@ -139,11 +147,23 @@ int main(void)
     // Deinitialize and Free Memory
 
     UnloadBoard();
+
     FreeDHA(state.DHA);
+
     FreeStack(state.undoStack);
     FreeStack(state.redoStack);
+
     UnloadDeadPieces();
+
     UnloadImage(icon);
+
+    UnloadSound(state.sounds.capture);
+    UnloadSound(state.sounds.check);
+    UnloadSound(state.sounds.checkMate);
+    UnloadSound(state.sounds.move);
+
+    CloseAudioDevice();
+
     CloseWindow();
 
     return 0;

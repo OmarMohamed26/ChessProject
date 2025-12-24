@@ -27,6 +27,27 @@ bool checked = false, flag = false;
 // NEW: Temporary storage for the move while waiting for promotion selection
 static Move pendingMove;
 
+// NEW: Helper function to play sounds based on move result
+static void PlayGameSound(Move move)
+{
+    if (state.isCheckmate)
+    {
+        PlaySound(state.sounds.checkMate);
+    }
+    else if (state.whitePlayer.Checked || state.blackPlayer.Checked)
+    {
+        PlaySound(state.sounds.check);
+    }
+    else if (move.pieceCapturedType != PIECE_NONE)
+    {
+        PlaySound(state.sounds.capture);
+    }
+    else
+    {
+        PlaySound(state.sounds.move);
+    }
+}
+
 /* Add prototypes near the top of the file (below includes) */
 static void RaycastRook(int CellX, int CellY, Team team);
 static void RaycastBishop(int CellX, int CellY, Team team);
@@ -167,6 +188,7 @@ void MovePiece(int initialRow, int initialCol, int finalRow, int finalCol)
             if (finalRow == WHITE_BACK_RANK && finalCol == CASTLE_KS_KING_COL) // White King Side (g1)
             {
                 PushStack(state.undoStack, currentMove);
+                PlayGameSound(currentMove);
                 ClearStack(state.redoStack);
                 state.whiteKingSide = false;
                 state.whiteQueenSide = false;
@@ -180,6 +202,7 @@ void MovePiece(int initialRow, int initialCol, int finalRow, int finalCol)
             if (finalRow == WHITE_BACK_RANK && finalCol == CASTLE_QS_KING_COL) // White Queen Side (c1)
             {
                 PushStack(state.undoStack, currentMove);
+                PlayGameSound(currentMove);
                 ClearStack(state.redoStack);
                 state.whiteKingSide = false;
                 state.whiteQueenSide = false;
@@ -197,6 +220,7 @@ void MovePiece(int initialRow, int initialCol, int finalRow, int finalCol)
             if (finalRow == BLACK_BACK_RANK && finalCol == CASTLE_KS_KING_COL) // Black King Side (g8)
             {
                 PushStack(state.undoStack, currentMove);
+                PlayGameSound(currentMove);
                 ClearStack(state.redoStack);
                 state.blackKingSide = false;
                 state.blackQueenSide = false;
@@ -210,6 +234,7 @@ void MovePiece(int initialRow, int initialCol, int finalRow, int finalCol)
             if (finalRow == BLACK_BACK_RANK && finalCol == CASTLE_QS_KING_COL) // Black Queen Side (c8)
             {
                 PushStack(state.undoStack, currentMove);
+                PlayGameSound(currentMove);
                 ClearStack(state.redoStack);
                 state.blackKingSide = false;
                 state.blackQueenSide = false;
@@ -354,6 +379,9 @@ void MovePiece(int initialRow, int initialCol, int finalRow, int finalCol)
 
     // 2. Record the move
     PushDHA(state.DHA, currentHash);
+
+    // NEW: Play sound for normal moves
+    PlayGameSound(currentMove);
 }
 
 /**
@@ -1439,6 +1467,9 @@ void PromotePawn(PieceType selectedType)
 
     // 4. Resume game
     ResetsAndValidations();
+
+    // NEW: Play sound for promotion moves (using the pending move data)
+    PlayGameSound(pendingMove);
 }
 
 void PrimaryCastlingValidation()
@@ -1837,6 +1868,9 @@ void UndoMove(void)
         // No moves left in history, clear the border
         UpdateLastMoveHighlight(-1, -1);
     }
+
+    // NEW: Play move sound on Undo
+    PlayGameSound(move);
 }
 
 void RedoMove(void)
@@ -2017,4 +2051,8 @@ void RedoMove(void)
 
     // 9. Visuals
     UpdateLastMoveHighlight(move.finalRow, move.finalCol);
+
+    // 10. Play Sounds
+
+    PlayGameSound(move);
 }

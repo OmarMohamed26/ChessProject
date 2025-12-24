@@ -96,6 +96,14 @@ typedef struct Player
 
 } Player;
 
+typedef struct
+{
+    Sound move;
+    Sound capture;
+    Sound check;
+    Sound checkMate;
+} GameSounds;
+
 typedef struct __attribute__((packed))
 {
     // Done a very good job packing all this info in 6 bytes actually 44 bits
@@ -177,6 +185,8 @@ typedef struct
 
     MoveStack *undoStack;
     MoveStack *redoStack;
+
+    GameSounds sounds;
 
     int deadWhiteCounter;
     int deadBlackCounter;
