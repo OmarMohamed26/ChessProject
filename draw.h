@@ -55,4 +55,7 @@ void UpdateLastMoveHighlight(int row, int col);
 
 void DrawDebugInfo(void);
 
+/* NEW: Draws the game status (Check, Mate, Draw, etc.) */
+void DrawGameStatus(void);
+
 #endif /* DRAW_H */

@@ -61,7 +61,8 @@ typedef struct SmartBorder
 // Local Prototypes
 static int Min2(int num1, int num2);
 static void LoadHelper(char *pieceNameBuffer, int bufferSize, const char *pieceName, Team team, int row, int col, PieceType type, LoadPlace place);
-static void InitializeCellsPos(int extra, int squareLength, float spaceText);
+// CHANGED: Added extraY parameter
+static void InitializeCellsPos(int extraX, int extraY, int squareLength, float spaceText);
 static size_t TrimTrailingWhitespace(char *string);
 static void displayPieces(void);
 static void DecideDestination(Vector2 topLeft);
@@ -74,9 +75,13 @@ static void ResetSelection();
 static int Clamp(int num, int max);
 static void HandlePromotionInput(void);
 static void DrawPromotionMenu(void); // <--- ADD THIS PROTOTYPE
+void DrawGameStatus(void);           // <--- ADD THIS PROTOTYPE
 
 // This constant determines How much space is left for the text in terms of squareLength
 #define SPACE_TEXT 0.75f
+
+// NEW: Reserve space for 2 rows of squares at the top (Status Bar + Future Buttons)
+#define TOP_SECTION_SQUARES 2.0f
 
 // Local variables
 bool IsSelectedPieceEmpty; // made this global because I need it in my highlight square function
@@ -109,9 +114,21 @@ void DrawBoard(int ColorTheme, bool showFileRank)
     ColorPair theme = PALETTE[ColorTheme];
     float squareCount = BOARD_SIZE + SPACE_TEXT;
     int squareLength = ComputeSquareLength();
-    int extra = (int)((float)GetRenderWidth() - (squareCount * (float)squareLength)) / 2;
 
-    InitializeCellsPos(extra, squareLength, SPACE_TEXT);
+    // Horizontal Centering
+    int extraX = (int)((float)GetRenderWidth() - (squareCount * (float)squareLength)) / 2;
+
+    // NEW: Vertical Centering
+    // Calculate how much vertical space the board + padding actually takes
+    float verticalSquares = BOARD_SIZE + SPACE_TEXT + TOP_SECTION_SQUARES;
+    int extraY = (int)((float)GetRenderHeight() - (verticalSquares * (float)squareLength)) / 2;
+
+    // Safety clamp
+    if (extraY < 0)
+        extraY = 0;
+
+    // Pass both offsets to the initialization function
+    InitializeCellsPos(extraX, extraY, squareLength, SPACE_TEXT);
 
     // Draw the chess board (row = y, col = x)
     for (int row = 0; row < BOARD_SIZE; row++)
@@ -127,8 +144,7 @@ void DrawBoard(int ColorTheme, bool showFileRank)
     if (showFileRank)
     {
         //  compute once (matches InitializeCellsPos math)
-        float boardLeft = (float)extra + ((float)squareLength * SPACE_TEXT / 2);
-        float boardTop = (float)squareLength * SPACE_TEXT / 2;
+        float boardLeft = (float)extraX + ((float)squareLength * SPACE_TEXT / 2);
 
         // Draw rank numbers (left) and file letters (bottom), centered in each square.
         int fontSize = (int)((float)squareLength / FONT_SQUARE_LENGTH_COEFFICIENT);
@@ -155,7 +171,11 @@ void DrawBoard(int ColorTheme, bool showFileRank)
             char fileText[2] = {(char)('a' + col), '\0'};
             int textWidth = MeasureText(fileText, fontSize);
             float textPosX = GameBoard[BOARD_SIZE - 1][col].pos.x + ((float)(squareLength - textWidth) / 2);
-            float textPosY = (boardTop + (BOARD_SIZE * (float)squareLength) + ((float)fontSize / FONT_GAP_COEFFICIENT)); // below board
+
+            // CHANGED: Calculate Y relative to the actual board position (bottom of last row)
+            // This ensures text stays attached to the board even when we push the board down.
+            float textPosY = GameBoard[BOARD_SIZE - 1][col].pos.y + (float)squareLength + ((float)fontSize / FONT_GAP_COEFFICIENT);
+
             DrawText(fileText, (int)textPosX, (int)textPosY, fontSize, FONT_COLOR);
         }
     }
@@ -187,6 +207,8 @@ void DrawBoard(int ColorTheme, bool showFileRank)
     {
         DrawPromotionMenu();
     }
+
+    DrawGameStatus();
 }
 
 /**
@@ -370,23 +392,27 @@ static void displayPieces(void) // and DeadPieces
  * Compute and store the top-left position (Vector2) for each board cell in GameBoard.
  *
  * Parameters:
- *  - extra: horizontal offset to center the board
- *  - squareLength: size of each square in pixels
- *  - spaceText: fractional extra space used when computing board layout (SPACE_TEXT)
+ *  - extraX: horizontal offset to center the board
+ *  - extraY: vertical offset to center the board
+ *  - squareLength: size of each square in pixels
+ *  - spaceText: fractional extra space used when computing board layout (SPACE_TEXT)
  *
  * Calling pattern:
- *  - Compute squareLength and extra in DrawBoard (or main), then call this to set positions.
+ *  - Compute squareLength and extra in DrawBoard (or main), then call this to set positions.
  */
-static void InitializeCellsPos(int extra, int squareLength, float spaceText) // It also Initializes dead cells
+static void InitializeCellsPos(int extraX, int extraY, int squareLength, float spaceText) // It also Initializes dead cells
 {
+    // NEW: Push the board down by TOP_SECTION_SQUARES PLUS the vertical centering offset
+    float topOffset = (float)extraY + ((float)squareLength * TOP_SECTION_SQUARES);
+
     // row = y, col = x
     for (int row = 0; row < BOARD_SIZE; row++)
     {
         for (int col = 0; col < BOARD_SIZE; col++)
         {
             GameBoard[row][col].pos = (Vector2){
-                (float)extra + ((float)squareLength * spaceText / 2) + ((float)col * (float)squareLength), // x = col
-                ((float)row * (float)squareLength) + ((float)squareLength * spaceText / 2)                 // y = row
+                (float)extraX + ((float)squareLength * spaceText / 2) + ((float)col * (float)squareLength), // x = col
+                topOffset + ((float)row * (float)squareLength) + ((float)squareLength * spaceText / 2)      // y = row + offset
             };
         }
     }
@@ -461,8 +487,16 @@ static void ResetSelection()
  */
 int ComputeSquareLength()
 {
-    float squareCount = BOARD_SIZE + SPACE_TEXT;
-    return (int)((float)Min2(GetRenderWidth(), GetRenderHeight()) / squareCount);
+    float horizontalSquares = BOARD_SIZE + SPACE_TEXT;
+
+    // NEW: Account for vertical space (Board + Text + Top Padding)
+    float verticalSquares = BOARD_SIZE + SPACE_TEXT + TOP_SECTION_SQUARES;
+
+    int sizeByWidth = (int)((float)GetRenderWidth() / horizontalSquares);
+    int sizeByHeight = (int)((float)GetRenderHeight() / verticalSquares);
+
+    // CHANGED: Return the smaller size to ensure it fits in both dimensions
+    return Min2(sizeByWidth, sizeByHeight);
 }
 
 /**
@@ -1111,4 +1145,89 @@ void DrawDebugInfo(void)
     y += step;
 
     DrawText(TextFormat("Dead Black: %d", deadBlackCounter), x, y, fontSize, textColor);
+}
+
+void DrawGameStatus(void)
+{
+    const char *message = NULL;
+    Color bgColor = BLANK;
+    Color textColor = STATUS_TEXT_COLOR;
+
+    // 1. Determine the message and color priority
+    if (state.isCheckmate)
+    {
+        message = "CHECKMATE";
+        bgColor = RED;
+    }
+    else if (state.isStalemate)
+    {
+        message = "STALEMATE";
+        bgColor = DARKGRAY;
+    }
+    else if (state.isRepeated3times)
+    {
+        message = "DRAW (REPETITION)";
+        bgColor = BLUE;
+    }
+    else if (state.isInsufficientMaterial)
+    {
+        message = "DRAW (INSUFFICIENT MATERIAL)";
+        bgColor = BLUE;
+    }
+    else if (state.halfMoveClock >= 100)
+    {
+        message = "DRAW (50 MOVES)";
+        bgColor = BLUE;
+    }
+    else if (state.whitePlayer.Checked)
+    {
+        message = "WHITE IS IN CHECK";
+        bgColor = ORANGE;
+        textColor = BLACK;
+    }
+    else if (state.blackPlayer.Checked)
+    {
+        message = "BLACK IS IN CHECK";
+        bgColor = ORANGE;
+        textColor = BLACK;
+    }
+
+    // 2. Draw the UI if there is a message
+    if (message != NULL)
+    {
+        int screenWidth = GetRenderWidth();
+        int fontSize = STATUS_MENU_FONT_SIZE;
+        int padding = STATUS_MENU_PADDING;
+        int textWidth = MeasureText(message, fontSize);
+
+        int rectWidth = textWidth + (padding * 2);
+        int rectHeight = fontSize + (padding * 2);
+        int rectX = (screenWidth - rectWidth) / 2;
+
+        // CHANGED: Position the status bar in the "second row" of the top section
+        // Row 1 (Top) = Future Buttons
+        // Row 2 (Bottom) = Status Bar
+        int squareLength = ComputeSquareLength();
+
+        // Calculate vertical centering offset (same as DrawBoard)
+        float verticalSquares = BOARD_SIZE + SPACE_TEXT + TOP_SECTION_SQUARES;
+        int extraY = (int)((float)GetRenderHeight() - (verticalSquares * (float)squareLength)) / 2;
+        if (extraY < 0)
+            extraY = 0;
+
+        // Place it 1 square down from the top of the board area
+        int rectY = extraY + squareLength + (squareLength - rectHeight) / 2;
+
+        // Draw Shadow (cool effect)
+        DrawRectangle(rectX + 4, rectY + 4, rectWidth, rectHeight, Fade(BLACK, 0.3f));
+
+        // Draw Background
+        DrawRectangle(rectX, rectY, rectWidth, rectHeight, Fade(bgColor, 0.9f));
+
+        // Draw Border
+        DrawRectangleLinesEx((Rectangle){(float)rectX, (float)rectY, (float)rectWidth, (float)rectHeight}, 4.0f, Fade(WHITE, 0.5f));
+
+        // Draw Text
+        DrawText(message, rectX + padding, rectY + padding, fontSize, textColor);
+    }
 }

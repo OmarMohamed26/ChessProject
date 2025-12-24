@@ -23,6 +23,8 @@ enum settings
      DEBUG_MENU_FONT_SIZE = 20,
      SPACE_BETWEEN_DEBUG_LINES = 2,
      SPACE_BETWEEN_DEBUG_SECTIONS = 5,
+     STATUS_MENU_FONT_SIZE = 30,
+     STATUS_MENU_PADDING = 20,
 
      // move.c
      // Castling

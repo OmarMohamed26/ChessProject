@@ -30,6 +30,8 @@ GameState state;
 
 int main(void)
 {
+
+    // State initialization
     state.deadWhiteCounter = 0;
     state.deadBlackCounter = 0;
     state.whitePlayer.team = TEAM_WHITE;
@@ -51,6 +53,8 @@ int main(void)
     Image icon = LoadImage("assets/icon.png");
     SetWindowIcon(icon);
     SetTargetFPS(FPS);
+
+    // Initialize the Game
     InitializeBoard();
     InitializeDeadPieces();
 
@@ -119,37 +123,10 @@ int main(void)
 
         DrawBoard(theme, showFileRank);
         HighlightHover(theme);
-        if (state.whitePlayer.Checked)
-        {
-            DrawText("WHITE IS CHECKED!", 20, 20, 30, BLACK);
-        }
-        else if (state.blackPlayer.Checked)
-        {
-            DrawText("BLACK IS CHECKED!", GetRenderWidth() - 340, 20, 30, BLACK);
-        }
 
-        if (state.isCheckmate)
-        {
-            DrawText("CHECKMATE", GetRenderWidth() / 2 - 140, 30, 30, RED);
-        }
-        else if (state.isStalemate)
-        {
-            DrawText("STALEMATE", GetRenderWidth() / 2 - 140, 20, 30, GRAY);
-        }
-        // NEW: Check the flag you set in move.c
-        else if (state.isRepeated3times)
-        {
-            DrawText("DRAW (REPETITION)", GetRenderWidth() / 2 - 160, 70, 30, BLUE);
-        }
-        // NEW: Draw UI
-        else if (state.isInsufficientMaterial)
-        {
-            DrawText("DRAW (INSUFFICIENT MATERIAL)", GetRenderWidth() / 2 - 220, 70, 30, BLUE);
-        }
-        else if (state.halfMoveClock >= 100)
-        {
-            DrawText("DRAW (50 MOVES)", GetRenderWidth() / 2 - 160, 70, 30, BLUE);
-        }
+        // --- REPLACED OLD UI BLOCK WITH THIS ---
+        DrawGameStatus();
+        // ---------------------------------------
 
         if (showDebugMenu)
         {
@@ -158,6 +135,8 @@ int main(void)
 
         EndDrawing();
     }
+
+    // Deinitialize and Free Memory
 
     UnloadBoard();
     FreeDHA(state.DHA);

@@ -44,6 +44,8 @@
 
 #define DEBUG_TEXT_COLOR WHITE
 
+#define STATUS_TEXT_COLOR WHITE
+
 typedef struct ColorPair
 {
     Color white;
