@@ -1380,8 +1380,16 @@ void StalemateValidation()
 void ResetsAndValidations()
 {
     Turn = (Turn == TEAM_WHITE) ? TEAM_BLACK : TEAM_WHITE; // Added turns
-    ResetVulnerable();                                     // Reset the curent piece that are in danger
-    ScanEnemyMoves();                                      // Added vulnerability function checker
+
+    // --- FIX: Clear validation flags ---
+    // This ensures that any "valid moves" calculated for the previous state
+    // (e.g. a selected piece) are wiped out when the state changes via Undo/Redo.
+    ResetValidation();
+    ResetPrimaryValidation();
+    // -----------------------------------
+
+    ResetVulnerable(); // Reset the curent piece that are in danger
+    ScanEnemyMoves();  // Added vulnerability function checker
     CheckValidation();
     StalemateValidation();
     if (Player1.Checked)
@@ -1771,7 +1779,7 @@ void UndoMove(void)
         }
     }
 
-    // 4. Restore Castling (Move the Rook back) the king was by section 2 Move the piece back
+    // 4. Restore Castling (Move the Rook back) the king was handled by section 2 Move the piece back
     if (move.wasCastling)
     {
         // White King Side
