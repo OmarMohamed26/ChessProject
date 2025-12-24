@@ -83,19 +83,6 @@ GameState state;
 
 int main(void)
 {
-    // State initialization
-    state.deadWhiteCounter = 0;
-    state.deadBlackCounter = 0;
-    state.whitePlayer.team = TEAM_WHITE;
-    state.blackPlayer.team = TEAM_BLACK;
-    state.isCheckmate = false;
-    state.isStalemate = false;
-    state.isPromoting = false;
-    state.promotionRow = -1;
-    state.promotionCol = -1;
-    state.isRepeated3times = false;
-    state.isInputLocked = false; // Initialize the lock
-
     // Initialize the game window
     SetConfigFlags(FLAG_WINDOW_RESIZABLE);
 #ifdef DEBUG
@@ -123,11 +110,6 @@ int main(void)
     state.undoStack = InitializeStack(INITAL_UNDO_REDO_STACK_SIZE);
     state.redoStack = InitializeStack(INITAL_UNDO_REDO_STACK_SIZE);
 
-    char standard_game[] = STARTING_FEN;
-    // it should look like this rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
-    // Pieces Turn CastlingRights(or -) EnPassant(could look like e3) halfMoveClock fullMoveClock(after black moves)
-    ReadFEN(standard_game, strlen(standard_game), false);
-
     bool showDebugMenu = false;
     bool showFileRank = true;
 
@@ -137,6 +119,8 @@ int main(void)
     state.sounds.check = LoadSound("assets/sound/Check.mp3");
     state.sounds.checkMate = LoadSound("assets/sound/Checkmate.mp3");
     state.sounds.move = LoadSound("assets/sound/Move.mp3");
+
+    LoadGameFromFEN(STARTING_FEN);
 
 #ifdef DEBUG
     for (int i = 0; i < BOARD_SIZE; i++)
@@ -153,10 +137,6 @@ int main(void)
         printf("%d ", state.DeadWhitePieces[i].piece.type);
     }
 #endif
-
-    unsigned char *savedGame = SaveFEN();
-    SaveFileText("example.fen", (const char *)savedGame);
-    free(savedGame);
 
     // NEW: Setup jump point for exit
     // If setjmp returns 0, it's the initial call -> Enter loop
