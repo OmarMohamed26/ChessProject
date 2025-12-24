@@ -1,118 +1,129 @@
-# Chess (raylib) — Project README
+# ♟️ Raylib Chess
 
-Small chess demo using raylib. This repository contains rendering, piece loading, simple board layout, FEN parsing, and basic input handling.
+A fully featured, C-based Chess implementation using the **raylib** game programming library.
 
-## Requirements
+This project goes beyond simple rendering, implementing a complete chess engine with move validation, special rules (Castling, En Passant, Promotion), game history (Undo/Redo), and FEN state serialization.
 
-- Linux
-- gcc (C17)
-- raylib (dev headers + library)
-- make
+---
 
-Install raylib on Ubuntu/Debian (example):
+## ✨ Features
 
-Building and installing raylib (GNU/Linux)
-1. Install the required development tools and libraries using your distribution's package manager (install cmake, git, build tools and the usual X/OpenGL development packages).
-2. Build and install raylib from source:
+### Core Gameplay
+- **Complete Move Validation:** Prevents illegal moves, including pinning pieces and moving the King into check.
+- **Special Moves:**
+  - 🏰 **Castling** (King-side and Queen-side).
+  - ♟️ **En Passant** captures.
+  - 👑 **Pawn Promotion** (UI allows selection of Queen, Rook, Bishop, or Knight).
+- **Game States:** Detects **Check**, **Checkmate**, **Stalemate**, and **Insufficient Material**.
+- **Draw Rules:** Supports 3-fold repetition detection.
 
+### System & UI
+- **Save & Load:** Full support for **FEN (Forsyth–Edwards Notation)** strings.
+  - Saves board state, active color, castling rights, en passant targets, and move clocks.
+- **History:** Unlimited **Undo/Redo** functionality using dynamic stacks.
+- **Audio:** Sound effects for moves, captures, checks, and checkmate.
+- **Visuals:**
+  - Valid move highlighting (smart borders/dots).
+  - Last move highlighting.
+  - Dynamic board resizing.
+  - **Debug Mode:** Integrated debug overlay for developer insights.
+
+---
+
+## 🛠️ Build & Installation
+
+### Requirements
+- **OS:** Linux (Tested on Ubuntu/Debian)
+- **Compiler:** GCC (C17 standard)
+- **Library:** [raylib](https://github.com/raysan5/raylib) (4.0+)
+- **Tool:** Make
+
+### Installing Raylib (Debian/Ubuntu)
 ```bash
 git clone https://github.com/raysan5/raylib.git
 cd raylib
-mkdir build
-cd build
+mkdir build && cd build
 cmake .. -DBUILD_SHARED_LIBS=ON
 make -j$(nproc)
 sudo make install
-sudo ldconfig      # refresh linker cache (if necessary)
+sudo ldconfig
 ```
 
 Notes:
 - The cmake step enables shared libraries so your project can link with -lraylib.
 - If you prefer a local (non-sudo) install, use CMAKE_INSTALL_PREFIX when running cmake and update LD_LIBRARY_PATH accordingly.
 
-## Build
+---
 
-From project root (/home/omar/Project/chess):
+## 📂 Project layout
 
-- Build (release):
-  ```
-  make
-  ```
+- `main.c`      — program entry, window setup and main loop
+- `main.h`      — core types (Piece, Cell, PieceType, Team)
+- `draw.c/.h`   — board layout, piece loading, drawing helpers and simple input selection handling
+- `move.c/.h`   — MovePiece, validation logic, and special moves (Castling, En Passant)
+- `load.c/.h`   — FEN reader (ReadFEN)
+- `save.c/.h`   — FEN writer (SaveFEN)
+- `stack.c/.h`  — Dynamic stack implementation for Undo/Redo history
+- `utils.c/.h`  — High-level game management (Restart, LoadGameFromFEN)
+- `hash.c/.h`   — MD5 hashing for board state (repetition detection)
+- `settings.h`  — Compile-time constants and configuration
+- `colors.c/.h`    — ColorPair palette and named colors
+- `style_amber.h` — UI styling definitions
+- `assets/`     — put piece images here (see naming below)
+- `Makefile`    — build rules
 
-- Build (debug):
-  ```
-  make debug
-  ```
+---
 
-- Run the release build:
-  ```
-  make run
-  ```
-
-- Run the debug build:
-  ```
-  make run-debug
-  ```
-
-Binaries and object files are placed under `build/`.
-
-## Project layout
-
-- main.c      — program entry, window setup and main loop
-- draw.c/.h   — board layout, piece loading, drawing helpers and simple input selection handling
-- main.h      — core types (Piece, Cell, PieceType, Team)
-- colors.h    — ColorPair palette and named colors
-- load.c/.h   — FEN reader (ReadFEN)
-- move.c/.h   — MovePiece and SetEmptyCell helpers
-- assets/     — put piece images here (see naming below)
-- Makefile    — build rules
-
-## Public API / Important functions
+## 📜 Public API / Important functions
 
 (The declarations appear in the project's headers; use these from main.c)
 
-- void DrawBoard(int ColorTheme);
+- `void DrawBoard(int ColorTheme);`
   - Compute layout for the current render size and draw the board and pieces. Called each frame inside BeginDrawing()/EndDrawing().
 
-- void LoadPiece(int row, int col, PieceType type, Team team);
+- `void LoadPiece(int row, int col, PieceType type, Team team);`
   - Load/assign a piece texture into GameBoard[row][col]. Existing texture is released before assignment.
 
-- int ComputeSquareLength(void);
+- `int ComputeSquareLength(void);`
   - Returns the computed pixel size of a single board square for the current render resolution.
 
-- void InitializeBoard(void);
+- `void InitializeBoard(void);`
   - Reset all GameBoard cells to empty and set their row/col indices. Call at startup or before loading a new position.
 
-- void UnloadBoard(void);
+- `void UnloadBoard(void);`
   - Unload all textures held by GameBoard and set every cell empty. Call on shutdown or before replacing assets.
 
-- void ReadFEN(const char *FENstring, int size);
+- `void ReadFEN(const char *FENstring, int size);`
   - Parse a FEN piece-placement string and populate GameBoard using LoadPiece.
 
-- void MovePiece(int initialRow, int initialCol, int finalRow, int finalCol);
+- `void MovePiece(int initialRow, int initialCol, int finalRow, int finalCol);`
   - Move a piece between cells. Performs bounds checking and validates source presence. Uses LoadPiece for destination and SetEmptyCell for the source.
 
-- void SetEmptyCell(Cell *cell);
+- `void SetEmptyCell(Cell *cell);`
   - Clear a cell and unload any associated texture.
 
 Notes:
 - DrawBoard also includes simple interactive selection handling (two-click select + move). The UI helpers manage highlight borders (selected / last move).
 - MovePiece now performs bounds checking and logs a warning on invalid indices.
 
-## Assets / Filenames
+---
+
+## 🖼️ Assets / Filenames
 
 Place PNG images in `assets/` (or the path your code expects). Recommended naming convention the code uses (case-sensitive):
 
-- pawnW.png, pawnB.png
-- kingW.png, kingB.png
-- queenW.png, queenB.png
-- rookW.png, rookB.png
-- bishopW.png, bishopB.png
-- knightW.png, knightB.png
+- `pawnW.png`, `pawnB.png`
+- `kingW.png`, `kingB.png`
+- `queenW.png`, `queenB.png`
+- `rookW.png`, `rookB.png`
+- `bishopW.png`, `bishopB.png`
+- `knightW.png`, `knightB.png`
 
 Filenames are case- and space-sensitive on Linux. The loader expects exact names; trim accidental spaces.
 
-## Usage notes & API
+---
+
+## 📚 Usage notes & API
 
 Call order (high level):
 1. Set config flags and call `InitWindow(...)` in `main.c`.
@@ -130,9 +141,6 @@ Resource ownership:
 Resizing:
 - Recompute layout (square length and cell positions) after window resize. Use `IsWindowResized()` or compare `GetRenderWidth()` / `GetRenderHeight()` to detect changes.
 
-Drawing:
-- For best visual quality when scaling textures, use `DrawTexturePro` and set linear filtering with `SetTextureFilter(tex, FILTER_BILINEAR)` or enable MSAA via `SetConfigFlags(FLAG_MSAA_4X_HINT)` before `InitWindow()`.
-
 Debugging tips:
 - If a texture fails to show:
   - Verify the working directory and that `assets/<name>.png` exists.
@@ -140,26 +148,26 @@ Debugging tips:
   - Use `TraceLog(LOG_INFO, ...)` to print load attempts and positions.
   - Draw a visible fallback rectangle when `texture.id == 0` to confirm the drawing code runs.
 
-## Saving board state (FEN-like serialization)
+---
 
-The project provides a helper function SaveFEN() that serializes the current in-memory board
-(GameBoard[8][8]) into a FEN-like string. This string encodes the pieces and empty squares
+## 💾 Saving board state (FEN-like serialization)
+
+The project provides a helper function `SaveFEN()` that serializes the current in-memory board
+(`GameBoard[8][8]`) into a FEN-like string. This string encodes the pieces and empty squares
 for each rank, separated by '/'.
 
 Key points:
-- Function: char *SaveFEN(void)
+- Function: `char *SaveFEN(void)`
 - Returns: A heap-allocated C string containing the FEN-like board representation.
-- Caller must free() the returned pointer when finished.
-- On error (allocation failure or invalid piece type), the function returns NULL.
+- Caller must `free()` the returned pointer when finished.
+- On error (allocation failure or invalid piece type), the function returns `NULL`.
 
 Current format produced:
 - Ranks are written from top (row 0) to bottom (row 7).
-- Pieces are represented by letters: k,q,r,b,n,p
+- Pieces are represented by letters: `k,q,r,b,n,p`
   - lowercase = black, UPPERCASE = white
 - Empty squares in a rank are compressed into digits 1–8.
-- Example rank: "rnbqkbnr" or "8" or "r1bqkb1r"
-- The produced string does not yet include side-to-move, castling rights,
-  en-passant target, halfmove clock or fullmove number.
+- Example rank: `"rnbqkbnr"` or `"8"` or `"r1bqkb1r"`
 
 Example usage:
 
@@ -174,18 +182,18 @@ if (fen != NULL) {
 }
 ```
 
-TODO:
-- Append side-to-move ('w' or 'b') to the FEN string.
-- Optionally add castling, en-passant and move counters to match full FEN.
+---
 
-## Coding style & documentation
+## 📝 Coding style & documentation
 
 - Headers are self-contained — include `raylib.h` in headers that need it.
 - Prefer `snprintf()` over `strcpy/strcat` and trim filenames before loading.
 - Use explicit-width integer types (`uint8_t`, `int16_t`) when size matters; `char` works for small flags.
 - New/modified functions are documented with Doxygen-style comments in their .c files.
 
-## Contributing
+---
+
+## 🤝 Contributing
 
 - Add small, focused commits.
 - Document any new exported function in the corresponding header with a short comment describing inputs, outputs and side effects.
