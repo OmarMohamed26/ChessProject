@@ -44,6 +44,11 @@ static int loadFileActiveIndex = -1;
 static char loadFileListBuffer[MAX_LOAD_FILES_TOTAL_LENGTH] = {0}; // Buffer to hold "file1.fen;file2.fen;..."
 static FilePathList loadFilePaths = {0};                           // Raylib struct to hold directory info
 
+// NEW: Local state for FEN Input UI
+static bool showFenInputPopup = false;
+static bool showFenErrorPopup = false;
+static char fenInputBuffer[MAX_FEN_BUFFER_SIZE] = {0};
+
 // State initialization
 GameState state;
 
@@ -254,6 +259,14 @@ void HandleGui(void)
         }
     }
 
+    // --- BUTTON 3: PASTE FEN ---
+    if (GuiButton(GetTopButtonRect(3), GuiIconText(ICON_TEXT_T, "FEN")))
+    {
+        showFenInputPopup = true;
+        state.isInputLocked = true;
+        TextCopy(fenInputBuffer, ""); // Clear buffer
+    }
+
     // --- POPUP 1: TEXT INPUT (Filename) ---
     if (showSaveTextInput)
     {
@@ -404,5 +417,67 @@ void HandleGui(void)
             showLoadFileDialog = false;
             state.isInputLocked = false;
         }
+    }
+
+    // --- POPUP 4: FEN INPUT DIALOG ---
+    if (showFenInputPopup)
+    {
+        GuiUnlock();
+        // A little fade effect that applies to the hole screen to make it clear that we are in pop up mode
+        DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), Fade(BLACK, 0.5f));
+
+        int result = GuiTextInputBox(
+            (Rectangle){
+                (float)GetScreenWidth() / 2 - (POPUP_FEN_WIDTH / 2),
+                (float)GetScreenHeight() / 2 - (POPUP_FEN_HEIGHT / 2),
+                POPUP_FEN_WIDTH,
+                POPUP_FEN_HEIGHT},
+            GuiIconText(ICON_TEXT_T, "Load from FEN"),
+            "Paste FEN string here:",
+            "Load;Cancel",
+            fenInputBuffer,
+            MAX_FEN_BUFFER_SIZE,
+            NULL);
+
+        if (result == 1) // Load clicked
+        {
+            // Validate using ReadFEN with 'true' as the last argument
+            if (ReadFEN(fenInputBuffer, strlen(fenInputBuffer), true))
+            {
+                // Valid FEN: Load it properly using the helper
+                LoadGameFromFEN(fenInputBuffer);
+
+                showFenInputPopup = false;
+                state.isInputLocked = false;
+            }
+            else
+            {
+                // Invalid FEN: Show Error
+                showFenInputPopup = false;
+                showFenErrorPopup = true;
+            }
+        }
+        else if (result == 0 || result == 2) // Cancel or Close
+        {
+            showFenInputPopup = false;
+            state.isInputLocked = false;
+        }
+    }
+
+    // --- POPUP 5: FEN ERROR DIALOG ---
+    if (showFenErrorPopup)
+    {
+        GuiUnlock();
+        DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), Fade(BLACK, 0.5f));
+
+        int result = GuiMessageBox(
+            (Rectangle){
+                (float)GetScreenWidth() / 2 - (POPUP_WRONG_FEN_WIDTH / 2),
+                (float)GetScreenHeight() / 2 - (POPUP_WRONG_FEN_HEIGHT / 2),
+                POPUP_WRONG_FEN_WIDTH,
+                POPUP_WRONG_FEN_HEIGHT},
+            GuiIconText(ICON_WARNING, "Invalid FEN"),
+            "The FEN string is invalid.",
+            "Ok");
     }
 }
