@@ -1,7 +1,7 @@
 ---
 title: "CS221: Computer Programming 1 - Final Project Report: Raylib Chess Engine"
 author:
-- Omar Mohamed Abd-El-Mohsed (ID: 24010467)
+- Omar Mohamed Abd-El-Mohsen (ID: 24010467)
 - Abd-El-Rhaman Mohamed Mohamed Seif (ID: 24010397)
 date: "December 24, 2025"
 geometry: margin=1in
@@ -33,7 +33,7 @@ header-includes:
 
 **Abd-El-Rhaman Mohamed Mohamed Seif (ID: 24010397)**
 
-**Omar Mohamed Abd-El-Mohsed (ID: 24010467)**
+**Omar Mohamed Abd-El-Mohsen (ID: 24010467)**
 
 
 ---

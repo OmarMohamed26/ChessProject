@@ -536,7 +536,7 @@ void HandleGui(void)
             }
 
             // Check if file exists
-            char fullPath[MAX_FILE_NAME_LENGTH + 6 /*for the saves part of the of the path*/];
+            char fullPath[MAX_FILE_NAME_LENGTH + 11 /*for the saves part of the of the path*/];
             TextCopy(fullPath, TextFormat("saves/%s.fen", saveFileName));
 
             if (FileExists(fullPath))
@@ -582,7 +582,7 @@ void HandleGui(void)
 
         if (result == 1) // Yes
         {
-            char fullPath[MAX_FILE_NAME_LENGTH + 6];
+            char fullPath[MAX_FILE_NAME_LENGTH + 11];
             TextCopy(fullPath, TextFormat("saves/%s.fen", saveFileName));
 
             unsigned char *fenString = SaveFEN();
