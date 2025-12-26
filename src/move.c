@@ -1816,6 +1816,7 @@ Move RecordMove(int initialRow, int initialCol, int finalRow, int finalCol)
         GameBoard[finalRow][finalCol].piece.type == PIECE_NONE)
     {
         move.wasEnPassant = true;
+        move.pieceCapturedType = PIECE_PAWN;
     }
     else
     {
@@ -1967,6 +1968,22 @@ void UndoMove(void)
     // 6. Push the move we have just undone to the Redo stack
 
     PushStack(state.redoStack, move);
+
+    // When we undo, we restore the state where an En Passant capture might be possible.
+    // We must mark the specific pawn as having "JustMoved" and "PawnMovedTwo".
+    if (state.enPassantCol != -1) // It was EnPassant.
+    {
+        // If we undid a White move, it's White's turn, so the target is a Black pawn at row 3.
+        // If we undid a Black move, it's Black's turn, so the target is a White pawn at row 4.
+        int row = (move.pieceMovedTeam == TEAM_WHITE) ? 3 : 4;
+
+        // Ensure we are accessing valid bounds
+        if (row >= 0 && row < BOARD_SIZE && state.enPassantCol >= 0 && state.enPassantCol < BOARD_SIZE)
+        {
+            GameBoard[row][state.enPassantCol].JustMoved = true;
+            GameBoard[row][state.enPassantCol].PawnMovedTwo = true;
+        }
+    }
 
     // 7. Recalculate Valid Moves for the restored state
     // This function flips the turn, scans enemy moves, and checks for check/mate.
