@@ -1,10 +1,15 @@
 ---
 title: "CS221: Computer Programming 1 - Final Project Report: Raylib Chess Engine"
-author:
-- Omar Mohamed Abd-El-Mohsen (ID: 24010467)
-- Abd-El-Rhaman Mohamed Mohamed Seif (ID: 24010397)
-date: "December 24, 2025"
+author: 
+Omar Mohamed Abd-El-Mohsen Moustafa (ID: 24010467)
+Abd-El-Rhaman Mohamed Mohamed Seif (ID: 24010397)
+date: "December 26, 2025"
 geometry: margin=1in
+colorlinks: true
+linkcolor: violet
+urlcolor: blue
+toccolor: black
+
 fontsize: 12pt
 header-includes:
     - \usepackage{fancyhdr}
@@ -14,74 +19,64 @@ header-includes:
     - \pagestyle{fancy}
     - \fancyhead[L]{Alexandria University \\ Faculty of Engineering}
     - \fancyhead[R]{Computer and Systems Engineering \\ CS221 Project Report}
+    - \fancyfoot[L]{Prof.Dr. Marwan Torki}
+    - \fancyfoot[R]{Eng. Karim Alaa}
     - \definecolor{codegreen}{rgb}{0,0.6,0}
     - \definecolor{codegray}{rgb}{0.5,0.5,0.5}
+    - \definecolor{white}{rgb}{1,1,1}
     - \definecolor{codepurple}{rgb}{0.58,0,0.82}
     - \definecolor{backcolour}{rgb}{0.95,0.95,0.92}
     - \lstdefinestyle{mystyle}{backgroundcolor=\color{backcolour}, commentstyle=\color{codegreen}, keywordstyle=\color{magenta}, numberstyle=\tiny\color{codegray}, stringstyle=\color{codepurple}, basicstyle=\ttfamily\footnotesize, breakatwhitespace=false, breaklines=true, captionpos=b, keepspaces=true, numbers=left, numbersep=5pt, showspaces=false, showstringspaces=false, showtabs=false, tabsize=2}
-    - \lstset{style=mystyle}
+    - \usepackage{caption}
+    - \DeclareCaptionFormat{listing}{\colorbox{gray!20}{\parbox{\dimexpr\linewidth-2\fboxsep\relax}{#1#2#3}}}
+    - \captionsetup[lstlisting]{format=listing, labelfont={color=white}, textfont={color=white}, singlelinecheck=false, margin=0pt, font={bf,footnotesize}}
+    - \lstset{style=mystyle, frame=single, frameround=tttt, rulecolor=\color{black}, numbers=none}
 ---
 
-# Alexandria University
-## Faculty of Engineering
-### Computer and Systems Engineering Department
+![](images/AlBasmala.jpeg)
 
-**Course:** CS221: Computer Programming 1  
-**Project:** Chess Engine Implementation in C  
-**Instructor:** [Prof.Dr. Marwan Torki]  
-**Submission Date:** December 24, 2025
+\begin{center}
 
-**Abd-El-Rhaman Mohamed Mohamed Seif (ID: 24010397)**
+Alexandria University
 
-**Omar Mohamed Abd-El-Mohsen (ID: 24010467)**
+Faculty of Engineering
+
+Computer and Systems Engineering Department
+
+Course: CS221: Computer Programming 1
+
+Project: Chess Engine Implementation in C
+
+Submission Date: December 26, 2025
+
+Abd-El-Rhaman Mohamed Mohamed Seif (ID: 24010397)
+
+Omar Mohamed Abd-El-Mohsen Moustafa (ID: 24010467)
+
+\end{center}
+
+\newpage
+
+\tableofcontents
 
 
 ---
 
 \newpage
 
-# Table of Contents
-
-1.  [Executive Summary](#executive-summary)
-2.  [Project Requirements & Scope](#project-requirements--scope)
-3.  [System Architecture](#system-architecture)
-    *   [High-Level Design](#high-level-design)
-    *   [Module Breakdown](#module-breakdown)
-    *   [File Structure](#file-structure)
-4.  [Data Structures & Memory Management](#data-structures--memory-management)
-    *   [The Board Representation](#the-board-representation)
-    *   [Dynamic History Stacks](#dynamic-history-stacks)
-    *   [Global Game State](#global-game-state)
-    *   [Memory Safety Strategy](#memory-safety-strategy)
-5.  [Algorithmic Implementation](#algorithmic-implementation)
-    *   [Move Validation Pipeline](#move-validation-pipeline)
-    *   [Check & Checkmate Detection](#check--checkmate-detection)
-    *   [Special Moves Logic](#special-moves-logic)
-    *   [FEN Serialization (Save/Load)](#fen-serialization-saveload)
-    *   [State Hashing (MD5)](#state-hashing-md5)
-6.  [User Interface Design](#user-interface-design)
-    *   [Raylib Integration](#raylib-integration)
-    *   [Input Handling](#input-handling)
-    *   [Visual Feedback Systems](#visual-feedback-systems)
-7.  [Build System & Portability](#build-system--portability)
-8.  [Testing & Debugging](#testing--debugging)
-9.  [User Manual](#user-manual)
-10. [Conclusion & Future Work](#conclusion--future-work)
-11. [References](#references)
-
----
-
-\newpage
 # 1. Executive Summary
 
 The objective of this project was to design and implement a fully functional Chess game using the C programming language. While the initial academic requirements specified a console-based application using ASCII characters, our team identified an opportunity to apply advanced software engineering principles by developing a graphical application.
 
-We utilized the **Raylib** game programming library to create a hardware-accelerated 2D interface. The resulting application is not merely a visual upgrade but a complete rewrite of the standard chess engine logic to support **event-driven programming**.
+We utilized the **Raylib** game programming library to create a **hardware-accelerated** 2D interface. The resulting application is not merely a visual upgrade but a complete rewrite of the standard chess engine logic to support **event-driven programming**.
 
 Key achievements include:
 *   **Robust Engine:** A move validation system that strictly adheres to FIDE laws of chess, including complex edge cases like En Passant, Castling, and Promotion.
+
 *   **Persistence:** Implementation of the Forsyth–Edwards Notation (FEN) standard, allowing game states to be saved to disk and loaded seamlessly.
+
 *   **Dynamic Memory:** Usage of dynamic arrays (stacks) for unlimited Undo/Redo history and unlimited **Dynamic Hash Array**, demonstrating proficiency in manual memory management (`malloc`/`free`).
+
 *   **Cross-Platform Build:** A CMake-based build system that automatically fetches dependencies, ensuring the project compiles on Linux, Windows, and macOS without manual library configuration (**important note** we provide a Makefile that isn't made by Cmake or any other build system but it is made only for linux and you may need to install some dependencies but we tried to make the project as self contained as possible and included the library files in the project).
 
 This report details the design decisions, algorithmic challenges, and implementation details of the Raylib Chess Engine.
@@ -92,19 +87,30 @@ This report details the design decisions, algorithmic challenges, and implementa
 
 ## 2.1 Core Requirements (Academic)
 The original assignment mandated the following:
+
 1.  **Game Loop:** A continuous loop alternating between Player 1 (White) and Player 2 (Black).
+
 2.  **Move Input:** Parsing coordinate-based input (e.g., "E2E4").
+
 3.  **Validation:** Ensuring moves follow piece-specific rules and do not endanger the King.
+
 4.  **Special States:** Detection of Check, Checkmate, and Stalemate.
+
 5.  **Save/Load:** Ability to serialize the game state to a file.
+
 6.  **Undo/Redo:** Ability to revert moves.
 
 ## 2.2 Extended Scope (Team Goals)
 To exceed expectations and demonstrate mastery of C, we expanded the scope:
+
 1.  **GUI Implementation:** Replacing `printf`/`scanf` with a graphical window, mouse input, and texture rendering.
+
 2.  **Standard Compliance:** Using FEN strings instead of custom binary formats for saving.
+
 3.  **Visual Feedback:** Highlighting valid moves, the last move made, and the King in check.
+
 4.  **Audio:** Integrating sound effects for tactile feedback.
+
 5.  **Safety:** Ensuring zero crashes via rigorous pointer checking and boundary validation.
 
 ---
@@ -125,10 +131,11 @@ The application follows a variation of the **Model-View-Controller (MVC)** patte
 | **Core** | `main.c`, `main.h` | Entry point, window initialization, main loop, event polling. |
 | **Logic** | `move.c`, `move.h` | Move validation, execution, checkmate detection, special rules. |
 | **Render** | `draw.c`, `draw.h` | Drawing board, pieces, highlights, and UI overlays. |
-| **IO** | `save.c`, `load.c` | FEN string generation and parsing. |
+| **IO** | `save.c`, `save.h`,`load.c`, `load.h` | FEN string generation and parsing. |
 | **Data** | `stack.c`, `stack.h` | Dynamic stack implementation for history. |
 | **Utils** | `utils.c`, `utils.h` | High-level helpers (Restart, Load Game). |
 | **Hash** | `hash.c`, `hash.h` | MD5 hashing for board state repetition detection. |
+| **Colors** | `colors.c`, `colors.h` | basic color data for all the game in one place for ease of change. |
 | **Config** | `settings.h` | Compile-time constants (screen size, colors, rules). |
 
 ## 3.3 File Structure
@@ -139,13 +146,27 @@ The project is organized to separate source code, headers, and assets.
 |-- CMakeLists.txt       # Build configuration
 |-- Makefile             # Legacy build script
 |-- README.md            # Documentation
-|-- assets/              # PNG images and WAV sounds
-|   |-- pawnW.png
-|   |-- kingB.png
+|-- REPORT.md            # The markdown to generate this report.
+|-- .gitignore           # Necessary for useable VCS.
+|-- tasks.todo           # Helps the team members know what have and haven't been done.           
+|-- assets/              # PNG images and mp3 sounds
+|   |-- pieces/
+|   |   |-- pawnW.png
+|   |   |-- kingB.png
+|   |   |-- ..
+|   |-- sound/
+|   |   |-- Capture.mp3
+|   |   |-- Move.mp3
+|   |   |-- ..
+|   |
+|   |-- icon.png
 |   `-- ...
 |-- includes/            # External library headers
 |   |-- raygui.h
+|   `-- raylib.h
 |   `-- style_amber.h
+|-- saves/      
+|   |-- youChooseTheName.fen
 `-- src/                 # Source code
     |-- main.c
     |-- move.c
@@ -240,7 +261,8 @@ To enforce the **Threefold Repetition Rule** (a draw occurs if the exact same bo
 
 Instead, we implemented a **Dynamic Hash Array** that stores 128-bit MD5 hashes of the board state.
 
-### Structure
+**Structure**
+
 Similar to the move stack, this array grows dynamically as the game progresses, ensuring we never run out of space for long games.
 
 ```c
@@ -323,6 +345,25 @@ MD5 hashing is used to detect repeated states (threefold repetition rule):
 
 # 6. User Interface Design
 
+The user interface was designed with modern UX principles in mind, prioritizing clarity and ease of use. Unlike traditional console chess engines, our graphical interface provides a rich, interactive experience. The board and pieces are rendered with high-quality assets, and the layout is designed to be responsive and centered, regardless of window size.
+
+We focused on minimizing cognitive load by using visual cues for valid moves and game states. The color palette is chosen to be easy on the eyes during long play sessions, utilizing the "Amber" theme for a consistent look.
+
+![Main Game Interface](images/ui_main.png)
+*Figure 1: The main game interface showing the board and control panel.*
+
+![Valid Move Highlights](images/ui_highlights.png)
+*Figure 2: Visual feedback showing valid moves for a selected piece.*
+
+![Important Events](images/ui_events.png)
+*Figure 3: A small overlay that tells the player important Game changes.*
+
+![Different Themes](images/ui_theme.png)
+*Figure 4: A variety of themes are available, allowing users to customize the visual experience to their preference.*
+
+![Debug menu](images/ui_debug.png)
+*Figure 5: The debug menu.*
+
 ## 6.1 Raylib Integration
 
 Raylib is integrated as the primary graphics and input handling library:
@@ -343,6 +384,7 @@ Input handling is centralized in the `main.c` file:
     *   `Ctrl + R`: Hide ranks and files.
     *   `ESC`: Exit the game and close open popup windows.
     *   `F5`: Show debug menu.
+
 ## 6.3 Visual Feedback Systems
 
 To ensure a smooth user experience, the engine provides immediate visual feedback for every interaction. This is handled in the `draw.c` module, which overlays graphical elements on top of the board state.
@@ -358,12 +400,12 @@ Beyond visuals, the application integrates audio cues to provide tactile feedbac
 *   **Move Sound:** A subtle "thud" plays on standard moves.
 *   **Capture Sound:** A distinct, sharper sound plays when a piece is removed from the board.
 *   **Check Sound:** An alert sound plays when a King is placed in check.
-*   **Checkmate:** it's said in human voice.
+*   **Checkmate:** A voiceover announces "Checkmate" upon game completion.
 
 ## 6.5 Adaptive Layout & Responsive Design
 
-A key requirement for modern applications is the ability to handle different screen resolutions. Our engine does not rely on hardcoded pixel coordinates. Instead, it implements a **dynamic layout system**:
-.
+A key requirement for modern applications is the ability to handle different screen resolutions. Our engine does not rely on hardcoded pixel coordinates. Instead, it implements a **dynamic layout system**.
+
 *   **Board Centering:** The board's position is recalculated every frame based on the current window dimensions.
     This ensures that whether the window is 800x600 or 1920x1080, the game board remains perfectly centered.
 
@@ -375,21 +417,52 @@ To separate the application's logic from its aesthetic presentation, we utilized
 
 *   **Style Abstraction:** Instead of hardcoding colors (e.g., `RED`, `BLUE`) into the drawing functions, the UI components reference a style definition file.
 *   **Amber Theme:** We integrated the `style_amber.h` header, which defines a cohesive color palette (warm oranges and dark grays) and font properties for all interactive elements.
-*   **Extensibility:** This architecture allows for "skinning" the application. Changing the entire look and feel of the game 
+*   **Extensibility:** This architecture allows for "skinning" the application. Changing the entire look and feel of the game is as simple as swapping the style header.
+
+## 6.7 Modal Dialogs & Popups
+
+To handle complex interactions without cluttering the main game screen, we implemented a custom modal dialog system. These popups overlay the game board, focusing user attention on specific tasks:
+
+*   **Save/Load Game:** A file dialog allows users to type filenames for saving or loading game states.
+*   **FEN Input:** A dedicated text input box lets users paste FEN strings to set up custom board positions instantly.
+*   **Promotion Selection:** When a pawn reaches the opposite end, a modal appears forcing the player to choose a promotion piece (Queen, Rook, Bishop, Knight) before the game proceeds.
+*   **Game Over:** A summary screen displays the result (Checkmate, Stalemate, Draw) and offers options to restart or exit.
+
+![Save](images/ui_save.png)
+*Figure 6: Save Game PopUp menu.*
+
+![Over Write](images/ui_overWrite.png)
+*Figure 7: Overwrite Confirmation Dialog.*
+
+![Load](images/ui_load.png)
+*Figure 8: Load Game PopUp menu.*
+
+These dialogs block interaction with the underlying board until dismissed, ensuring state consistency.
+
+(We will skip other dialogs because We don't want to take too long.)
+
 ---
 
 # 7. Build System & Portability
 
-The project uses CMake as the primary build system:
+The project uses **Make** as the primary build system and at the end we added **CMake** for other people to be able to test our work.
+
+## Makefile
+
+*   **Advanced Makefile:** it handles building automatically with different build modes and builds only what's necessary.
+
+![Build System](images/buildSys.png)
+*Figure 9: Sophisticated build system with make to have different types of build and build the files that you need only.*
+
+---
+
+## CMake
 
 *   **CMake Configuration:** A `CMakeLists.txt` file in the root directory configures the build, specifying source files, include directories, and linked libraries.
+
 *   **Dependency Management:** External dependencies (e.g., Raylib) are fetched and built automatically.
+
 *   **Multi-Platform Support:** The CMake configuration supports building on Windows, macOS, and Linux.
-
-Legacy support for Makefile-based builds is also provided:
-
-*   A `Makefile` in the root directory allows building the project using `make` commands.
-*   This is primarily for environments where CMake is not available.
 
 ---
 
@@ -399,6 +472,10 @@ Testing and debugging were integral to the development process:
 
 *   **Integration Testing:** Ensured that all modules (logic, rendering, input) work together seamlessly.
 *   **Debugging Tools:** Utilized GDB, Valgrind, ASAN and UBSAN for debugging and memory leak detection.
+
+
+![Debugging](images/debug.png)
+*Figure 10: Omar having fun time debugging the `RecordMove` function.*
 
 ---
 
@@ -410,20 +487,32 @@ To install the Raylib Chess Engine:
 
 1.  Clone the repository:
     ```sh
+
     git clone https://github.com/OmarMohamed26/ChessProject chess
+
     cd chess
     ```
 
 2.  Build using CMake:
+
+    *(If you want the debug build use  cmake .. -DCMAKE_BUILD_TYPE=Debug)*
+
     ```sh
-    mkdir build
-    cd build
+
+    mkdir CMakeBuild
+
+    cd CMakeBuild
+
     cmake .. -DCMAKE_BUILD_TYPE=Release
-    make -j{core number}
+
+    make -j{number}
     ```
 
 3.  Run the game:
+    *(or ./debugChess If you built in debug mode.)*
+
     ```sh
+
     ./chess
     ```
 
@@ -434,7 +523,7 @@ To install the Raylib Chess Engine:
 
 *   **Keyboard:**
     *   `Ctrl+Z`: Undo
-    *   `Ctrl+Y`: Redo
+    *   `Ctrl+ Shift + Z`: Redo
 
 ---
 
@@ -444,23 +533,24 @@ The Raylib Chess Engine project successfully met its objectives, delivering a ro
 
 *   **AI Opponent:** Implementing a computer player using minimax algorithm with alpha-beta pruning.
 *   **Online Multiplayer:** Enabling play over the internet using a client-server architecture.
-*   **Advanced Graphics:** Enhancing visuals with shaders and more detailed sprites.
 
 ---
 
 # 11. References
 
-1.  Raylib Documentation: [raylib.com](https://www.raylib.com/)
-2.  FEN Specification: [en.wikipedia.org/wiki/Forsyth–Edwards_Notation](https://en.wikipedia.org/wiki/Forsyth%E2%80%93Edwards_Notation)
-3.  MD5 Algorithm: [en.wikipedia.org/wiki/MD5](https://en.wikipedia.org/wiki/MD5)
-4.  Chess Programming Wiki: [chessprogramming.org](https://www.chessprogramming.org/)
+1.  Raylib Documentation: [**Raylib**](https://www.raylib.com/)
+2.  FEN Specification: [Wikipedia Forsyth–Edwards_Notation](https://en.wikipedia.org/wiki/Forsyth%E2%80%93Edwards_Notation)
+3.  MD5 Algorithm: [Wikipedia MD5](https://en.wikipedia.org/wiki/MD5)
+4.  Chess Programming Wiki: [chessprogramming](https://www.chessprogramming.org/)
 5. chess.com [chess.com](https://www.chess.com/)
+6.  **FIDE Laws of Chess:** [**FIDE** rules](https://handbook.fide.com/chapter/E012023)
+7.  **Valgrind User Manual:** [valgrind docs](https://valgrind.org/docs/manual/6)
 
 ---
 
-\newpage
-
 # 12. Appendices
+
+*(Note: We don't list all of the functions here because that would be too much but only the most important ones)*
 
 ## Appendix A: Core Data Structures (`main.h`)
 
@@ -555,22 +645,181 @@ bool IsStackEmpty(MoveStack *stack);
 ## Appendix C: Key Logic Prototypes (move.h)
 
 ```c
-/* Validates if a move from (r1,c1) to (r2,c2) is legal */
-/* checkTurn: If true, ensures piece belongs to current player */
-bool ValidateMove(int r1, int c1, int r2, int c2, bool checkTurn);
+/**
+ * move.h
+ *
+ * Responsibilities:
+ * - Export functions for moving pieces, validating moves, and managing game state.
+ * - Includes prototypes for move execution, validation, simulation, and undo/redo.
+ */
 
-/* Executes a move on the board, updating state and flags */
-void MakeMove(Move *move);
+/* Executes a move on the board, handling captures and special rules */
+void MovePiece(int initialRow, int initialCol, int finalRow, int finalCol);
 
-/* Checks if the King of the specified team is currently under attack */
-bool IsKingInCheck(Team team);
+/* Clears a cell and unloads its texture */
+void SetEmptyCell(Cell *cell);
 
-/* Validates Castling moves specifically */
+/* Computes raw geometric moves for a piece (primary validation) */
+void PrimaryValidation(PieceType Piece, int CellX, int CellY, bool selected);
+
+/* Helper for geometric validation of specific piece types */
+void MoveValidation(int CellX, int CellY, PieceType type, Team team, bool moved);
+
+/* Filters primary moves to ensure they don't leave the King in check */
+void FinalValidation(int CellX, int CellY, bool selected);
+
+/* Scans all enemy pieces to mark squares they attack (vulnerable) */
+void ScanEnemyMoves();
+
+/* Checks if the current player's King is under attack */
+void CheckValidation();
+
+/* Checks if a simulated move results in the King being under attack */
+void SimCheckValidation();
+
+/* Helper for sliding pieces (Rook, Bishop, Queen) */
+bool HandleLinearSquare(int row, int col, Team team);
+
+/* Helper for Pawn movement logic */
+void HandlePawnMove(int CellX, int CellY, Team team, bool moved);
+
+/* Helper for Knight movement logic (single square) */
+void HandleKnightSquare(int row, int col, Team team);
+
+/* Helper for Knight movement logic (all 8 squares) */
+void HandleKnightMove(int CellX, int CellY, Team team);
+
+/* Helper for King movement logic */
+void HandleKingMove(int CellX, int CellY, Team team);
+
+/* Simulates a move on the board (without graphics/sound) */
+void MoveSimulation(int CellX1, int CellY1, int CellX2, int CellY2, PieceType piece);
+
+/* Reverts a simulated move */
+void UndoSimulation(int CellX1, int CellY1, int CellX2, int CellY2, PieceType piece1, PieceType piece2, Team team2);
+
+/* Checks if a player has any legal moves to escape check */
+bool CheckmateFlagCheck(Team playerTeam);
+
+/* Validates if the game is in Checkmate */
+void CheckmateValidation();
+
+/* Validates if the game is in Stalemate */
+void StalemateValidation();
+
+/* Promotes a pawn to the selected piece type */
+void PromotePawn(PieceType selectedType);
+
+/* Validates Castling moves */
 void PrimaryCastlingValidation();
 
-/* Validates En Passant moves specifically */
+/* Validates En Passant moves */
 void PrimaryEnpassantValidation(int row, int col);
 
-/* Central routine to update game state (Checkmate, Stalemate, etc.) */
-void ResetsAndValidations();
+/* Undoes the last move */
+void UndoMove(void);
+
+/*Redo the last move*/
+void RedoMove(void);
+```
+
+## Appendix D: Rendering Interface (draw.h)
+
+The interface responsible for all graphical output, resource management, and layout calculations.
+
+```c
+typedef enum LoadPlace
+{
+    GAME_BOARD = 0,
+    DEAD_WHITE_PIECES,
+    DEAD_BLACK_PIECES,
+} LoadPlace;
+
+/* Render board and pieces for the provided color theme index. */
+void DrawBoard(int ColorTheme, bool showFileRank);
+
+/* Load a piece texture for cell (row,col). squareLength selects texture size. */
+void LoadPiece(int row, int col, PieceType type, Team team, LoadPlace place);
+
+/* Initialize the chess board to have appropriate starting values */
+void InitializeBoard(void);
+
+/* Initialize the DeadPieces to have appropriate starting values */
+void InitializeDeadPieces(void);
+
+/* Run after the game finishes or you want a new game to prevent memory leaks and flush the board */
+void UnloadBoard(void);
+
+/* Run after the game finishes or you want a new game to prevent memory leaks and flush the DeadPieces */
+void UnloadDeadPieces(void);
+
+/* Highlight a single square */
+void HighlightSquare(int row, int col, int ColorTheme);
+
+/* Highlights The piece when hovering over it */
+void HighlightHover(int ColorTheme);
+
+/* Compute the pixel size of a single board square using current render dimensions. */
+int ComputeSquareLength(void);
+
+/* Highlight valid moves for the selected piece */
+void HighlightValidMoves(bool selected);
+
+/* Updates the border highlight for the destination of the last move made. */
+void UpdateLastMoveHighlight(int row, int col);
+
+/* Renders an overlay with debug information */
+void DrawDebugInfo(void);
+```
+
+## Appendix E: Hashing capabilities to detect 3-fold repetition (hash.h)
+
+The interface responsible for all graphical output, resource management, and layout calculations.
+
+```c
+/**
+ * Hash
+ *
+ * Represents a 128-bit hash value (MD5 result).
+ * Used to compare board states efficiently.
+ */
+
+typedef struct
+{
+    uint32_t data[4];
+} Hash;
+
+/**
+ * DynamicHashArray
+ *
+ * A resizable array container for Hash objects.
+ * Used to store the history of all board positions in the current game.
+ */
+typedef struct
+{
+    Hash *hashArray; // Pointer to the heap-allocated array
+    size_t size;     // Current number of elements
+    size_t capacity; // Total allocated slots
+} DynamicHashArray;
+
+/* Allocates and initializes a new DynamicHashArray */
+DynamicHashArray *InitializeDHA(size_t capacity);
+
+/* Frees the array and the structure itself */
+void FreeDHA(DynamicHashArray *DHA);
+
+/* Resets the count to 0 (does not free memory) */
+void ClearDHA(DynamicHashArray *DHA);
+
+/* Checks if 'currentHash' exists at least twice in the history */
+bool IsRepeated3times(DynamicHashArray *DHA, Hash currentHash);
+
+/* Adds a hash to the history, expanding if necessary */
+bool PushDHA(DynamicHashArray *DHA, Hash hash);
+
+/* Removes the last hash (for undo operations) */
+Hash PopDHA(DynamicHashArray *DHA);
+
+/* Computes the hash of the current game state */
+Hash CurrentGameStateHash(void);
 ```

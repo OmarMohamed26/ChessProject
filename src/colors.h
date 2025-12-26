@@ -38,7 +38,7 @@
 
 // --- UI & Highlight Colors ---
 
-#define BACKGROUND CLITERAL(Color){48, 46, 43, 255}
+// #define BACKGROUND CLITERAL(Color){48, 46, 43, 255} // This was used before we added the amber style it's no longer needed
 #define FONT_COLOR RAYWHITE
 
 // Highlight for the currently selected piece's square

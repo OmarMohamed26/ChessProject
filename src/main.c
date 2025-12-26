@@ -573,7 +573,7 @@ void HandleGui(void)
         int result = GuiMessageBox(
             (Rectangle){
                 ((float)GetScreenWidth() / 2) - (POPUP_OVERWRITE_WIDTH / 2.0F),
-                ((float)GetScreenHeight() / 2) - (POPUP_OVERWRITE_HEIGHT / 2.0F),
+                ((float)GetScreenHeight() / 2) - (POPUP_OVERWRITE_HEIGHT / 2.0F - 50),
                 POPUP_OVERWRITE_WIDTH,
                 POPUP_OVERWRITE_HEIGHT},
             GuiIconText(ICON_WARNING, "File Exists"),
@@ -592,7 +592,7 @@ void HandleGui(void)
             showOverwriteDialog = false;
             state.isInputLocked = false; // Unfreeze
         }
-        else if (result == 0) // No
+        else if (result == 0 || result == 2) // No
         {
             showOverwriteDialog = false;
             state.isInputLocked = false;
@@ -717,7 +717,7 @@ void HandleGui(void)
         int result = GuiMessageBox(
             (Rectangle){
                 ((float)GetScreenWidth() / 2) - (POPUP_WRONG_FEN_WIDTH / 2.0F),
-                ((float)GetScreenHeight() / 2) - (POPUP_WRONG_FEN_HEIGHT / 2.0F),
+                ((float)GetScreenHeight() / 2) - (POPUP_WRONG_FEN_HEIGHT / 2.0F) - 50,
                 POPUP_WRONG_FEN_WIDTH,
                 POPUP_WRONG_FEN_HEIGHT},
             GuiIconText(ICON_WARNING, "Invalid FEN"),
